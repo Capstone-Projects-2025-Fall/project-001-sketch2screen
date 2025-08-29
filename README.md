@@ -38,6 +38,6 @@ Discuss what you need to develop this project. This includes background informat
 <div align="center">
 
 [//]: # (Replace with your collaborators)
-[Seunghun Lee](https://github.com/edicyl) • [Kyle Dragon Lee](https://github.com/leekd99)
+[Seunghun Lee](https://github.com/edicyl) • [Wenhao Yang](https://github.com/Iderad)
 
 </div>

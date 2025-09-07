@@ -10,7 +10,7 @@ This document proposes an AI-powered collaborative web application that converts
 
 Users can collaborate in real time, sketching interface elements that the system repurposes and converts into structured UI components with the assistance of a Large Language Model (LLM). These components can then be refined and exported as production-ready code. The primary purpose of the application is to empower non-programmers to create websites using their imagination and minimal coding knowledge, thereby lowering the barrier to entry for web development.
 
-##Conceptual Design
+## Conceptual Design
 
 The frontend of the application will feature a collaborative blank canvas where individual users or teams can sketch interface elements using built-in drawing tools. Once the sketches are complete, the user can select “Generate,” prompting the AI model to convert the drawings into design mockups along with the corresponding CSS and code.
 
@@ -18,7 +18,7 @@ The system will provide multiple design options for each sketched component. Use
 
 This workflow allows teams to rapidly prototype and iterate on designs, increasing efficiency and fostering collaboration. By bridging sketches with AI-driven code generation, the application significantly reduces the effort required to translate ideas into tangible, functional interfaces.
 
-##Background
+## Background
 
 Several existing industry tools—such as FigJam, Canva, and ConceptBoard—enable users to create no-code designs by manipulating shapes, colors, and text. While these applications improve efficiency and facilitate brainstorming, their outputs are generally limited to static images, which still require manual coding to embed into a website. Additionally, these platforms do not leverage AI for sketch-to-design conversion, making the design process more labor-intensive.
 

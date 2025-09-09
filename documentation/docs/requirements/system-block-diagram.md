@@ -36,7 +36,8 @@ flowchart TB
     mockup-->restyle-->processStyle-->database
     sendMockup-->database
     restyle~~~drawing
-    database~~~processStyle
+    database~~~sendMockup
+    backend~~~frontend
 ```
 
 ## Manually Drawn

@@ -35,6 +35,8 @@ flowchart TB
     requestMockup-->generateMockup-->fileExport-->agent-->sendMockup-->mockup
     mockup-->restyle-->processStyle-->database
     sendMockup-->database
+    restyle~~~drawing
+    database~~~processStyle
 ```
 
 ## Manually Drawn

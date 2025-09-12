@@ -1,0 +1,59 @@
+.navbar {
+  width: 100%;
+  height: 5em;
+  background-color: deepskyblue;
+
+  padding: 1em;
+  box-sizing: border-box;
+
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  font-size: xx-large;
+  margin-right: 2em;
+}
+
+.filename {
+  font-size: large;
+}
+
+.pageSwitcher {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.pageSwitchButton {
+  border: none;
+  height: 2em;
+  border-radius: 1em;
+  width: 10em;
+  margin-right: 2em;
+  background-color: mediumpurple;
+  color: white;
+  font-size: medium;
+}
+
+.pageSwitchButton:hover, .pageSwitchSelected {
+  background-color: purple;
+  cursor: pointer;
+}
+
+.collabButtonPair {}
+
+.collabButton {
+  border: none;
+  border-radius: 2em;
+  box-sizing: border-box;
+
+  font-size: medium;
+
+  height: 4em;
+  width: 13em;
+
+  margin-right: 2em;
+
+  background-color: white;
+}

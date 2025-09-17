@@ -1,3 +1,27 @@
+/* App shell so navbar stays and content fills viewport */
+.appRoot {
+  height: 100vh;            /* full viewport height */
+  display: flex;
+  flex-direction: column;   /* navbar on top, content below */
+}
+
+/* main content area under navbar (hosts the canvas) */
+.main {
+  flex: 1;                  /* fill remaining space */
+  min-height: 0;            /* IMPORTANT: prevents page from scrolling */
+  display: flex;            /* let inner page fill height */
+  overflow: hidden;         /* stop page-level scroll so Excalidraw toolbar stays visible */
+}
+
+/* Drawing container fills the space under the navbar */
+.canvas {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;         /* keep interactions from scrolling the page */
+}
+
+/* === Your existing styles, with navbar made sticky === */
 .navbar {
   width: 100%;
   height: 5em;
@@ -8,6 +32,10 @@
 
   display: flex;
   align-items: center;
+
+  position: sticky;  /* keep navbar visible */
+  top: 0;
+  z-index: 100;
 }
 
 .logo {

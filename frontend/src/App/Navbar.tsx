@@ -1,9 +1,22 @@
 import {Page} from "./App.tsx"
-
+import React from "react";
 import styles from "./App.module.css"
 
-export default function Navbar({curPage, onPageChange} : {curPage: Page, onPageChange: () => Page}) {
-  return <div className={styles.navbar}>
+type Props = {
+  curPage: Page;
+  onPageChange: (p: Page) => void;
+  filename?: string;
+  onStartCollab?: () => void;
+  onGenerate?: () => void; // new prop
+};
+
+export default function Navbar({curPage, onPageChange, filename = "untitled.sketch", onStartCollab, onGenerate} : Props) {
+  const btn = (selected: boolean) =>
+    [styles.pageSwitchButton, selected ? styles.pageSwitchSelected : ""]
+      .filter(Boolean)
+      .join(" ");
+      
+  return<div className={styles.navbar}>
     <div className={styles.logo}>
       Sketch2Screen
     </div>
@@ -25,10 +38,10 @@ export default function Navbar({curPage, onPageChange} : {curPage: Page, onPageC
       </button>
     </div>
     <div className={styles.collabButtonPair}>
-      <button className={styles.collabButton}>
+      <button className={styles.collabButton} onClick={onStartCollab}>
         Collaborate
       </button>
-      <button className={styles.collabButton}>
+      <button className={styles.collabButton} onClick={onGenerate}>
         Generate
       </button>
     </div>

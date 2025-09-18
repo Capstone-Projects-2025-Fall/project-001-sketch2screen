@@ -1,10 +1,9 @@
-import styles from "./App.module.css"
+import styles from "./App.module.css";
+import React, { useRef, useState } from "react";
 
-import {useState} from "react"
-
-import Navbar from "./Navbar"
-import Drawing from "./Drawing"
-import Mockup from "./Mockup"
+import Navbar from "./Navbar";
+import Drawing, { DrawingHandle } from "./Drawing";
+import Mockup from "./Mockup";
 
 export enum Page {
   Drawing,
@@ -12,11 +11,28 @@ export enum Page {
 }
 
 export default function App() {
-  let [currentPage, setCurrentPage] = useState(Page.Drawing)
+  const [currentPage, setCurrentPage] = useState(Page.Drawing);
+  const drawingRef = useRef<DrawingHandle | null>(null);
 
-  return <>
-    <Navbar curPage={currentPage} onPageChange={setCurrentPage}/>
-    {(currentPage == Page.Drawing) && <Drawing/>}
-    {(currentPage == Page.Mockup) && <Mockup/>}
-  </>
+  const handleGenerate = async () => {
+    // Use the built-in exporter wrapped inside Drawing.
+    await drawingRef.current?.exportPNGInNewTab?.();
+  };
+
+  return (
+    <div className={styles.appRoot}>
+      <Navbar
+        curPage={currentPage}
+        onPageChange={setCurrentPage}
+        onGenerate={handleGenerate}
+        filename="untitled.sketch"
+      />
+      <div className={styles.main}>
+        {currentPage === Page.Drawing && (
+          <Drawing ref={drawingRef} className={styles.canvas} />
+        )}
+        {currentPage === Page.Mockup && <Mockup />}
+      </div>
+    </div>
+  );
 }

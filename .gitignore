@@ -1,6 +1,9 @@
 # Generated files
 .docusaurus
 
+# Local development files
+CLAUDE.md
+
 # Misc
 .DS_Store
 .env.local

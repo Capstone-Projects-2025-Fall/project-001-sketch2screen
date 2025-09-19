@@ -1,9 +1,10 @@
 import styles from "./App.module.css";
-import React, { useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import Navbar from "./Navbar";
-import Drawing, { DrawingHandle } from "./Drawing";
+import type { DrawingHandle } from "./Drawing";
 import Mockup from "./Mockup";
+import Drawing from "./Drawing";
 
 export enum Page {
   Drawing,

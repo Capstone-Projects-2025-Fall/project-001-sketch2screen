@@ -1,5 +1,5 @@
 import {Page} from "./App.tsx"
-import React from "react";
+//import React from "react";
 import styles from "./App.module.css"
 
 type Props = {
@@ -11,17 +11,18 @@ type Props = {
 };
 
 export default function Navbar({curPage, onPageChange, filename = "untitled.sketch", onStartCollab, onGenerate} : Props) {
+  /*
   const btn = (selected: boolean) =>
     [styles.pageSwitchButton, selected ? styles.pageSwitchSelected : ""]
       .filter(Boolean)
       .join(" ");
-      
+      */
   return<div className={styles.navbar}>
     <div className={styles.logo}>
       Sketch2Screen
     </div>
     <div className={styles.filename}>
-      [File Name]
+      {filename}
     </div>
     <div className={styles.pageSwitcher}>
       <button 

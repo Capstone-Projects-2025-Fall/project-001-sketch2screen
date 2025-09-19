@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render
 import json
 
 @csrf_exempt
@@ -21,3 +22,6 @@ def generate_mockup(request):
             'mockup_id': 'mock_123'
         })
     return JsonResponse({'error': 'Method not allowed'}, status=405)
+
+def frontend(request):
+    return render(request, 'frontend/src/index.html')

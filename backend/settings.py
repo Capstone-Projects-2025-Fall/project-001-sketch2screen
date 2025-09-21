@@ -17,7 +17,8 @@ SECRET_KEY = get_random_secret_key()
 # Paths
 BASE_DIR = Path(__file__).resolve().parent       # => .../backend
 PROJECT_ROOT = BASE_DIR.parent                   # => repo root (has templates/, frontend/)
-
+CLAUDE_API_KEY = PROJECT_ROOT / "APIkey.txt"
+CLAUDE_MODEL = "claude-sonnet-4-20250514"
 # Debug
 DEBUG = True   # switch to False in production
 ALLOWED_HOSTS = ["*"]  # tighten this in production
@@ -30,6 +31,8 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.sessions",
     "django.contrib.messages",
+    "corsheaders",
+    "rest_framework",
 
     # Static files
     "whitenoise.runserver_nostatic",
@@ -52,6 +55,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "corsheaders.middleware.CorsMiddleware",
 ]
 
 # Templates
@@ -66,6 +70,15 @@ TEMPLATES = [{
         "django.contrib.messages.context_processors.messages",
     ]},
 }]
+
+#Rest Framework
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        "rest_framework.parsers.JSONParser",
+        "rest_framework.parsers.FormParser",
+        "rest_framework.parsers.MultiPartParser",
+    ]
+}
 
 # WSGI
 WSGI_APPLICATION = "backend.wsgi.application"

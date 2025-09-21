@@ -7,52 +7,55 @@ import React, {
 import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 
+//With this type App.tsx can request the current sketch as a PNG Blob.
 export type DrawingHandle = {
-  exportForBackend: () => Promise<void>;
-  exportPNGDownload: () => Promise<void>;
-  getPNGDataURL: () => Promise<string | null>;
-  exportPNGInNewTab: () => Promise<void>; // open a tab and show PNG
+  getPNGBlob: () => Promise<Blob | null>;
 };
 
+//Props that can be passed into <Drawing />
 export interface DrawingProps {
-  onExportImage?: (pngDataUrl: string) => void;
   className?: string;
   width?: number;
   height?: number;
 }
 
-// Infer Excalidraw API type from prop (version-safe)
+//Object that gives us access to Excalidraw's API methods.
 type ExcalidrawAPI = NonNullable<
   Parameters<
     NonNullable<React.ComponentProps<typeof Excalidraw>["excalidrawAPI"]>
   >[0]
 >;
 
-function blobToDataURL(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const fr = new FileReader();
-    fr.onloadend = () => resolve(fr.result as string);
-    fr.onerror = reject;
-    fr.readAsDataURL(blob);
-  });
-}
+//Component implementation
+
 
 const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
-  { onExportImage, className, width, height },
+  { className, width, height },
   ref
 ) {
+  //Reference to ExcalidrawAPI
   const excaliRef = useRef<ExcalidrawAPI | null>(null);
 
+  //Exports the current sketch as a PNG Blob.
+  //Helper function
   const getPNGBlob = useCallback(async (): Promise<Blob | null> => {
     const api = excaliRef.current;
     if (!api) return null;
 
+    //Get everything user has drawn
     const elements = api.getSceneElements();
+    if (!elements || !elements.length){
+      console.log("No elements to export");
+      return null;
+    }
+
+    //Capture background color, theme and etc
     const appState = api.getAppState();
+    //Capture embedded files (images)
     const files = api.getFiles?.() ?? {};
 
     // Built-in export with white background
-    const blob = await exportToBlob({
+    return await exportToBlob({
       elements,
       appState: {
         ...appState,
@@ -64,9 +67,46 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
       quality: 1,
       backgroundColor: "white",
     });
-    return blob;
   }, []);
 
+
+  useImperativeHandle(ref, () => ({
+    getPNGBlob,
+  }));
+
+
+  
+ 
+  return (
+    <div
+      className={className}
+      style={{
+        width: width ?? "100%",
+        height: height ?? "100%", // fill the area under navbar
+      }}
+    >
+      <Excalidraw
+        excalidrawAPI={(api) => {
+          excaliRef.current = api;
+        }}
+        UIOptions={{
+          canvasActions: {
+            changeViewBackgroundColor: false,
+            loadScene: false,
+            saveAsImage: false,
+            export: false,
+            toggleTheme: false,
+          },
+        }}
+      />
+    </div>
+  );
+});
+
+export default Drawing;
+
+
+/*
   const exportForBackend = useCallback(async () => {
     const blob = await getPNGBlob();
     if (!blob) return;
@@ -75,6 +115,7 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
     await fetch("/api/generate/", { method: "POST", body: form });
   }, [getPNGBlob]);
 
+  
   const exportPNGDownload = useCallback(async () => {
     const blob = await getPNGBlob();
     if (!blob) return;
@@ -89,12 +130,14 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
     URL.revokeObjectURL(url);
   }, [getPNGBlob, onExportImage]);
 
+
   const getPNGDataURL = useCallback(async () => {
     const blob = await getPNGBlob();
     if (!blob) return null;
     return await blobToDataURL(blob);
   }, [getPNGBlob]);
-
+  */
+  /*
   // MOST ROBUST: open a tab first, then navigate it to the blob URL
   const exportPNGInNewTab = useCallback(async () => {
     // Open early to avoid popup blockers
@@ -125,39 +168,5 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
     }
     // Clean up when the tab closes
     w.addEventListener("beforeunload", () => URL.revokeObjectURL(url));
-  }, [getPNGBlob]);
+  }, [getPNGBlob]);*/
 
-  useImperativeHandle(ref, () => ({
-    exportForBackend,
-    exportPNGDownload,
-    getPNGDataURL,
-    exportPNGInNewTab,
-  }));
-
-  return (
-    <div
-      className={className}
-      style={{
-        width: width ?? "100%",
-        height: height ?? "100%", // fill the area under navbar
-      }}
-    >
-      <Excalidraw
-        excalidrawAPI={(api) => {
-          excaliRef.current = api;
-        }}
-        UIOptions={{
-          canvasActions: {
-            changeViewBackgroundColor: false,
-            loadScene: false,
-            saveAsImage: false,
-            export: false,
-            toggleTheme: false,
-          },
-        }}
-      />
-    </div>
-  );
-});
-
-export default Drawing;

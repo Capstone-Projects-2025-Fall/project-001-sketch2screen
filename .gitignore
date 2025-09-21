@@ -12,3 +12,6 @@ CLAUDE.md
 .env.production.local
 
 backend/static/
+
+#API file
+APIkey.txt

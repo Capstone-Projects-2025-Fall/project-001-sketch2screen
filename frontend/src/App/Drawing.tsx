@@ -30,7 +30,7 @@ type ExcalidrawAPI = NonNullable<
 
 
 const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
-  { className, width, height },
+  { className, width, height, visible },
   ref
 ) {
   //Reference to ExcalidrawAPI
@@ -81,8 +81,9 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
     <div
       className={className}
       style={{
-        width: width ?? "100%",
-        height: height ?? "100%", // fill the area under navbar
+        width: "100%",
+        height: "100%", // fill the area under navbar
+        display: visible ? "block" : "none",
       }}
     >
       <Excalidraw

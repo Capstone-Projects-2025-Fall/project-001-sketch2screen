@@ -29,3 +29,4 @@ export default function Mockup({ html = "" }: { html?: string }) {
     </div>
   );
 }
+

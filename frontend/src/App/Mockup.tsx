@@ -22,7 +22,7 @@ export default function Mockup({ html = "" }: Props) {
       {!!html && (
         <iframe
           // Inject sanitized HTML into the preview container
-          srcdoc={safe}
+          srcDoc={safe}
         />
       )}
     </div>

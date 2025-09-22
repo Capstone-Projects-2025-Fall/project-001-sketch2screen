@@ -41,7 +41,7 @@ def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", prompt:
 
     system_msg = (
         "You are a frontend assistant that converts UI sketches into clean, minimal, "
-        "production-ready HTML and CSS. Prefer semantic HTML, minimal wrappers, a single <style> block, or inline styles. "
+        "production-ready HTML and CSS. Prefer semantic HTML, minimal wrappers, inline styles for each of the components of the image. Do not use body tag"
         "Use modern CSS if possible. Use Bootstrap or Tailwind CSS only."
     )
     user_instruction = prompt or (

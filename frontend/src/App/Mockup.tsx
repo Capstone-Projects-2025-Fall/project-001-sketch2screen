@@ -15,7 +15,7 @@ export default function Mockup({ html = "" }: Props) {
   const safe = DOMPurify.sanitize(html ?? "");
 
   return (
-    <div style={{ padding: 16 }}>
+    <div>
       {!html && <em>No mockup yet. Click “Generate”.</em>}
 
       {!!html && (

@@ -8,10 +8,10 @@ from anthropic import Anthropic
 
 
 def _load_anthropic_key_from_file() -> str:
-    """Read API key from plaintext file defined in settings.ANTHROPIC_API_KEY_FILE."""
-    key_path = getattr(settings, "ANTHROPIC_API_KEY_FILE", None)
+    """Read API key from plaintext file defined in settings."""
+    key_path = getattr(settings, "CLAUDE_API_KEY", None)
     if not key_path:
-        raise RuntimeError("ANTHROPIC_API_KEY_FILE not configured.")
+        raise RuntimeError("CLAUDE_API_KEY not configured.")
     with open(key_path, "r", encoding="utf-8") as f:
         key = f.read().strip()
     if not key:

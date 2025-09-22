@@ -30,7 +30,7 @@ export default function App() {
     }
   //form data to send to backend
   const sketch = new FormData();
-  sketch.append("sketch", blob, "sketch.png");
+  sketch.append("file", new File([blob], "sketch.png", { type: "image/png" }));
 
   const res = await fetch("/api/generate/", {
     method: "POST",
@@ -53,7 +53,7 @@ export default function App() {
   setHtml(htmlStr);
 
   //Here you can set the current page to Mockup if you want to switch automatically
-  //setCurrentPage(Page.Mockup); 
+  setCurrentPage(Page.Mockup); 
 
   }
 
@@ -69,7 +69,7 @@ export default function App() {
         {currentPage === Page.Drawing && (
           <Drawing ref={drawingRef} className={styles.canvas} />
         )}
-        {currentPage === Page.Mockup && <Mockup />}
+        {currentPage === Page.Mockup && <Mockup html = {html} />}
       </div>
     </div>
   );

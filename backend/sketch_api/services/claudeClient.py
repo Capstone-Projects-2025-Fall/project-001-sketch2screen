@@ -8,10 +8,10 @@ from anthropic import Anthropic
 
 
 def _load_anthropic_key_from_file() -> str:
-    """Read API key from plaintext file defined in settings.ANTHROPIC_API_KEY_FILE."""
-    key_path = getattr(settings, "ANTHROPIC_API_KEY_FILE", None)
+    """Read API key from plaintext file defined in settings."""
+    key_path = getattr(settings, "CLAUDE_API_KEY", None)
     if not key_path:
-        raise RuntimeError("ANTHROPIC_API_KEY_FILE not configured.")
+        raise RuntimeError("CLAUDE_API_KEY not configured.")
     with open(key_path, "r", encoding="utf-8") as f:
         key = f.read().strip()
     if not key:
@@ -41,7 +41,7 @@ def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", prompt:
 
     system_msg = (
         "You are a frontend assistant that converts UI sketches into clean, minimal, "
-        "production-ready HTML and CSS. Prefer semantic HTML, minimal wrappers, a single <style> block, or inline styles. "
+        "production-ready HTML and CSS. Prefer semantic HTML, minimal wrappers, inline styles for each of the components of the image. Do not use body tag"
         "Use modern CSS if possible. Use Bootstrap or Tailwind CSS only."
     )
     user_instruction = prompt or (

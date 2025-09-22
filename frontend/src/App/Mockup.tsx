@@ -1,32 +1,30 @@
 // Mockup.tsx
 //This is just for safety purposes. You can remove it if you want. It just detects unsafe HTML code.
 import DOMPurify from "dompurify";
+import styles from "./App.module.css";
 
-// Props: expects an optional HTML string (the code returned by backend)
-export default function Mockup({ html = "" }: { html?: string }) {
-  // Always sanitize HTML before injecting into the DOM
+type Props = {
+  /** The HTML string returned by the backend (Claude). */
+  html?: string;
+};
+
+/**
+ * Displays the generated HTML/CSS from the backend.
+ * We sanitize the string to avoid XSS before injecting it into the DOM.
+ */
+export default function Mockup({ html = "" }: Props) {
   const safe = DOMPurify.sanitize(html ?? "");
 
   return (
-    <div style={{ padding: 16 }}>
-      {/* If no HTML has been generated yet, show a placeholder */}
+    <div className={styles.mockup}>
       {!html && <em>No mockup yet. Click “Generate”.</em>}
 
-      {/* If HTML is present, render it inside a styled container */}
       {!!html && (
-        <div
-          style={{
-            border: "1px solid #ddd",
-            borderRadius: 8,
-            padding: 16,
-            background: "#fff",
-          }}
-          // 👇 This injects the sanitized HTML string into the DOM
-          // Without sanitization, this would be a major XSS risk.
-          dangerouslySetInnerHTML={{ __html: safe }}
+        <iframe
+          // Inject sanitized HTML into the preview container
+          srcDoc={safe}
         />
       )}
     </div>
   );
 }
-

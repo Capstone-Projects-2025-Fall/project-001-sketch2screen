@@ -1,4 +1,4 @@
-import React from "react";
+//import React from "react";
 //This function parses an HTML string and returns an array of HTMLElements
 export function Collector(input: string): HTMLElement[] {
   const parser = new DOMParser();

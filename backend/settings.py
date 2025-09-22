@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     "django_vite",
 
     # Your apps
-    "sketch_api",
+    "backend.sketch_api",
 ]
 
 # Middleware

@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class SketchApiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'sketch_api'
+    name = 'backend.sketch_api'

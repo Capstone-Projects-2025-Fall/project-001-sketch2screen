@@ -17,11 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include, re_path
 from django.views.generic import TemplateView
-from sketch_api import views
+from backend.sketch_api import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path("api/", include('sketch_api.urls')),
+    path("api/", include('backend.sketch_api.urls')),
     re_path(r"^(?:.*)?$", TemplateView.as_view(template_name="index.html")),  # SPA catch-all
         
 ]

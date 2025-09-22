@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
 from rest_framework.response import Response
 from rest_framework import status
-from services.claudeClient import image_to_html_css
+from .services.claudeClient import image_to_html_css
 
 MAX_BYTES = 10 * 1024 * 1024  # 10MB max upload
 
@@ -33,7 +33,7 @@ def generate_mockup(request):
 def frontend(request):
     return render(request, 'frontend/src/index.html')
 
-def GenerateView(APIView):
+class GenerateView(APIView):
     parser_classes = [MultiPartParser]  # accept multipart/form-data (file upload)
 
     def post(self, request):

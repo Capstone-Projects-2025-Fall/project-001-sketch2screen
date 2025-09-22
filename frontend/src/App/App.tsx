@@ -1,5 +1,5 @@
 import styles from "./App.module.css";
-import { use, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import Navbar from "./Navbar";
 import type { DrawingHandle } from "./Drawing";

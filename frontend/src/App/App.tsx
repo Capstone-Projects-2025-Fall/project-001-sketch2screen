@@ -28,32 +28,32 @@ export default function App() {
       alert("Please create a sketch first. No sketch to export");
       return;
     }
-  //form data to send to backend
-  const sketch = new FormData();
-  sketch.append("file", new File([blob], "sketch.png", { type: "image/png" }));
+    //form data to send to backend
+    const sketch = new FormData();
+    sketch.append("file", new File([blob], "sketch.png", { type: "image/png" }));
 
-  const res = await fetch("/api/generate/", {
-    method: "POST",
-    body: sketch,
-  });
+    const res = await fetch("/api/generate/", {
+      method: "POST",
+      body: sketch,
+    });
 
-  if (!res.ok) {
-    alert("Failed to generate HTML from sketch");
-    return;
-  }
+    if (!res.ok) {
+      alert("Failed to generate HTML from sketch");
+      return;
+    }
 
-  //Export JSON back from the server
-  const data = (await res.json()) as {html?: string};
-  const htmlStr = (data.html ?? "").trim();
-  if (!htmlStr) {
-    alert("No HTML received from server");
-    return;
-  }
-  //Save HTML
-  setHtml(htmlStr);
+    //Export JSON back from the server
+    const data = (await res.json()) as {html?: string};
+    const htmlStr = (data.html ?? "").trim();
+    if (!htmlStr) {
+      alert("No HTML received from server");
+      return;
+    }
+    //Save HTML
+    setHtml(htmlStr);
 
-  //Here you can set the current page to Mockup if you want to switch automatically
-  setCurrentPage(Page.Mockup); 
+    //Here you can set the current page to Mockup if you want to switch automatically
+    setCurrentPage(Page.Mockup); 
 
   }
 
@@ -66,9 +66,11 @@ export default function App() {
         filename="untitled.sketch"
       />
       <div className={styles.main}>
-        {currentPage === Page.Drawing && (
-          <Drawing ref={drawingRef} className={styles.canvas} />
-        )}
+        <Drawing 
+          ref={drawingRef} 
+          className={styles.canvas} 
+          visible={currentPage === Page.Drawing}
+        />
         {currentPage === Page.Mockup && <Mockup html = {html} />}
       </div>
     </div>

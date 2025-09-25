@@ -5,7 +5,7 @@ import Navbar from "./Navbar";
 import type { DrawingHandle } from "./Drawing";
 import Mockup from "./Mockup";
 import Drawing from "./Drawing";
-import { LoadingSpinner } from "./loadingScreen";
+import { LoadingSpinner } from "./LoadingScreen";
 
 export enum Page {
   Drawing,
@@ -81,7 +81,7 @@ export default function App() {
         {currentPage === Page.Mockup && <Mockup html = {html} />}
         {/* Loading overlay */}
         {loading && (
-          <div style={{zIndex: 200}}>
+          <div style={{position: "absolute", inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 200}}>
             <LoadingSpinner />
           </div>
         )}

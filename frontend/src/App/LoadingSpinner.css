@@ -1,19 +1,30 @@
-.loading-spinner {
-    width: 50px;
-    height: 50px;
-    border: calc(50px / 8) solid #dddddd;
-    border-top-color: blueviolet;
-    border-radius: 50%;
-    box-sizing: border-box;
-    animation: loading 1s linear infinite;
-    align-self: center;
+.spin-container .loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: calc(50px / 8) solid #dddddd;
+  border-top-color: blueviolet;
+  border-radius: 50%;
+  justify-content: center;
+  animation: loading 1s linear infinite;
+  margin-left: auto;
+  margin-right: 10px;
+  flex-wrap: row nowrap;
 
 }
+
+.spin-container #loading-text {
+  font-family: Arial, sans-serif;
+  font-size: 20 px;
+  color: black;
+  align-self: center;
+}
+
 @keyframes loading {
-  from{
+  from {
     transform: rotate(0deg);
   }
-    to{
-        transform: rotate(1turn);
-    }
+
+  to {
+    transform: rotate(1turn);
+  }
 }

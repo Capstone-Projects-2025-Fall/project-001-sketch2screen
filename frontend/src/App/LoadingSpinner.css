@@ -1,0 +1,19 @@
+.loading-spinner {
+    width: 50px;
+    height: 50px;
+    border: calc(50px / 8) solid #dddddd;
+    border-top-color: blueviolet;
+    border-radius: 50%;
+    box-sizing: border-box;
+    animation: loading 1s linear infinite;
+    align-self: center;
+
+}
+@keyframes loading {
+  from{
+    transform: rotate(0deg);
+  }
+    to{
+        transform: rotate(1turn);
+    }
+}

@@ -21,6 +21,9 @@ export default function App() {
   //Holds the HTML returned by the backend so we can render it on the Design page
   const [html, setHtml] = useState<string>("");
 
+  //Use state for when user wants to change the filename
+  const [filename, setFilename] = useState<string>("");
+
   //Called when user clicks the "Generate" button in the Navbar.
   const handleGenerate = async () => {
     const blob = await drawingRef.current?.getPNGBlob?.();
@@ -63,7 +66,8 @@ export default function App() {
         curPage={currentPage}
         onPageChange={setCurrentPage}
         onGenerate={handleGenerate}
-        filename="untitled.sketch"
+        filename={filename}
+        onFilenameChange={setFilename}
       />
       <div className={styles.main}>
         <Drawing 

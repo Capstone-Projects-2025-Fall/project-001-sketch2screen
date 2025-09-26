@@ -5,6 +5,7 @@ import Navbar from "./Navbar";
 import type { DrawingHandle } from "./Drawing";
 import Mockup from "./Mockup";
 import Drawing from "./Drawing";
+import { LoadingSpinner } from "./LoadingScreen";
 
 export enum Page {
   Drawing,
@@ -20,6 +21,8 @@ export default function App() {
 
   //Holds the HTML returned by the backend so we can render it on the Design page
   const [html, setHtml] = useState<string>("");
+  // Loading indicator while backend is processing
+  const [loading, setLoading] = useState(false);
 
   //Use state for when user wants to change the filename
   const [filename, setFilename] = useState<string>("");
@@ -35,29 +38,33 @@ export default function App() {
     const sketch = new FormData();
     sketch.append("file", new File([blob], "sketch.png", { type: "image/png" }));
 
-    const res = await fetch("/api/generate/", {
-      method: "POST",
-      body: sketch,
-    });
+    setLoading(true);
+    try {
+      const res = await fetch("/api/generate/", {
+        method: "POST",
+        body: sketch,
+      });
 
-    if (!res.ok) {
-      alert("Failed to generate HTML from sketch");
-      return;
-    }
+      if (!res.ok) {
+        alert("Failed to generate HTML from sketch");
+        return;
+      }
 
-    //Export JSON back from the server
-    const data = (await res.json()) as {html?: string};
+      //Export JSON back from the server
+      const data = (await res.json()) as {html?: string};
     const htmlStr = (data.html ?? "").trim();
     if (!htmlStr) {
-      alert("No HTML received from server");
-      return;
+        alert("No HTML received from server");
+        return;
     }
     //Save HTML
     setHtml(htmlStr);
 
     //Here you can set the current page to Mockup if you want to switch automatically
     setCurrentPage(Page.Mockup); 
-
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -76,6 +83,12 @@ export default function App() {
           visible={currentPage === Page.Drawing}
         />
         {currentPage === Page.Mockup && <Mockup html = {html} />}
+        {/* Loading overlay */}
+        {loading && (
+          <div style={{position: "absolute", inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 200}}>
+            <LoadingSpinner />
+          </div>
+        )}
       </div>
     </div>
   );

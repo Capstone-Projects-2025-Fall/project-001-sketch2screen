@@ -1,5 +1,5 @@
 import styles from "./App.module.css";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 
 import Navbar from "./Navbar";
 import type { DrawingHandle, SceneData } from "./Drawing";
@@ -70,6 +70,18 @@ export default function App() {
   );
   const activeSketch = pages[activeIndex] ?? pages[0];
 
+  // Keep DOM refs for each page row
+  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  // When active page changes, ensure it’s highlighted
+  useEffect(() => {
+    const el = itemRefs.current[activePageId];
+    if (el) {
+      el.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
+  }, [activePageId, pages.length]);
+
+
   // Excalidraw onChange stash scene into the active page
   const handleSceneChange = (scene: SceneData) => {
     setPages((prev) => {
@@ -94,28 +106,34 @@ export default function App() {
 
   // Add a new blank page and switch to it
   const handleAddPage = () => {
-    setPages((prev) => {
-      const next = [...prev, makeNewSketchPage(prev.length + 1)];
-      const added = next[next.length - 1];
-      setActivePageId(added.id);
-      return next;
-    });
+    const newPage = makeNewSketchPage(pages.length + 1);
+    setPages((prev) => [...prev, newPage]);
+    setActivePageId(newPage.id);
   };
 
   // Duplicate current page 
   const handleDuplicatePage = () => {
     if (!activeSketch) return;
+
+    const dupeScene: SceneData =
+      typeof structuredClone === "function"
+        ? structuredClone(activeSketch.scene)
+        : JSON.parse(JSON.stringify(activeSketch.scene));
+
+    const dupe: SketchPage = {
+      id: crypto.randomUUID(),
+      name: `${activeSketch.name} (copy)`,
+      scene: dupeScene,
+    };
+
     setPages((prev) => {
-      const dupe: SketchPage = {
-        id: crypto.randomUUID(),
-        name: `${activeSketch.name} (copy)`,
-        scene: activeSketch.scene,
-      };
       const next = [...prev];
-      next.splice(activeIndex + 1, 0, dupe);
-      setActivePageId(dupe.id);
+      const i = next.findIndex((p) => p.id === activePageId);
+      next.splice(Math.max(0, i) + 1, 0, dupe);
       return next;
     });
+
+    setActivePageId(dupe.id);    
   };
 
   // Rename current page
@@ -186,70 +204,89 @@ export default function App() {
         filename={filename}
         onFilenameChange={setFilename}
       />
-      {currentPage === Page.Drawing && (
-        <div className={styles.pageTabs}>
-          <div className={styles.pageTabsScroll}>
-            {pages.map((p) => {
-              const selected = p.id === activePageId;
-              const isEditing = editingId === p.id;
 
-              return (
-                <div
-                  key={p.id}
-                  className={styles.pageTab + " " + (selected ? styles.pageTabSelected : "")}
-                  onClick={() => setActivePageId(p.id)}
-                  title={p.name}
-                  onDoubleClick={(e) => {
-                    e.stopPropagation();
-                    setEditingId(p.id);
-                  }}
-                >
-                  {isEditing ? (
-                    <input
-                      className={styles.pageTabName}
-                      autoFocus
-                      value={p.name}
-                      onChange={(e) => handleRenamePage(p.id, e.target.value)}
-                      onBlur={() => setEditingId(null)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === "Escape") {
-                          setEditingId(null);
-                        }
-                      }}
-                      spellCheck={false}
-                    />
-                ) : (
-                  <span>{p.name}</span>
-                )}
-  
-                {pages.length > 1 && (
-                  <button
-                    className={styles.pageTabClose}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeletePage(p.id);
+      <div className={styles.workRow}>
+        {/* sidebar */}
+        {currentPage === Page.Drawing && (
+          <aside className={styles.sidebar}>
+            <div className={styles.sidebarHeader}>Pages</div>
+
+            <div className={styles.pageList}>
+              {pages.map((p) => {
+                const selected = p.id === activePageId;
+                const isEditing = editingId === p.id;
+
+                return (
+                  <div
+                    key={p.id}
+                    ref={(node) => { itemRefs.current[p.id] = node; }}  // <-- add this
+
+                    className={
+                      styles.pageItem + " " + (selected ? styles.pageItemSelected : "")
+                    }
+                    onClick={() => {
+                      setActivePageId(p.id);
+                      setEditingId(null);
                     }}
-                    aria-label="Delete page"
-                    title="Delete page"
-                >
-                  ×
-                </button>
-              )}
-            </div>
-          );
-        })}
-          </div>
+                    onDoubleClick={(e) => {
+                      e.stopPropagation();
+                      setEditingId(p.id);
+                    }}
+                    title={p.name}
+                  >
+                    <div className={styles.pageItemLabel}>
+                      {/* tiny page icon (pure CSS) */}
+                      <span className={styles.pageIcon} aria-hidden />
+                      {isEditing ? (
+                        <input
+                          className={styles.pageNameInput}
+                          autoFocus
+                          value={p.name}
+                          onChange={(e) => handleRenamePage(p.id, e.target.value)}
+                          onBlur={() => setEditingId(null)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === "Escape") setEditingId(null);
+                          }}
+                          spellCheck={false}
+                        />
+                      ) : (
+                        <span className={styles.pageNameText}>{p.name}</span>
+                      )}
+                    </div>
 
-          <div className={styles.pageTabsActions}>
-            <button className={styles.pageTabsBtn} onClick={handleAddPage} title="New page">
-              + New
-            </button>
-            <button className={styles.pageTabsBtn} onClick={handleDuplicatePage} title="Duplicate page">
-              Duplicate
-            </button>
-          </div>
-        </div>
-      )}
+                    {pages.length > 1 && (
+                      <button
+                        className={styles.pageDeleteBtn}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeletePage(p.id);
+                        }}
+                        aria-label="Delete page"
+                        title="Delete page"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className={styles.sidebarFooter}>
+              <button className={styles.sidebarBtn} onClick={handleAddPage} title="New page">
+                + New
+              </button>
+              <button
+                className={styles.sidebarBtn}
+                onClick={handleDuplicatePage}
+                title="Duplicate current page"
+              >
+                Duplicate
+              </button>
+            </div>
+          </aside>
+        )}
+
       <div className={styles.main}>
         <Drawing 
           key={activeSketch?.id ?? "sketch"}
@@ -268,5 +305,6 @@ export default function App() {
         )}
       </div>
     </div>
+  </div>
   );
 }

@@ -200,3 +200,148 @@
   font-weight: 600;
 }
 .pageTabsBtn:hover { opacity: 0.9; }
+
+/* ---- Workspace split ---- */
+.workRow {
+  display: grid;
+  grid-template-columns: 260px 1fr; /* sidebar | main */
+  height: calc(100vh - 5em); /* match your navbar height (5em) */
+  position: relative;
+}
+
+/* On Mockup view we still use full width without sidebar.
+   The component uses grid only when current page is Drawing. */
+.workMain {
+  position: relative;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ---- Sidebar (Figma-like) ---- */
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(0,0,0,0.08);
+  background: #f7f7f9;
+  min-width: 220px;
+  max-width: 360px;
+}
+
+.sidebarHeader {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+}
+
+.pageList {
+  padding: 8px;
+  overflow: auto;
+  flex: 1;
+}
+
+/* page row */
+.pageItem {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 6px;
+  border-radius: 8px;
+  padding: 8px 8px 8px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.pageItem:hover {
+  background: rgba(0,0,0,0.04);
+}
+
+.pageItemSelected {
+  background: rgba(99,102,241,0.12); /* indigo tint */
+  outline: 1px solid rgba(99,102,241,0.35);
+}
+
+.pageItemLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* small "page" glyph */
+.pageIcon {
+  width: 12px;
+  height: 14px;
+  border: 1px solid rgba(0,0,0,0.35);
+  border-radius: 2px;
+  background: white;
+  box-shadow: inset 0 2px 0 rgba(0,0,0,0.05);
+}
+
+.pageNameText {
+  font-size: 14px;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pageNameInput {
+  font-size: 14px;
+  padding: 2px 4px;
+  border: 1px solid rgba(0,0,0,0.25);
+  border-radius: 6px;
+  outline: none;
+  width: 100%;
+}
+
+/* delete button at row end */
+.pageDeleteBtn {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+}
+.pageDeleteBtn:hover {
+  background: rgba(0,0,0,0.06);
+  color: #111827;
+}
+
+/* footer buttons */
+.sidebarFooter {
+  padding: 8px;
+  border-top: 1px solid rgba(0,0,0,0.06);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.sidebarBtn {
+  border: 1px solid rgba(0,0,0,0.18);
+  border-radius: 8px;
+  background: white;
+  padding: 8px 10px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+.sidebarBtn:hover {
+  background: #f3f4f6;
+}
+
+/* shared loading overlay */
+.loadingOverlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.6);
+  z-index: 200;
+}

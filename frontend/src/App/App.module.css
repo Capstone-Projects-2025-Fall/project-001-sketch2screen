@@ -124,3 +124,79 @@
   width: 100%;
   height: 100%;
 }
+
+/* --- Sketch page tabs (multi-page) --- */
+.pageTabs {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: #0f0a67; /* same as navbar theme */
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.pageTabsScroll {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  flex: 1;
+}
+
+.pageTab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  background: rgba(255,255,255,0.12);
+  color: white;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.15s ease-in-out;
+}
+
+.pageTab:hover { background: rgba(255,255,255,0.2); }
+
+.pageTabSelected {
+  background: mediumpurple;
+}
+
+.pageTabName {
+  background: transparent;
+  border: none;
+  color: white;
+  font-size: 0.9rem;
+  outline: none;
+  width: 8rem;
+}
+
+.pageTabClose {
+  border: none;
+  background: rgba(0,0,0,0.25);
+  color: white;
+  border-radius: 0.375rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  line-height: 1.25rem;
+  text-align: center;
+  cursor: pointer;
+}
+.pageTabClose:hover { background: rgba(0,0,0,0.4); }
+
+.pageTabsActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.pageTabsBtn {
+  border: none;
+  border-radius: 0.5rem;
+  padding: 0.4rem 0.75rem;
+  background: white;
+  color: #0f0a67;
+  cursor: pointer;
+  font-weight: 600;
+}
+.pageTabsBtn:hover { opacity: 0.9; }

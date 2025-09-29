@@ -1,4 +1,6 @@
 /* App shell so navbar stays and content fills viewport */
+@import "tailwindcss";
+
 .appRoot {
   height: 100vh;            /* full viewport height */
   display: flex;
@@ -24,8 +26,8 @@
 /* === Your existing styles, with navbar made sticky === */
 .navbar {
   width: 100%;
-  height: 5em;
-  background-color: deepskyblue;
+  height: 4.5rem;
+  background-color: rgb(15, 10, 103);
 
   padding: 1em;
   box-sizing: border-box;
@@ -36,15 +38,19 @@
   position: sticky;  /* keep navbar visible */
   top: 0;
   z-index: 100;
+  font-family: "Chalkduster", fantasy;;
 }
 
 .logo {
+  font-family: "Chalkduster", fantasy;
+  color: white;
   font-size: xx-large;
   margin-right: 2em;
 }
 
 .filename {
   font-size: large;
+  color: white;
 }
 
 .pageSwitcher {
@@ -57,7 +63,7 @@
   border: none;
   height: 2em;
   border-radius: 1em;
-  width: 10em;
+  width: 8rem;
   margin-right: 2em;
   background-color: mediumpurple;
   color: white;
@@ -70,20 +76,43 @@
 }
 
 
+.collabButton{background-image: linear-gradient(to right, #ECE9E6 0%, #FFFFFF  51%, #ECE9E6  100%)}
 .collabButton {
   border: none;
   border-radius: 2em;
   box-sizing: border-box;
-
+  color: rgb(15, 10, 103);
   font-size: medium;
 
-  height: 4em;
-  width: 13em;
+  height: 2em;
+  width: 10em;
 
   margin-right: 2em;
 
   background-color: white;
 }
+
+
+
+.generateButton {background-image: linear-gradient(to right, #ECE9E6 0%, #FFFFFF  51%, #ECE9E6  100%)}
+.generateButton {
+  margin-right:2rem;
+  font-size: medium;
+  text-align: center;
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: rgb(15, 10, 103);            
+  border-radius: 2rem;
+  height: 2rem;
+  width:10rem;
+}
+
+.generateButton:hover {
+  background-position: right center; /* change the direction of the change here */
+  color: rgb(15, 10, 103);  
+  text-decoration: none;
+}
+                  
 
 
 .mockup {

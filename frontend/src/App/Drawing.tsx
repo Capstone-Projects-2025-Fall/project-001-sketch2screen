@@ -17,6 +17,7 @@ export interface DrawingProps {
   className?: string;
   width?: number;
   height?: number;
+  visible?: boolean;
 }
 
 //Object that gives us access to Excalidraw's API methods.
@@ -30,7 +31,7 @@ type ExcalidrawAPI = NonNullable<
 
 
 const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
-  { className, width, height, visible },
+  { className, visible },
   ref
 ) {
   //Reference to ExcalidrawAPI

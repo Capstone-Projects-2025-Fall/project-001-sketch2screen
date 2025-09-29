@@ -7,6 +7,13 @@ import React, {
 import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 
+// A full Excalidraw scene snapshot 
+export type SceneData = {
+  elements: readonly any[]; // ExcalidrawElement[]
+  appState: any;   // AppState
+  files: Record<string, any>; // BinaryFiles
+};
+
 //With this type App.tsx can request the current sketch as a PNG Blob.
 export type DrawingHandle = {
   getPNGBlob: () => Promise<Blob | null>;
@@ -17,6 +24,12 @@ export interface DrawingProps {
   className?: string;
   width?: number;
   height?: number;
+  visible?: boolean;
+  // Initial scene 
+  initialScene?: SceneData;
+
+  //Called on every scene change so the Parent can save it
+  onSceneChange?: (scene: SceneData) => void;
 }
 
 //Object that gives us access to Excalidraw's API methods.
@@ -30,11 +43,17 @@ type ExcalidrawAPI = NonNullable<
 
 
 const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
-  { className, width, height, visible },
+  { className, visible, initialScene, onSceneChange},
   ref
 ) {
   //Reference to ExcalidrawAPI
   const excaliRef = useRef<ExcalidrawAPI | null>(null);
+
+  const lastSceneRefs = useRef<{
+    elements: readonly any[] | null;
+    appState: any | null;
+    files: Record<string, any> | null;
+  }>({ elements: null, appState: null, files: null });
 
   //Exports the current sketch as a PNG Blob.
   //Helper function
@@ -89,6 +108,33 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
       <Excalidraw
         excalidrawAPI={(api) => {
           excaliRef.current = api;
+        }}
+        // Load the page scene on mount
+        initialData={
+          initialScene
+            ? {
+                elements: initialScene.elements ?? [],
+                appState: initialScene.appState ?? {},
+                files: initialScene.files ?? {},
+              }
+            : undefined
+        }
+        onChange={(elements, appState, files) => {
+          //Guard against duplicate calls
+          if (
+            lastSceneRefs.current.elements === elements &&
+            lastSceneRefs.current.appState === appState &&
+            lastSceneRefs.current.files === files
+          ) {
+            return;
+          }
+          lastSceneRefs.current = { elements, appState, files };
+
+          onSceneChange?.({
+            elements: elements ?? ([] as readonly any[]),
+            appState: appState ?? {},
+            files: files ?? {},
+          });
         }}
         UIOptions={{
           canvasActions: {

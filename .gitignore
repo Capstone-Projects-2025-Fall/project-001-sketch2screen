@@ -3,6 +3,7 @@
 
 # Local development files
 CLAUDE.md
+*.pyc
 
 # Misc
 .DS_Store

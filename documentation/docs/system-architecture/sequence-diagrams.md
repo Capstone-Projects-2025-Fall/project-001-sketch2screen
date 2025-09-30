@@ -36,9 +36,10 @@ sequenceDiagram
     Frontend->>Frontend: Redirect to sketch canvas
     Frontend-->>User: Display sketch interface with shareable link
 
-    Note over Backend,Database: Alt: Workspace creation fails
-    Backend-->>Frontend: Error: Unable to create workspace
-    Frontend-->>User: Display error message
+    alt Workspace creation fails
+        Backend-->>Frontend: Error: Unable to create workspace
+        Frontend-->>User: Display error message
+    end
 ```
 
 ## Use Case 2: Joining an Existing Workspace
@@ -117,8 +118,9 @@ sequenceDiagram
         Frontend->>WebSocket: Broadcast drawing data
         WebSocket->>Backend: Relay drawing updates
         Backend->>WebSocket: Forward to other users
-        WebSocket->>Collaborators: Send real-time drawing updates
-        Collaborators->>Collaborators: Update canvas with new drawing
+        WebSocket->>Frontend: Send real-time drawing updates
+        Frontend->>Frontend: Update canvas with new drawing
+        Frontend->>Collaborators: Show updated sketch
     end
 
     User->>Frontend: Complete sketch

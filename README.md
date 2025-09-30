@@ -11,27 +11,59 @@
 
 ## Keywords
 
-Section #, as well as any words that quickly give your peers insights into the application like programming language, development platform, type of application, etc.
+CIS 4398, Web Application, React, Python/Django, AI/ML, Real-time Collaboration, UI/UX Design, Sketch-to-Code, WebSocket, Large Language Models
 
 ## Project Abstract
 
-This document proposes a novel application of a text message (SMS or Email) read-out and hands-free call interacted between an Android Smartphone and an infotainment platform (headunit) in a car environment. When a phone receives an SMS or Email, the text message is transferred from the phone to the headunit through a Bluetooth connection. On the headunit, user can control which and when the received SMS or E-mail to be read out through the in-vehicle audio system. The user may press one button on the headunit to activate the hands-free feature to call back the SMS sender.
+Sketch2Screen is an AI-powered collaborative web application that transforms hand-drawn sketches into functional UI components and production-ready code. The application enables individuals, including those without programming expertise, to convert their design ideas into working website components through simple sketches. Users can collaborate in real-time, sketching interface elements that the system converts into structured UI components with the assistance of a Large Language Model (LLM). These components can then be refined, arranged into complete layouts, and exported as code in multiple frameworks (HTML/CSS, React, Vue, etc.). The primary purpose of the application is to empower non-programmers to create websites using their imagination and minimal coding knowledge, thereby lowering the barrier to entry for web development.
 
 ## High Level Requirement
 
-Describe the requirements – i.e., what the product does and how it does it from a user point of view – at a high level.
+Sketch2Screen provides a collaborative canvas where users can sketch UI components using built-in drawing tools. Once sketches are complete, users trigger AI-powered generation to convert drawings into professional design mockups with corresponding code. The system provides multiple design variations for each component, allowing users to select their preferred options. Selected components are transferred to a design mode where users can arrange layouts, adjust positioning, and refine the overall page structure. The final output can be exported as production-ready code in various frameworks. Real-time collaboration enables multiple users to work simultaneously on the same workspace, with all changes synchronized instantly across connected clients.
 
 ## Conceptual Design
 
-Describe the initial design concept: Hardware/software architecture, programming language, operating system, etc.
+The application follows a client-server architecture with real-time collaboration capabilities:
+
+- **Frontend**: React-based web application providing an interactive canvas for sketching and design manipulation
+- **Backend**: Python/Django server handling API requests, workspace management, and WebSocket connections for real-time updates
+- **AI Integration**: Large Language Model API integration for sketch-to-component conversion and code generation
+- **Database**: Storage system for workspace persistence, user sketches, and generated components
+- **Real-time Communication**: WebSocket protocol for live collaboration between multiple users
+
+The system processes user sketches through an AI model that analyzes drawings and generates multiple UI component variations. Users interact through a browser-based interface with no installation required, making it accessible across different platforms and devices.
 
 ## Background
 
-The background will contain a more detailed description of the product and a comparison to existing similar projects/products. A literature search should be conducted and the results listed. Proper citation of sources is required. If there are similar open-source products, you should state whether existing source will be used and to what extent. If there are similar closed-source/proprietary products, you should state how the proposed product will be similar and different.
+Several existing industry tools enable users to create designs without code:
+
+Online graphic design tools like **Canva** allow users to create designs by manipulating shapes, colors, and text. While these applications improve efficiency and facilitate brainstorming, their outputs are generally limited to static images that still require manual coding to embed into a website. These platforms do not leverage AI for sketch-to-design conversion.
+
+**Figma** is a widely-used collaborative design tool with extensive functionality and supports plugins for exporting designs into CSS code. While Figma has introduced AI-assisted features for simplifying tasks, it does not directly transform hand-drawn sketches into functional UI components.
+
+Sketch2Screen fills this gap by combining the collaborative design strengths of tools like Figma with AI-powered sketch recognition and multi-framework code generation. This approach simplifies design creation, reduces technical barriers, and enables a broader audience—including non-programmers—to bring their ideas to life efficiently.
 
 ## Required Resources
 
-Discuss what you need to develop this project. This includes background information you will need to acquire, hardware resources, and software resources. If these are not part of the standard Computer Science Department lab resources, these must be identified early and discussed with the instructor.
+**Development Resources:**
+- Modern web browsers (Chrome, Firefox, Safari, Edge) for testing
+- React development environment and related libraries
+- Python/Django backend framework
+- WebSocket library for real-time communication
+- Access to Large Language Model API (OpenAI GPT, Claude, or similar)
+- Version control system (Git/GitHub)
+
+**Knowledge Requirements:**
+- Frontend development: React, JavaScript/TypeScript, HTML5 Canvas API
+- Backend development: Python, Django, RESTful API design
+- Real-time communication: WebSocket protocols
+- AI/ML integration: API integration, prompt engineering
+- Database design and management
+
+**Hardware/Infrastructure:**
+- Development machines for team members
+- Cloud hosting platform for deployment (AWS, Heroku, or similar)
+- Database hosting service
 
 ## Collaborators
 

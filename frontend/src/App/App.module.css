@@ -38,11 +38,11 @@
   position: sticky;  /* keep navbar visible */
   top: 0;
   z-index: 100;
-  font-family: "Chalkduster", fantasy;;
+  font-family: "Chalkduster", sans-serif;
 }
 
 .logo {
-  font-family: "Chalkduster", fantasy;
+  font-family: "Chalkduster", sans-serif;
   color: white;
   font-size: xx-large;
   margin-right: 2em;

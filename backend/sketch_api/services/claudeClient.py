@@ -40,12 +40,13 @@ def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", prompt:
     b64 = base64.b64encode(image_bytes).decode("utf-8")
 
     system_msg = (
-        "You are a frontend assistant that converts UI sketches into clean, minimal, "
+        "You are a frontend assistant that converts UI sketches into high-fidelity, clean, "
         "production-ready HTML and CSS. Prefer semantic HTML, minimal wrappers, inline styles for each of the components of the image. Do not use body tag"
-        "Use modern CSS if possible. Use Bootstrap or Tailwind CSS only."
+        "Use modern CSS if possible. Use Bootstrap or Tailwind CSS only. Do not include markdown fences in the code."
     )
     user_instruction = prompt or (
-        "Generate HTML and CSS that recreates the layout in the image. Only provide the code, no other text."
+        "Generate HTML and CSS that recreates the layout in the image. Only provide the code, no other text including markdown fences. If an element is labeled as an HTML tag it should "
+        "be that HTML tag. If there is text in the image, it should be included in the HTML. Any icons or images in the sketch should be represented by placeholders. "
     )
 
     client = _client()

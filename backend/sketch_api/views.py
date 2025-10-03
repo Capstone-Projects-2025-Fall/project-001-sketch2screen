@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
 import json
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser
@@ -33,6 +34,7 @@ def generate_mockup(request):
 def frontend(request):
     return render(request, 'frontend/src/index.html')
 
+@method_decorator(csrf_exempt, name="dispatch")
 class GenerateView(APIView):
     parser_classes = [MultiPartParser]  # accept multipart/form-data (file upload)
 

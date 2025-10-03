@@ -26,6 +26,7 @@ ALLOWED_HOSTS = ["*"]  # tighten this in production
 # Installed apps
 INSTALLED_APPS = [
     # Core Django apps (required)
+    "daphne",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -95,7 +96,7 @@ dist_path = PROJECT_ROOT / "frontend" / "dist"
 STATICFILES_DIRS = [dist_path] if dist_path.exists() else []
 
 ROOT_URLCONF = "backend.urls"
-WSGI_APPLICATION = "backend.wsgi.application"
+ASGI_APPLICATION = "backend.asgi.application"
 
 # django-vite
 DJANGO_VITE = {

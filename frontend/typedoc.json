@@ -1,0 +1,6 @@
+{
+  "out": "../documentation/static/typedocs",
+  "entryPoints": [
+    "src/App/*.tsx"
+  ]
+}

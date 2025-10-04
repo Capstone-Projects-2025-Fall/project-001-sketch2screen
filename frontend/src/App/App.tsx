@@ -12,7 +12,9 @@ export enum Page {
   Mockup
 }
 
-//A single sketch page
+/**
+ * A single sketch page
+ * */
 type SketchPage = {
   id: string;
   name: string;
@@ -41,7 +43,10 @@ function makeNewSketchPage(index: number): SketchPage {
   };
 }
 
-export default function App() {
+/**
+ * Entry point for SPA
+ */
+export function App() {
   //Represents which page is currently shown.
   const [currentPage, setCurrentPage] = useState(Page.Drawing);
   
@@ -308,3 +313,5 @@ export default function App() {
   </div>
   );
 }
+
+export default App

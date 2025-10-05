@@ -1,24 +1,31 @@
 import styles from "./App.module.css";
 import { useMemo, useRef, useState, useEffect } from "react";
-
 import Navbar from "./Navbar";
 import type { DrawingHandle, SceneData } from "./Drawing";
 import Mockup from "./Mockup";
 import Drawing from "./Drawing";
 import { LoadingSpinner } from "./LoadingScreen";
 
+/** Represents the available pages/views in the application */
 export enum Page {
   Drawing,
   Mockup
 }
 
-//A single sketch page
+/** Represents a single sketch page with its metadata and content */
 type SketchPage = {
+  /** Unique identifier for the page */
   id: string;
+  /** Display name of the page */
   name: string;
-  scene: SceneData; // Excalidraw elements + appState + files
+  /** Excalidraw scene data containing elements, state and files */
+  scene: SceneData;
 };
 
+/** 
+ * Creates an empty Excalidraw scene with default settings
+ * @returns A new SceneData object with default values
+ */
 function makeEmptyScene(): SceneData {
   return {
     elements: [],
@@ -33,6 +40,11 @@ function makeEmptyScene(): SceneData {
   };
 }
 
+/** 
+ * Creates a new sketch page with default settings
+ * @param index - The page number to use in the default name
+ * @returns A new SketchPage object
+ */
 function makeNewSketchPage(index: number): SketchPage {
   return {
     id: crypto.randomUUID(),
@@ -41,39 +53,45 @@ function makeNewSketchPage(index: number): SketchPage {
   };
 }
 
+/** Main application component managing the sketch interface */
 export default function App() {
-  //Represents which page is currently shown.
+  /** Current active view (Drawing or Mockup) */
   const [currentPage, setCurrentPage] = useState(Page.Drawing);
   
-  // Multi-page sketch state
+  /** Collection of all sketch pages */
   const [pages, setPages] = useState<SketchPage[]>(() => [makeNewSketchPage(1)]);
+  
+  /** ID of the currently active sketch page */
   const [activePageId, setActivePageId] = useState<string>(() => pages[0].id);
   
-  //Reference to the Drawing component.
+  /** Reference to access Drawing component methods */
   const drawingRef = useRef<DrawingHandle | null>(null);
 
-  //Holds the HTML returned by the backend so we can render it on the Design page
+  /** Generated HTML code from the backend */
   const [html, setHtml] = useState<string>("");
-  // Loading indicator while backend is processing
+  
+  /** Loading state during backend processing */
   const [loading, setLoading] = useState(false);
 
-  //Use state for when user wants to change the filename
+  /** Current filename for the sketch */
   const [filename, setFilename] = useState<string>("");
 
-  //State for which page is being renamed
+  /** ID of the page currently being renamed, if any */
   const [editingId, setEditingId] = useState<string | null>(null);
 
-    // Convenience getters
+  /** Index of the active page in the pages array */
   const activeIndex = useMemo(
     () => pages.findIndex((p) => p.id === activePageId),
     [pages, activePageId]
   );
+
+  /** Currently active sketch page */
   const activeSketch = pages[activeIndex] ?? pages[0];
 
-  // Keep DOM refs for each page row
+  /** Refs to page DOM elements for scrolling */
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // When active page changes, ensure it’s highlighted
+  /** Scroll active page into view when it changes */
   useEffect(() => {
     const el = itemRefs.current[activePageId];
     if (el) {
@@ -81,8 +99,10 @@ export default function App() {
     }
   }, [activePageId, pages.length]);
 
-
-  // Excalidraw onChange stash scene into the active page
+  /** 
+   * Updates the scene data for the active page
+   * @param scene - New scene data from Excalidraw
+   */
   const handleSceneChange = (scene: SceneData) => {
     setPages((prev) => {
       const i = prev.findIndex((p) => p.id === activePageId);
@@ -104,14 +124,16 @@ export default function App() {
     });
   };
 
-  // Add a new blank page and switch to it
+  /** Creates and activates a new blank page */
   const handleAddPage = () => {
     const newPage = makeNewSketchPage(pages.length + 1);
     setPages((prev) => [...prev, newPage]);
     setActivePageId(newPage.id);
   };
 
-  // Duplicate current page 
+  /** 
+   * Creates a copy of the current page and activates it
+   */
   const handleDuplicatePage = () => {
     if (!activeSketch) return;
 
@@ -136,12 +158,19 @@ export default function App() {
     setActivePageId(dupe.id);    
   };
 
-  // Rename current page
+  /** 
+   * Updates the name of a specific page
+   * @param id - ID of the page to rename
+   * @param name - New name for the page
+   */
   const handleRenamePage = (id: string, name: string) => {
     setPages((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
   };
 
-  // Remove current page 
+  /** 
+   * Removes a page and updates active page if necessary
+   * @param id - ID of the page to delete
+   */
   const handleDeletePage = (id: string) => {
     setPages((prev) => {
       if (prev.length <= 1) return prev; // must keep one
@@ -155,7 +184,10 @@ export default function App() {
     });
   };
 
-  //Called when user clicks the "Generate" button in the Navbar.
+  /** 
+   * Generates HTML from current sketch via backend API
+   * Exports current drawing as PNG and sends to backend
+   */
   const handleGenerate = async () => {
     const blob = await drawingRef.current?.getPNGBlob?.();
     if (!blob) {

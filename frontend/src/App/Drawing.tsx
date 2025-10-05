@@ -1,62 +1,69 @@
-import React, {
-  forwardRef,
-  useCallback,
-  useImperativeHandle,
-  useRef,
-} from "react";
+import React, { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
 import "@excalidraw/excalidraw/index.css";
 
-// A full Excalidraw scene snapshot 
+/** Represents a complete Excalidraw scene with all its components */
 export type SceneData = {
+  /** Array of drawing elements */
   elements: readonly any[]; // ExcalidrawElement[]
+  /** Application state including view settings */
   appState: any;   // AppState
+  /** Map of binary files (like images) used in the scene */
   files: Record<string, any>; // BinaryFiles
 };
 
-//With this type App.tsx can request the current sketch as a PNG Blob.
+/** Interface for methods exposed to parent components via ref */
 export type DrawingHandle = {
+  /** Exports the current drawing as a PNG blob */
   getPNGBlob: () => Promise<Blob | null>;
 };
 
-//Props that can be passed into <Drawing />
+/** Props for the Drawing component */
 export interface DrawingProps {
+  /** CSS class name for styling */
   className?: string;
+  /** Width of the drawing canvas */
   width?: number;
+  /** Height of the drawing canvas */
   height?: number;
+  /** Whether the drawing canvas is visible */
   visible?: boolean;
-  // Initial scene 
+  /** Initial scene data to load */
   initialScene?: SceneData;
-
-  //Called on every scene change so the Parent can save it
+  /** Callback fired when the scene changes */
   onSceneChange?: (scene: SceneData) => void;
 }
 
-//Object that gives us access to Excalidraw's API methods.
+/** Type representing Excalidraw's API methods */
 type ExcalidrawAPI = NonNullable<
   Parameters<
     NonNullable<React.ComponentProps<typeof Excalidraw>["excalidrawAPI"]>
   >[0]
 >;
 
-//Component implementation
-
-
+/**
+ * Drawing component wrapping Excalidraw with custom functionality
+ * @param props - Component properties
+ * @param ref - Forwarded ref for accessing component methods
+ */
 const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
   { className, visible, initialScene, onSceneChange},
   ref
 ) {
-  //Reference to ExcalidrawAPI
+  /** Reference to Excalidraw's API methods */
   const excaliRef = useRef<ExcalidrawAPI | null>(null);
 
+  /** Cache of last scene state to prevent duplicate updates */
   const lastSceneRefs = useRef<{
     elements: readonly any[] | null;
     appState: any | null;
     files: Record<string, any> | null;
   }>({ elements: null, appState: null, files: null });
 
-  //Exports the current sketch as a PNG Blob.
-  //Helper function
+  /**
+   * Exports the current drawing as a PNG blob
+   * @returns Promise resolving to PNG blob or null if export fails
+   */
   const getPNGBlob = useCallback(async (): Promise<Blob | null> => {
     const api = excaliRef.current;
     if (!api) return null;
@@ -89,6 +96,7 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
   }, []);
 
 
+  // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
     getPNGBlob,
   }));

@@ -232,6 +232,18 @@ const config = {
       },
     ],
     'plugin-image-zoom',
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        entryPoints: ['../frontend/src/App/*.{ts,tsx}'],
+        entryPointStrategy: 'expand',
+        tsconfig: '../frontend/tsconfig.json',
+        out: 'docs/FrontendAPI/api-specification',
+        sidebar: {
+          autoConfiguration: true,
+        },
+      },
+    ],
 
 
   ],

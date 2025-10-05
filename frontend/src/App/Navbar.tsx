@@ -1,31 +1,61 @@
 import {Page} from "./App.tsx"
-//import React from "react";
 import styles from "./App.module.css"
 
+/** Props for the Navbar component */
 type Props = {
+  /** Current active page */
   curPage: Page;
+  /** Callback for page change events */
   onPageChange: (p: Page) => void;
+  /** Current filename being edited */
   filename?: string;
+  /** Callback for filename change events */
   onFilenameChange?: (name: string) => void;
+  /** Callback to initiate collaboration */
   onStartCollab?: () => void;
-  onGenerate?: () => void; // new prop
+  /** Callback to generate mockup */
+  onGenerate?: () => void;
 };
 
-export default function Navbar({curPage, onPageChange, filename = "untitled.sketch", onFilenameChange, onStartCollab, onGenerate} : Props) {
-  /*
-  const btn = (selected: boolean) =>
-    [styles.pageSwitchButton, selected ? styles.pageSwitchSelected : ""]
-      .filter(Boolean)
-      .join(" ");
-      */
-
- const handleNameInput: React.ChangeEventHandler<HTMLInputElement> = (e) => {
+/**
+ * Navigation bar component with page switching and actions
+ * @param props - Component properties
+ * @param props.curPage - Currently active page
+ * @param props.onPageChange - Handler for page switches
+ * @param props.filename - Current file name (defaults to "untitled.sketch")
+ * @param props.onFilenameChange - Handler for filename changes
+ * @param props.onStartCollab - Handler for collaboration button
+ * @param props.onGenerate - Handler for generate button
+ * @returns JSX element containing the navigation bar
+ * 
+ * @example
+ * ```tsx
+ * <Navbar 
+ *   curPage={Page.Drawing}
+ *   onPageChange={setCurrentPage}
+ *   filename="my-sketch.sketch"
+ *   onFilenameChange={handleNameChange}
+ * />
+ * ```
+ */
+export default function Navbar({
+  curPage, 
+  onPageChange, 
+  filename = "untitled.sketch", 
+  onFilenameChange, 
+  onStartCollab, 
+  onGenerate
+}: Props) {
+  /** Handles changes to the filename input */
+  const handleNameInput: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     onFilenameChange?.(e.target.value);
   };
 
+  /** Handles Enter key in filename input to blur the field */
   const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Enter") (e.target as HTMLInputElement).blur();
   };
+
   return<div className={styles.navbar}>
     <div className={styles.logo}>
       Sketch2Screen

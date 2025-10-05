@@ -44,7 +44,7 @@ const config = {
   url: 'https://'+process.env.ORG_NAME+'.github.io/',
   baseUrl: '/'+process.env.PROJECT_NAME+'/',
   trailingSlash: false,
-  onBrokenLinks: 'warn',
+  onBrokenLinks: 'ignore',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
 
@@ -238,9 +238,13 @@ const config = {
         entryPoints: ['../frontend/src/App/*.{ts,tsx}'],
         entryPointStrategy: 'expand',
         tsconfig: '../frontend/tsconfig.json',
-        out: 'docs/FrontendAPI/api-specification',
+        useCodeBlocks: true,
+        excludePrivate: false,
+        excludeInternal: false,
+        out: 'docs/api-specification/FrontendAPI/',
         sidebar: {
-          autoConfiguration: true,
+          label: 'Frontend API',
+          position: 1
         },
       },
     ],

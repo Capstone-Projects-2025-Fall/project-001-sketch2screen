@@ -26,7 +26,7 @@ type SketchPage = {
  * Creates an empty Excalidraw scene with default settings
  * @returns A new SceneData object with default values
  */
-function makeEmptyScene(): SceneData {
+export function makeEmptyScene(): SceneData {
   return {
     elements: [],
     appState: {
@@ -45,7 +45,7 @@ function makeEmptyScene(): SceneData {
  * @param index - The page number to use in the default name
  * @returns A new SketchPage object
  */
-function makeNewSketchPage(index: number): SketchPage {
+export function makeNewSketchPage(index: number): SketchPage {
   return {
     id: crypto.randomUUID(),
     name: `Page ${index}`,

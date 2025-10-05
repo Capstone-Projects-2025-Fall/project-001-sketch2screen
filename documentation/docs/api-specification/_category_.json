@@ -1,8 +1,8 @@
 {
   "label": "API Specification",
-  "position": 7,
+  "position": 6,
   "link": {
     "type": "generated-index",
-    "description": "Please remove and replace examples where necessary."
+    "description": "Document Overview goes here."
   }
 }

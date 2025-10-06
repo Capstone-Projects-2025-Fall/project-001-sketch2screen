@@ -65,6 +65,31 @@ Sketch2Screen fills this gap by combining the collaborative design strengths of 
 - Cloud hosting platform for deployment (AWS, Heroku, or similar)
 - Database hosting service
 
+**Instructions**
+
+# To Run Project
+
+Terminal 1
+source .venv/bin/activate (different for windows)
+python manage.py runserver
+
+Terminal 2
+cd frontend
+
+1.
+npm run build
+
+2.
+npm run serve
+or
+npm run start 
+
+# To run Docusaurus locally
+cd documentation
+yarn install (if doing first time)
+yarn start
+
+
 ## Collaborators
 
 <div align="center">

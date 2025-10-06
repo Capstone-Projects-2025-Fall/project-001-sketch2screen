@@ -67,7 +67,7 @@ Sketch2Screen fills this gap by combining the collaborative design strengths of 
 
 **Instructions**
 
-# To Run Project
+### To Run Project
 
 Terminal 1
 source .venv/bin/activate (different for windows)
@@ -84,7 +84,7 @@ npm run serve
 or
 npm run start 
 
-# To run Docusaurus locally
+### To run Docusaurus locally
 cd documentation
 yarn install (if doing first time)
 yarn start

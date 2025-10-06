@@ -1,0 +1,385 @@
+<!doctype html>
+<html lang="en" dir="ltr" class="docs-wrapper plugin-docs plugin-id-default docs-version-current docs-doc-page docs-doc-id-api-specification/backend_api_docs" data-has-hydrated="false">
+<head>
+<meta charset="UTF-8">
+<meta name="generator" content="Docusaurus v3.9.1">
+<title data-rh="true">Backend API | Project 001 Sketch2screen</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/api-specification/backend_api_docs"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Backend API | Project 001 Sketch2screen"><meta data-rh="true" name="description" content="Overview"><meta data-rh="true" property="og:description" content="Overview"><link data-rh="true" rel="icon" href="/project-001-sketch2screen/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/api-specification/backend_api_docs"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/api-specification/backend_api_docs" hreflang="en"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/api-specification/backend_api_docs" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"API Specification","item":"https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/category/api-specification"},{"@type":"ListItem","position":2,"name":"Backend API","item":"https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/api-specification/backend_api_docs"}]}</script><script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script><link rel="stylesheet" href="/project-001-sketch2screen/assets/css/styles.2e3aae39.css">
+<script src="/project-001-sketch2screen/assets/js/runtime~main.4a206287.js" defer="defer"></script>
+<script src="/project-001-sketch2screen/assets/js/main.afa6e33c.js" defer="defer"></script>
+</head>
+<body class="navigation-with-keyboard">
+<svg style="display: none;"><defs>
+<symbol id="theme-svg-external-link" viewBox="0 0 24 24"><path fill="currentColor" d="M21 13v10h-21v-19h12v2h-10v15h17v-8h2zm3-12h-10.988l4.035 4-6.977 7.07 2.828 2.828 6.977-7.07 4.125 4.172v-11z"/></symbol>
+</defs></svg>
+<script>!function(){var t=function(){try{return new URLSearchParams(window.location.search).get("docusaurus-theme")}catch(t){}}()||function(){try{return window.localStorage.getItem("theme")}catch(t){}}();document.documentElement.setAttribute("data-theme",t||"light"),document.documentElement.setAttribute("data-theme-choice",t||"light")}(),function(){try{const c=new URLSearchParams(window.location.search).entries();for(var[t,e]of c)if(t.startsWith("docusaurus-data-")){var a=t.replace("docusaurus-data-","data-");document.documentElement.setAttribute(a,e)}}catch(t){}}()</script><div id="__docusaurus"><div role="region" aria-label="Skip to main content"><a class="skipToContent_fXgn" href="#__docusaurus_skipToContent_fallback">Skip to main content</a></div><nav aria-label="Main" class="theme-layout-navbar navbar navbar--fixed-top"><div class="navbar__inner"><div class="theme-layout-navbar-left navbar__items"><button aria-label="Toggle navigation bar" aria-expanded="false" class="navbar__toggle clean-btn" type="button"><svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><path stroke="currentColor" stroke-linecap="round" stroke-miterlimit="10" stroke-width="2" d="M4 7h22M4 15h22M4 23h22"></path></svg></button><a class="navbar__brand" href="/project-001-sketch2screen/"><div class="navbar__logo"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="themedComponent_mlkZ themedComponent--light_NVdE"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="themedComponent_mlkZ themedComponent--dark_xIcU"></div><b class="navbar__title text--truncate">Project 001 Sketch2screen</b></a><a aria-current="page" class="navbar__item navbar__link navbar__link--active" href="/project-001-sketch2screen/docs/intro">Documentation</a><a class="navbar__item navbar__link" href="/project-001-sketch2screen/tutorial/Intro">Docusaurus Tutorial</a></div><div class="theme-layout-navbar-right navbar__items navbar__items--right"><a href="https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen" target="_blank" rel="noopener noreferrer" class="navbar__item navbar__link">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a><div class="toggle_vylO colorModeToggle_DEke"><button class="clean-btn toggleButton_gllP toggleButtonDisabled_aARS" type="button" disabled="" title="system mode" aria-label="Switch between dark and light mode (currently system mode)"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP lightToggleIcon_pyhR"><path fill="currentColor" d="M12,9c1.65,0,3,1.35,3,3s-1.35,3-3,3s-3-1.35-3-3S10.35,9,12,9 M12,7c-2.76,0-5,2.24-5,5s2.24,5,5,5s5-2.24,5-5 S14.76,7,12,7L12,7z M2,13l2,0c0.55,0,1-0.45,1-1s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S1.45,13,2,13z M20,13l2,0c0.55,0,1-0.45,1-1 s-0.45-1-1-1l-2,0c-0.55,0-1,0.45-1,1S19.45,13,20,13z M11,2v2c0,0.55,0.45,1,1,1s1-0.45,1-1V2c0-0.55-0.45-1-1-1S11,1.45,11,2z M11,20v2c0,0.55,0.45,1,1,1s1-0.45,1-1v-2c0-0.55-0.45-1-1-1C11.45,19,11,19.45,11,20z M5.99,4.58c-0.39-0.39-1.03-0.39-1.41,0 c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0s0.39-1.03,0-1.41L5.99,4.58z M18.36,16.95 c-0.39-0.39-1.03-0.39-1.41,0c-0.39,0.39-0.39,1.03,0,1.41l1.06,1.06c0.39,0.39,1.03,0.39,1.41,0c0.39-0.39,0.39-1.03,0-1.41 L18.36,16.95z M19.42,5.99c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06c-0.39,0.39-0.39,1.03,0,1.41 s1.03,0.39,1.41,0L19.42,5.99z M7.05,18.36c0.39-0.39,0.39-1.03,0-1.41c-0.39-0.39-1.03-0.39-1.41,0l-1.06,1.06 c-0.39,0.39-0.39,1.03,0,1.41s1.03,0.39,1.41,0L7.05,18.36z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP darkToggleIcon_wfgR"><path fill="currentColor" d="M9.37,5.51C9.19,6.15,9.1,6.82,9.1,7.5c0,4.08,3.32,7.4,7.4,7.4c0.68,0,1.35-0.09,1.99-0.27C17.45,17.19,14.93,19,12,19 c-3.86,0-7-3.14-7-7C5,9.07,6.81,6.55,9.37,5.51z M12,3c-4.97,0-9,4.03-9,9s4.03,9,9,9s9-4.03,9-9c0-0.46-0.04-0.92-0.1-1.36 c-0.98,1.37-2.58,2.26-4.4,2.26c-2.98,0-5.4-2.42-5.4-5.4c0-1.81,0.89-3.42,2.26-4.4C12.92,3.04,12.46,3,12,3L12,3z"></path></svg><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true" class="toggleIcon_g3eP systemToggleIcon_QzmC"><path fill="currentColor" d="m12 21c4.971 0 9-4.029 9-9s-4.029-9-9-9-9 4.029-9 9 4.029 9 9 9zm4.95-13.95c1.313 1.313 2.05 3.093 2.05 4.95s-0.738 3.637-2.05 4.95c-1.313 1.313-3.093 2.05-4.95 2.05v-14c1.857 0 3.637 0.737 4.95 2.05z"></path></svg></button></div><div class="navbarSearchContainer_Bca1"></div></div></div><div role="presentation" class="navbar-sidebar__backdrop"></div></nav><div id="__docusaurus_skipToContent_fallback" class="theme-layout-main main-wrapper mainWrapper_z2l0"><div class="docsWrapper_hBAB"><button aria-label="Scroll back to top" class="clean-btn theme-back-to-top-button backToTopButton_sjWU" type="button"></button><div class="docRoot_UBD9"><aside class="theme-doc-sidebar-container docSidebarContainer_YfHR"><div class="sidebarViewport_aRkj"><div class="sidebar_njMd"><nav aria-label="Docs sidebar" class="menu thin-scrollbar menu_SIkG"><ul class="theme-doc-sidebar-menu menu__list"><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-1 menu__list-item"><a class="menu__link" href="/project-001-sketch2screen/docs/intro"><span title="Introduction" class="linkLabel_WmDU">Introduction</span></a></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist" href="/project-001-sketch2screen/docs/category/requirements-specification"><span title="Requirements Specification" class="categoryLinkLabel_W154">Requirements Specification</span></a><button aria-label="Expand sidebar category &#x27;Requirements Specification&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist menu__link--active" href="/project-001-sketch2screen/docs/category/api-specification"><span title="API Specification" class="categoryLinkLabel_W154">API Specification</span></a><button aria-label="Collapse sidebar category &#x27;API Specification&#x27;" aria-expanded="true" type="button" class="clean-btn menu__caret"></button></div><ul class="menu__list"><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-2 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist" tabindex="0" href="/project-001-sketch2screen/docs/api-specification/FrontendAPI"><span title="frontend" class="categoryLinkLabel_W154">frontend</span></a><button aria-label="Expand sidebar category &#x27;frontend&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-link theme-doc-sidebar-item-link-level-2 menu__list-item"><a class="menu__link menu__link--active" aria-current="page" tabindex="0" href="/project-001-sketch2screen/docs/api-specification/backend_api_docs"><span title="Backend API" class="linkLabel_WmDU">Backend API</span></a></li></ul></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist" href="/project-001-sketch2screen/docs/category/system-architecture"><span title="System Architecture" class="categoryLinkLabel_W154">System Architecture</span></a><button aria-label="Expand sidebar category &#x27;System Architecture&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li><li class="theme-doc-sidebar-item-category theme-doc-sidebar-item-category-level-1 menu__list-item menu__list-item--collapsed"><div class="menu__list-item-collapsible"><a class="categoryLink_byQd menu__link menu__link--sublist" href="/project-001-sketch2screen/docs/category/test-procedures"><span title="Test Procedures" class="categoryLinkLabel_W154">Test Procedures</span></a><button aria-label="Expand sidebar category &#x27;Test Procedures&#x27;" aria-expanded="false" type="button" class="clean-btn menu__caret"></button></div></li></ul></nav></div></div></aside><main class="docMainContainer_TBSr"><div class="container padding-top--md padding-bottom--lg"><div class="row"><div class="col docItemCol_VOVn"><div class="docItemContainer_Djhp"><article><nav class="theme-doc-breadcrumbs breadcrumbsContainer_Z_bl" aria-label="Breadcrumbs"><ul class="breadcrumbs"><li class="breadcrumbs__item"><a aria-label="Home page" class="breadcrumbs__link" href="/project-001-sketch2screen/"><svg viewBox="0 0 24 24" class="breadcrumbHomeIcon_YNFT"><path d="M10 19v-5h4v5c0 .55.45 1 1 1h3c.55 0 1-.45 1-1v-7h1.7c.46 0 .68-.57.33-.87L12.67 3.6c-.38-.34-.96-.34-1.34 0l-8.36 7.53c-.34.3-.13.87.33.87H5v7c0 .55.45 1 1 1h3c.55 0 1-.45 1-1z" fill="currentColor"></path></svg></a></li><li class="breadcrumbs__item"><a class="breadcrumbs__link" href="/project-001-sketch2screen/docs/category/api-specification"><span>API Specification</span></a></li><li class="breadcrumbs__item breadcrumbs__item--active"><span class="breadcrumbs__link">Backend API</span></li></ul></nav><div class="tocCollapsible_ETCw theme-doc-toc-mobile tocMobile_ITEo"><button type="button" class="clean-btn tocCollapsibleButton_TO0P">On this page</button></div><div class="theme-doc-markdown markdown"><header><h1>Backend API</h1></header>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="overview">Overview<a href="#overview" class="hash-link" aria-label="Direct link to Overview" title="Direct link to Overview" translate="no">​</a></h2>
+<p>This document provides comprehensive documentation for the backend API components, including views, services, and collaboration server functionality.</p>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="views-module-viewspy">Views Module (<code>views.py</code>)<a href="#views-module-viewspy" class="hash-link" aria-label="Direct link to views-module-viewspy" title="Direct link to views-module-viewspy" translate="no">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="functions">Functions<a href="#functions" class="hash-link" aria-label="Direct link to Functions" title="Direct link to Functions" translate="no">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="test_apirequest"><code>test_api(request)</code><a href="#test_apirequest" class="hash-link" aria-label="Direct link to test_apirequest" title="Direct link to test_apirequest" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> Simple test endpoint to verify frontend-backend connection and ensure the API is responding correctly.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>request</code> (HttpRequest): Django HTTP request object</li>
+</ul>
+<p><strong>Return Value:</strong></p>
+<ul>
+<li>JsonResponse: JSON object containing status, message, and HTTP method<!-- -->
+<div class="language-json codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#bfc7d5;--prism-background-color:#292d3e"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-json codeBlock_bY9V thin-scrollbar" style="color:#bfc7d5;background-color:#292d3e"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#bfc7d5"><span class="token punctuation" style="color:rgb(199, 146, 234)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain">  </span><span class="token property">&quot;status&quot;</span><span class="token operator" style="color:rgb(137, 221, 255)">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(195, 232, 141)">&quot;success&quot;</span><span class="token punctuation" style="color:rgb(199, 146, 234)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain">  </span><span class="token property">&quot;message&quot;</span><span class="token operator" style="color:rgb(137, 221, 255)">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(195, 232, 141)">&quot;Backend is connected!&quot;</span><span class="token punctuation" style="color:rgb(199, 146, 234)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain">  </span><span class="token property">&quot;method&quot;</span><span class="token operator" style="color:rgb(137, 221, 255)">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(195, 232, 141)">&quot;GET|POST|etc&quot;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain"></span><span class="token punctuation" style="color:rgb(199, 146, 234)">}</span><br></span></code></pre></div></div>
+</li>
+</ul>
+<p><strong>Pre-conditions:</strong> None</p>
+<p><strong>Post-conditions:</strong> Returns a successful JSON response regardless of request method</p>
+<p><strong>Exceptions Thrown:</strong> None</p>
+<hr>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="generate_mockuprequest"><code>generate_mockup(request)</code><a href="#generate_mockuprequest" class="hash-link" aria-label="Direct link to generate_mockuprequest" title="Direct link to generate_mockuprequest" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> Placeholder endpoint for sketch-to-mockup generation functionality. Currently returns a mock response to confirm button click processing.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>request</code> (HttpRequest): Django HTTP request object</li>
+</ul>
+<p><strong>Return Value:</strong></p>
+<ul>
+<li>JsonResponse: Success response for POST requests with mockup ID<!-- -->
+<div class="language-json codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#bfc7d5;--prism-background-color:#292d3e"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-json codeBlock_bY9V thin-scrollbar" style="color:#bfc7d5;background-color:#292d3e"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#bfc7d5"><span class="token punctuation" style="color:rgb(199, 146, 234)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain">  </span><span class="token property">&quot;status&quot;</span><span class="token operator" style="color:rgb(137, 221, 255)">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(195, 232, 141)">&quot;success&quot;</span><span class="token punctuation" style="color:rgb(199, 146, 234)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain">  </span><span class="token property">&quot;message&quot;</span><span class="token operator" style="color:rgb(137, 221, 255)">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(195, 232, 141)">&quot;Generate button clicked - AI processing would happen here&quot;</span><span class="token punctuation" style="color:rgb(199, 146, 234)">,</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain">  </span><span class="token property">&quot;mockup_id&quot;</span><span class="token operator" style="color:rgb(137, 221, 255)">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(195, 232, 141)">&quot;mock_123&quot;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain"></span><span class="token punctuation" style="color:rgb(199, 146, 234)">}</span><br></span></code></pre></div></div>
+</li>
+<li>JsonResponse: Error response for non-POST requests (status 405)<!-- -->
+<div class="language-json codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#bfc7d5;--prism-background-color:#292d3e"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-json codeBlock_bY9V thin-scrollbar" style="color:#bfc7d5;background-color:#292d3e"><code class="codeBlockLines_e6Vv"><span class="token-line" style="color:#bfc7d5"><span class="token punctuation" style="color:rgb(199, 146, 234)">{</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain">  </span><span class="token property">&quot;error&quot;</span><span class="token operator" style="color:rgb(137, 221, 255)">:</span><span class="token plain"> </span><span class="token string" style="color:rgb(195, 232, 141)">&quot;Method not allowed&quot;</span><span class="token plain"></span><br></span><span class="token-line" style="color:#bfc7d5"><span class="token plain"></span><span class="token punctuation" style="color:rgb(199, 146, 234)">}</span><br></span></code></pre></div></div>
+</li>
+</ul>
+<p><strong>Pre-conditions:</strong></p>
+<ul>
+<li>Request method should be POST for successful processing</li>
+</ul>
+<p><strong>Post-conditions:</strong></p>
+<ul>
+<li>Returns mock success response for POST requests</li>
+<li>Returns 405 error for other HTTP methods</li>
+</ul>
+<p><strong>Exceptions Thrown:</strong> None (handled via status codes)</p>
+<hr>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="frontendrequest"><code>frontend(request)</code><a href="#frontendrequest" class="hash-link" aria-label="Direct link to frontendrequest" title="Direct link to frontendrequest" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> Renders the frontend HTML template for the application.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>request</code> (HttpRequest): Django HTTP request object</li>
+</ul>
+<p><strong>Return Value:</strong></p>
+<ul>
+<li>HttpResponse: Rendered HTML template from &#x27;frontend/src/index.html&#x27;</li>
+</ul>
+<p><strong>Pre-conditions:</strong></p>
+<ul>
+<li>Template file must exist at &#x27;frontend/src/index.html&#x27;</li>
+</ul>
+<p><strong>Post-conditions:</strong> Returns rendered HTML page</p>
+<p><strong>Exceptions Thrown:</strong></p>
+<ul>
+<li><code>TemplateDoesNotExist</code>: If the template file is not found</li>
+</ul>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="classes">Classes<a href="#classes" class="hash-link" aria-label="Direct link to Classes" title="Direct link to Classes" translate="no">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="generateview"><code>GenerateView</code><a href="#generateview" class="hash-link" aria-label="Direct link to generateview" title="Direct link to generateview" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> API view class that handles image upload and converts sketches to HTML/CSS mockups using Claude AI.</p>
+<p><strong>Inheritance:</strong> Inherits from <code>rest_framework.views.APIView</code></p>
+<p><strong>Decorators:</strong></p>
+<ul>
+<li><code>@method_decorator(csrf_exempt, name=&quot;dispatch&quot;)</code>: Exempts this view from CSRF validation</li>
+</ul>
+<p><strong>Data Fields:</strong></p>
+<ul>
+<li><code>parser_classes</code> (list): Set to <code>[MultiPartParser]</code> to accept multipart/form-data for file uploads</li>
+<li><code>MAX_BYTES</code> (int, module-level): 10485760 (10MB) - Maximum allowed file upload size</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<h5 class="anchor anchorWithStickyNavbar_LWe7" id="postself-request"><code>post(self, request)</code><a href="#postself-request" class="hash-link" aria-label="Direct link to postself-request" title="Direct link to postself-request" translate="no">​</a></h5>
+<p><strong>Purpose:</strong> Handles POST requests containing image file uploads, validates the file, and generates HTML/CSS mockup using Claude AI.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>request</code> (Request): DRF Request object containing uploaded file and optional prompt</li>
+</ul>
+<p><strong>Return Value:</strong></p>
+<ul>
+<li>Response: DRF Response object with one of the following:<!-- -->
+<ul>
+<li>Success (200): <code>{&quot;html&quot;: &quot;&lt;generated_html_string&gt;&quot;}</code></li>
+<li>Bad Request (400): <code>{&quot;detail&quot;: &quot;Missing file field &#x27;file&#x27;.&quot;}</code></li>
+<li>Bad Request (400): <code>{&quot;detail&quot;: &quot;Only images are supported.&quot;}</code></li>
+<li>Request Entity Too Large (413): <code>{&quot;detail&quot;: &quot;File too large.&quot;}</code></li>
+<li>Internal Server Error (500): <code>{&quot;detail&quot;: &quot;Generation failed.&quot;}</code></li>
+</ul>
+</li>
+</ul>
+<p><strong>Pre-conditions:</strong></p>
+<ul>
+<li>Request must include a file field named &quot;file&quot;</li>
+<li>File must be an image (content type starts with &quot;image/&quot;)</li>
+<li>File size must not exceed 10MB</li>
+</ul>
+<p><strong>Post-conditions:</strong></p>
+<ul>
+<li>On success: Returns generated HTML/CSS code</li>
+<li>On failure: Returns appropriate error message and status code</li>
+</ul>
+<p><strong>Exceptions Thrown:</strong></p>
+<ul>
+<li>Generic <code>Exception</code>: Caught and returns 500 error response with message &quot;Generation failed.&quot;</li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="collaboration-server-module-collabserverpy">Collaboration Server Module (<code>CollabServer.py</code>)<a href="#collaboration-server-module-collabserverpy" class="hash-link" aria-label="Direct link to collaboration-server-module-collabserverpy" title="Direct link to collaboration-server-module-collabserverpy" translate="no">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="metaclasses">Metaclasses<a href="#metaclasses" class="hash-link" aria-label="Direct link to Metaclasses" title="Direct link to Metaclasses" translate="no">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="singletonmeta"><code>SingletonMeta</code><a href="#singletonmeta" class="hash-link" aria-label="Direct link to singletonmeta" title="Direct link to singletonmeta" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> Metaclass that implements the Singleton design pattern, ensuring only one instance of a class exists.</p>
+<p><strong>Data Fields:</strong></p>
+<ul>
+<li><code>_instance</code> (class variable): Stores the single instance of the class (initially None)</li>
+</ul>
+<p><strong>Methods:</strong></p>
+<h5 class="anchor anchorWithStickyNavbar_LWe7" id="__call__cls-args-kwargs"><code>__call__(cls, *args, **kwargs)</code><a href="#__call__cls-args-kwargs" class="hash-link" aria-label="Direct link to __call__cls-args-kwargs" title="Direct link to __call__cls-args-kwargs" translate="no">​</a></h5>
+<p><strong>Purpose:</strong> Controls instance creation to ensure singleton behavior.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>cls</code> (type): The class being instantiated</li>
+<li><code>*args</code>: Variable positional arguments</li>
+<li><code>**kwargs</code>: Variable keyword arguments</li>
+</ul>
+<p><strong>Return Value:</strong></p>
+<ul>
+<li>Instance of the class (either existing or newly created)</li>
+</ul>
+<p><strong>Pre-conditions:</strong> None</p>
+<p><strong>Post-conditions:</strong></p>
+<ul>
+<li>Returns the existing instance if one exists</li>
+<li>Creates and returns a new instance if none exists</li>
+</ul>
+<p><strong>Exceptions Thrown:</strong> None</p>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="classes-1">Classes<a href="#classes-1" class="hash-link" aria-label="Direct link to Classes" title="Direct link to Classes" translate="no">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="collabserver"><code>CollabServer</code><a href="#collabserver" class="hash-link" aria-label="Direct link to collabserver" title="Direct link to collabserver" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> Singleton server class that manages real-time collaboration by handling scene updates, page updates, and user connections for shared sketches.</p>
+<p><strong>Metaclass:</strong> <code>SingletonMeta</code> (ensures only one instance exists)</p>
+<p><strong>Data Fields:</strong> None (uses singleton pattern, no instance-specific fields defined)</p>
+<p><strong>Methods:</strong></p>
+<h5 class="anchor anchorWithStickyNavbar_LWe7" id="sendsceneupdateuserid-sketchid-sketchdata"><code>sendSceneUpdate(userID, sketchID, sketchData)</code><a href="#sendsceneupdateuserid-sketchid-sketchdata" class="hash-link" aria-label="Direct link to sendsceneupdateuserid-sketchid-sketchdata" title="Direct link to sendsceneupdateuserid-sketchid-sketchdata" translate="no">​</a></h5>
+<p><strong>Purpose:</strong> Sends a scene update message to a specific user via Django Channels, notifying them of changes to sketch data.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>userID</code> (str): Unique identifier for the target user</li>
+<li><code>sketchID</code> (str): Unique identifier for the sketch being updated</li>
+<li><code>sketchData</code> (dict/object): The updated sketch scene data</li>
+</ul>
+<p><strong>Return Value:</strong> None</p>
+<p><strong>Pre-conditions:</strong></p>
+<ul>
+<li>Django Channels must be properly configured</li>
+<li>User channel must exist for the given userID</li>
+<li><code>async_to_sync</code> must be imported (currently missing from imports)</li>
+</ul>
+<p><strong>Post-conditions:</strong></p>
+<ul>
+<li>Message of type &quot;scene.update&quot; is sent to the user&#x27;s channel</li>
+</ul>
+<p><strong>Exceptions Thrown:</strong></p>
+<ul>
+<li><code>NameError</code>: <code>async_to_sync</code> is not imported</li>
+<li>Channel layer exceptions if user channel doesn&#x27;t exist</li>
+</ul>
+<hr>
+<h5 class="anchor anchorWithStickyNavbar_LWe7" id="sendpageupdateuserid-sketchid-name"><code>sendPageUpdate(userID, sketchID, name)</code><a href="#sendpageupdateuserid-sketchid-name" class="hash-link" aria-label="Direct link to sendpageupdateuserid-sketchid-name" title="Direct link to sendpageupdateuserid-sketchid-name" translate="no">​</a></h5>
+<p><strong>Purpose:</strong> Sends a page update message to a specific user, notifying them of changes to a page/sketch name.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>userID</code> (str): Unique identifier for the target user</li>
+<li><code>sketchID</code> (str): Unique identifier for the sketch</li>
+<li><code>name</code> (str): The new/updated name for the page</li>
+</ul>
+<p><strong>Return Value:</strong> None</p>
+<p><strong>Pre-conditions:</strong></p>
+<ul>
+<li>Django Channels must be properly configured</li>
+<li>User channel must exist for the given userID</li>
+<li><code>async_to_sync</code> must be imported (currently missing from imports)</li>
+</ul>
+<p><strong>Post-conditions:</strong></p>
+<ul>
+<li>Message of type &quot;page.update&quot; is sent to the user&#x27;s channel</li>
+</ul>
+<p><strong>Exceptions Thrown:</strong></p>
+<ul>
+<li><code>NameError</code>: <code>async_to_sync</code> is not imported</li>
+<li>Channel layer exceptions if user channel doesn&#x27;t exist</li>
+</ul>
+<hr>
+<h5 class="anchor anchorWithStickyNavbar_LWe7" id="onnewconnectionuserid-collabid"><code>onNewConnection(userID, collabID)</code><a href="#onnewconnectionuserid-collabid" class="hash-link" aria-label="Direct link to onnewconnectionuserid-collabid" title="Direct link to onnewconnectionuserid-collabid" translate="no">​</a></h5>
+<p><strong>Purpose:</strong> Handler method to be implemented for processing new user connections to a collaboration session. (Placeholder - implementation pending in STS-26)</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>userID</code> (str): Unique identifier for the connecting user</li>
+<li><code>collabID</code> (str): Unique identifier for the collaboration session</li>
+</ul>
+<p><strong>Return Value:</strong> None (currently pass statement)</p>
+<p><strong>Pre-conditions:</strong> None defined</p>
+<p><strong>Post-conditions:</strong> None (no implementation yet)</p>
+<p><strong>Exceptions Thrown:</strong> None</p>
+<hr>
+<h5 class="anchor anchorWithStickyNavbar_LWe7" id="onsceneupdateuserid-collabid-sketchid-sketchdata"><code>onSceneUpdate(userID, collabID, sketchID, sketchData)</code><a href="#onsceneupdateuserid-collabid-sketchid-sketchdata" class="hash-link" aria-label="Direct link to onsceneupdateuserid-collabid-sketchid-sketchdata" title="Direct link to onsceneupdateuserid-collabid-sketchid-sketchdata" translate="no">​</a></h5>
+<p><strong>Purpose:</strong> Handler method to be implemented for processing scene update events from users. (Placeholder - implementation pending in STS-26)</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>userID</code> (str): Unique identifier for the user making the update</li>
+<li><code>collabID</code> (str): Unique identifier for the collaboration session</li>
+<li><code>sketchID</code> (str): Unique identifier for the sketch being updated</li>
+<li><code>sketchData</code> (dict/object): The updated sketch scene data</li>
+</ul>
+<p><strong>Return Value:</strong> None (currently pass statement)</p>
+<p><strong>Pre-conditions:</strong> None defined</p>
+<p><strong>Post-conditions:</strong> None (no implementation yet)</p>
+<p><strong>Exceptions Thrown:</strong> None</p>
+<hr>
+<h5 class="anchor anchorWithStickyNavbar_LWe7" id="onpageupdateuserid-collabid-sketchid-name"><code>onPageUpdate(userID, collabID, sketchID, name)</code><a href="#onpageupdateuserid-collabid-sketchid-name" class="hash-link" aria-label="Direct link to onpageupdateuserid-collabid-sketchid-name" title="Direct link to onpageupdateuserid-collabid-sketchid-name" translate="no">​</a></h5>
+<p><strong>Purpose:</strong> Handler method to be implemented for processing page/sketch name update events. (Placeholder - implementation pending in STS-26)</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>userID</code> (str): Unique identifier for the user making the update</li>
+<li><code>collabID</code> (str): Unique identifier for the collaboration session</li>
+<li><code>sketchID</code> (str): Unique identifier for the sketch</li>
+<li><code>name</code> (str): The new name for the page</li>
+</ul>
+<p><strong>Return Value:</strong> None (currently pass statement)</p>
+<p><strong>Pre-conditions:</strong> None defined</p>
+<p><strong>Post-conditions:</strong> None (no implementation yet)</p>
+<p><strong>Exceptions Thrown:</strong> None</p>
+<hr>
+<h5 class="anchor anchorWithStickyNavbar_LWe7" id="onconnectionenduserid"><code>onConnectionEnd(userID)</code><a href="#onconnectionenduserid" class="hash-link" aria-label="Direct link to onconnectionenduserid" title="Direct link to onconnectionenduserid" translate="no">​</a></h5>
+<p><strong>Purpose:</strong> Handler method to be implemented for processing user disconnection events. (Placeholder - implementation pending in STS-26)</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>userID</code> (str): Unique identifier for the disconnecting user</li>
+</ul>
+<p><strong>Return Value:</strong> None (currently pass statement)</p>
+<p><strong>Pre-conditions:</strong> None defined</p>
+<p><strong>Post-conditions:</strong> None (no implementation yet)</p>
+<p><strong>Exceptions Thrown:</strong> None</p>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="claude-client-service-module-claudeclientpy">Claude Client Service Module (<code>claudeClient.py</code>)<a href="#claude-client-service-module-claudeclientpy" class="hash-link" aria-label="Direct link to claude-client-service-module-claudeclientpy" title="Direct link to claude-client-service-module-claudeclientpy" translate="no">​</a></h2>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="functions-1">Functions<a href="#functions-1" class="hash-link" aria-label="Direct link to Functions" title="Direct link to Functions" translate="no">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="_load_anthropic_key_from_file"><code>_load_anthropic_key_from_file()</code><a href="#_load_anthropic_key_from_file" class="hash-link" aria-label="Direct link to _load_anthropic_key_from_file" title="Direct link to _load_anthropic_key_from_file" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> Internal helper function that reads the Anthropic API key from a plaintext file specified in Django settings.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Return Value:</strong></p>
+<ul>
+<li><code>str</code>: The API key string (whitespace trimmed)</li>
+</ul>
+<p><strong>Pre-conditions:</strong></p>
+<ul>
+<li><code>CLAUDE_API_KEY</code> setting must be defined in Django settings</li>
+<li>The file path specified in settings must exist and be readable</li>
+<li>The file must contain a non-empty API key</li>
+</ul>
+<p><strong>Post-conditions:</strong> Returns the API key as a string</p>
+<p><strong>Exceptions Thrown:</strong></p>
+<ul>
+<li><code>RuntimeError</code>: If <code>CLAUDE_API_KEY</code> is not configured in settings</li>
+<li><code>RuntimeError</code>: If the API key file is empty</li>
+<li><code>FileNotFoundError</code>: If the specified file path doesn&#x27;t exist</li>
+<li><code>PermissionError</code>: If the file cannot be read due to permissions</li>
+</ul>
+<hr>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="_client"><code>_client()</code><a href="#_client" class="hash-link" aria-label="Direct link to _client" title="Direct link to _client" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> Internal helper function that creates and returns an authenticated Anthropic client instance.</p>
+<p><strong>Parameters:</strong> None</p>
+<p><strong>Return Value:</strong></p>
+<ul>
+<li><code>Anthropic</code>: Authenticated Anthropic API client instance</li>
+</ul>
+<p><strong>Pre-conditions:</strong></p>
+<ul>
+<li>API key must be available via <code>_load_anthropic_key_from_file()</code></li>
+</ul>
+<p><strong>Post-conditions:</strong> Returns configured Anthropic client</p>
+<p><strong>Exceptions Thrown:</strong></p>
+<ul>
+<li><code>RuntimeError</code>: Propagated from <code>_load_anthropic_key_from_file()</code> if API key is not configured</li>
+<li><code>FileNotFoundError</code>: Propagated if API key file doesn&#x27;t exist</li>
+</ul>
+<hr>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="_extract_textresp"><code>_extract_text(resp)</code><a href="#_extract_textresp" class="hash-link" aria-label="Direct link to _extract_textresp" title="Direct link to _extract_textresp" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> Internal helper function that extracts and concatenates all text blocks from a Claude API response object.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>resp</code> (Message): Anthropic API response object containing content blocks</li>
+</ul>
+<p><strong>Return Value:</strong></p>
+<ul>
+<li><code>str</code>: Concatenated text from all text-type content blocks (whitespace trimmed)</li>
+</ul>
+<p><strong>Pre-conditions:</strong></p>
+<ul>
+<li>Response object must have a <code>content</code> attribute (list of content blocks)</li>
+</ul>
+<p><strong>Post-conditions:</strong> Returns extracted text string (may be empty if no text blocks found)</p>
+<p><strong>Exceptions Thrown:</strong> None (handles missing attributes gracefully)</p>
+<hr>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="image_to_html_cssimage_bytes-media_type-prompt"><code>image_to_html_css(image_bytes, media_type, prompt)</code><a href="#image_to_html_cssimage_bytes-media_type-prompt" class="hash-link" aria-label="Direct link to image_to_html_cssimage_bytes-media_type-prompt" title="Direct link to image_to_html_cssimage_bytes-media_type-prompt" translate="no">​</a></h4>
+<p><strong>Purpose:</strong> Main service function that sends an image (with optional text prompt) to Claude AI and receives generated HTML/CSS code that recreates the UI design from the image.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>image_bytes</code> (bytes): Raw binary data of the image file</li>
+<li><code>media_type</code> (str, optional): MIME type of the image (default: &quot;image/png&quot;)</li>
+<li><code>prompt</code> (Optional[str], optional): Custom user instruction for code generation (default: None)</li>
+</ul>
+<p><strong>Return Value:</strong></p>
+<ul>
+<li><code>str</code>: Generated HTML and CSS code as a string</li>
+</ul>
+<p><strong>Pre-conditions:</strong></p>
+<ul>
+<li>Valid image bytes must be provided</li>
+<li>Anthropic API key must be configured</li>
+<li><code>CLAUDE_MODEL</code> setting should be defined in Django settings (defaults to &quot;claude-sonnet-4-20250514&quot;)</li>
+</ul>
+<p><strong>Post-conditions:</strong></p>
+<ul>
+<li>Returns production-ready HTML/CSS code</li>
+<li>Image is base64 encoded before sending to API</li>
+</ul>
+<p><strong>System Prompt Context:</strong></p>
+<ul>
+<li>Instructs Claude to be a frontend assistant</li>
+<li>Requests high-fidelity, production-ready HTML and CSS</li>
+<li>Specifies semantic HTML, minimal wrappers, inline styles</li>
+<li>Allows Bootstrap or Tailwind CSS</li>
+<li>Prohibits body tags and markdown fences</li>
+</ul>
+<p><strong>Default User Instruction:</strong></p>
+<ul>
+<li>Generate HTML/CSS recreating the layout</li>
+<li>Use labeled HTML tags from the image</li>
+<li>Include text content from the image</li>
+<li>Use placeholders for icons/images</li>
+<li>Provide only code without markdown fences</li>
+</ul>
+<p><strong>Exceptions Thrown:</strong></p>
+<ul>
+<li><code>RuntimeError</code>: If Claude returns no text content</li>
+<li><code>RuntimeError</code>: Propagated if API key is not configured</li>
+<li><code>FileNotFoundError</code>: Propagated if API key file doesn&#x27;t exist</li>
+<li>API exceptions from Anthropic SDK (network errors, rate limits, etc.)</li>
+</ul>
+<hr>
+<h3 class="anchor anchorWithStickyNavbar_LWe7" id="configuration-constants">Configuration Constants<a href="#configuration-constants" class="hash-link" aria-label="Direct link to Configuration Constants" title="Direct link to Configuration Constants" translate="no">​</a></h3>
+<h4 class="anchor anchorWithStickyNavbar_LWe7" id="max_bytes"><code>MAX_BYTES</code><a href="#max_bytes" class="hash-link" aria-label="Direct link to max_bytes" title="Direct link to max_bytes" translate="no">​</a></h4>
+<ul>
+<li><strong>Module:</strong> <code>views.py</code></li>
+<li><strong>Value:</strong> 10485760 (10MB)</li>
+<li><strong>Purpose:</strong> Maximum allowed file size for image uploads</li>
+<li><strong>Type:</strong> <code>int</code></li>
+</ul>
+<hr>
+<h2 class="anchor anchorWithStickyNavbar_LWe7" id="api-endpoints-summary">API Endpoints Summary<a href="#api-endpoints-summary" class="hash-link" aria-label="Direct link to API Endpoints Summary" title="Direct link to API Endpoints Summary" translate="no">​</a></h2>
+<table><thead><tr><th>Endpoint</th><th>Method</th><th>Purpose</th><th>Authentication</th></tr></thead><tbody><tr><td><code>/api/test/</code></td><td>Any</td><td>Test backend connectivity</td><td>None (CSRF exempt)</td></tr><tr><td><code>/api/generate-mockup/</code></td><td>POST</td><td>Placeholder for mockup generation</td><td>None (CSRF exempt)</td></tr><tr><td><code>/api/generate/</code></td><td>POST</td><td>Generate HTML/CSS from image</td><td>None (CSRF exempt)</td></tr><tr><td><code>/</code> (frontend)</td><td>GET</td><td>Serve frontend application</td><td>Standard</td></tr></tbody></table>
+<hr></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col"><a href="https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/edit/main/documentation/docs/api-specification/backend_api_docs.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_JAkA"><details><summary>Revision History</summary><table><thead><tr><th scope="row">Author</th><th scope="row">Revision</th><th scope="row">Date</th></tr></thead><tbody>nothing</tbody></table></details><span class="theme-last-updated">Last updated<!-- --> by <b>Chung Ying Lee</b></span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/project-001-sketch2screen/docs/api-specification/FrontendAPI/Navbar/functions/default"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Function: default()</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/project-001-sketch2screen/docs/category/system-architecture"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">System Architecture</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#overview" class="table-of-contents__link toc-highlight">Overview</a></li><li><a href="#views-module-viewspy" class="table-of-contents__link toc-highlight">Views Module (<code>views.py</code>)</a><ul><li><a href="#functions" class="table-of-contents__link toc-highlight">Functions</a></li><li><a href="#classes" class="table-of-contents__link toc-highlight">Classes</a></li></ul></li><li><a href="#collaboration-server-module-collabserverpy" class="table-of-contents__link toc-highlight">Collaboration Server Module (<code>CollabServer.py</code>)</a><ul><li><a href="#metaclasses" class="table-of-contents__link toc-highlight">Metaclasses</a></li><li><a href="#classes-1" class="table-of-contents__link toc-highlight">Classes</a></li></ul></li><li><a href="#claude-client-service-module-claudeclientpy" class="table-of-contents__link toc-highlight">Claude Client Service Module (<code>claudeClient.py</code>)</a><ul><li><a href="#functions-1" class="table-of-contents__link toc-highlight">Functions</a></li><li><a href="#configuration-constants" class="table-of-contents__link toc-highlight">Configuration Constants</a></li></ul></li><li><a href="#api-endpoints-summary" class="table-of-contents__link toc-highlight">API Endpoints Summary</a></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Docs</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/project-001-sketch2screen/docs/intro">Documentation</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">More</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="margin-bottom--sm"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--light_NVdE"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--dark_xIcU"></div><div class="footer__copyright">Copyright © 2025 Project 001 Sketch2screen, Inc. Built with Docusaurus.</div></div></div></footer></div>
+</body>
+</html>

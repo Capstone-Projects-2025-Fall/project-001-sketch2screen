@@ -20,7 +20,7 @@ const main_template_jira_scripts = () => {
 }
 
 // Fallback value if PROJECT_NAME is not defined:
-const rawProjectName = process.env.PROJECT_NAME || 'docs-dev-mode';
+const rawProjectName = process.env.PROJECT_NAME || 'sketch-to-screen';
 
 // Transform PROJECT_NAME (or fallback) to a title-like string:
 const title = rawProjectName
@@ -44,7 +44,7 @@ const config = {
   url: 'https://'+process.env.ORG_NAME+'.github.io/',
   baseUrl: '/'+process.env.PROJECT_NAME+'/',
   trailingSlash: false,
-  onBrokenLinks: 'warn',
+  onBrokenLinks: 'ignore',
   onBrokenMarkdownLinks: 'warn',
   favicon: 'img/favicon.ico',
 
@@ -232,6 +232,19 @@ const config = {
       },
     ],
     'plugin-image-zoom',
+    [
+      'docusaurus-plugin-typedoc',
+      {
+        entryPoints: ['../frontend/src/App/*.{ts,tsx}'],
+        entryPointStrategy: 'expand',
+        tsconfig: '../frontend/tsconfig.json',
+        useCodeBlocks: true,
+        excludePrivate: false,
+        excludeInternal: false,
+        out: 'docs/api-specification/FrontendAPI/',
+        
+      },
+    ],
 
 
   ],

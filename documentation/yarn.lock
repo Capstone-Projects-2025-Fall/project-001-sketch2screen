@@ -8206,7 +8206,7 @@ pkg-types@^2.3.0:
     exsolve "^1.0.7"
     pathe "^2.0.3"
 
-plugin-image-zoom@flexanalytics/plugin-image-zoom:
+plugin-image-zoom@:
   version "1.1.0"
   resolved "git+ssh://git@github.com/flexanalytics/plugin-image-zoom.git#8e1b866c79ed6d42cefc4c52f851f1dfd1d0c7de"
   dependencies:

@@ -4,7 +4,9 @@ from django.http import JsonResponse, HttpResponse
 import json
 
 from pytest_mock import mocker
-from views import test_api, generate_mockup, frontend
+from views import test_api, generate_mockup, frontend, GenerateView
+from rest_framework.test import APIRequestFactory
+from django.core.files.uploadedfile import SimpleUploadedFile
 # Create your tests here.
 
 class TestTestApi:
@@ -120,4 +122,130 @@ class TestFrontend:
         frontend(request)
         assert mock_render.called
     
+class TestGenerateView:
+    """Tests for the GenerateView APIView class"""
+    @pytest.fixture
+    def factory(self):
+        return APIRequestFactory()
+    
+    @pytest.fixture
+    def mock_image_file(self):
+        """Fixture to provide a mock image file for testing"""
+        return SimpleUploadedFile(
+            "test_image.png",
+            b"fake image content",
+            content_type="image/png"
+        )
+    
+    @pytest.fixture
+    def large_image_file(self):
+        """Fixture to provide a large mock image file for testing"""
+        large_file = b"x" * (11 * 1024 *1024)
+        return SimpleUploadedFile(
+            "large_image.png",
+            large_file,
+            content_type="image/png"
+        )
+
+    @pytest.fixture
+    def non_image_file(self):
+        """Fixture to provide a non-image file for testing"""
+        return SimpleUploadedFile(
+            "test.txt",
+            b"just some text content",
+            content_type="application/pdf"
+        )
+    
+    def test_generate_view_missing_file(self, factory):
+        """Test taht missing file field returns 400 error"""
+        request = factory.post('/api/generate/')
+        view = GenerateView.as_view()
+        response = view(request)
+
+        assert response.status_code == 400
+        assert "Missing file field" in response.data['detail']
+
+    def test_generate_view_file_too_large(self, factory, large_image_file):
+        # Test that uploading a file larger than 10MB returns 413 error
+        request = factory.post('/api/generate/', {'file': large_image_file}, format = 'multipart')
+        view = GenerateView.as_view()
+        response = view(request)
+        
+        assert response.status_code == 413
+        assert "File too large" in response.data['detail']
+        
+    def test_generate_view_non_image_file(self, factory, non_image_file):
+        # Non image files would return 400 error
+        request = factory.post('/api/generate/', {'file': non_image_file}, format = 'multipart')
+        view = GenerateView.as_view()
+        response = view(request)
+
+        assert response.status_code == 400
+        assert "Only images are supported" in response.data['detail']
+    
+    def test_generate_view_successful_generation(self, factory, mock_image_file, mocker):
+        #Test successful image processing and HTML generation
+        mock_html = "<html><body>Generated HTML</body></html>"
+        mock_convertor = mocker.patch('views.image_to_html_css', return_value = mock_html)
+
+        request = factory.post('/api/generate/', {'file': mock_image_file}, format = 'multipart')
+        view = GenerateView.as_view()
+        response = view(request)
+
+        assert response.status_code == 200
+        assert response.data['html'] == mock_html
+        mock_convertor.assert_called_once()
+    
+    def test_generate_view_with_prompt(self, factory, mock_image_file, mocker):
+        """Test that optional prompt parameter is passed correctly"""
+        from views import GenerateView
+        
+        mock_converter = mocker.patch('views.image_to_html_css', return_value="<html></html>")
+        
+        request = factory.post(
+            '/api/generate/',
+            {'file': mock_image_file, 'prompt': 'Make it modern'},
+            format='multipart'
+        )
+        view = GenerateView.as_view()
+        response = view(request)
+        
+        # Verify prompt was passed to the converter
+        call_args = mock_converter.call_args
+        assert call_args[1]['prompt'] == 'Make it modern'
+
+
+    def test_generate_view_handles_conversion_exception(self, factory, mock_image_file, mocker):
+        # Test to ensure exceptions during conversion return 500 error
+        mock_convertor = mocker.patch('views.image_to_html_css', side_effect=Exception("Conversion failed"))
+        request = factory.post('/api/generate/', {'file': mock_image_file}, format='multipart')
+        view = GenerateView.as_view()
+        response = view(request)
+
+        assert response.status_code == 500
+        assert "Generation failed" in response.data['detail']
+    
+    def test_generate_view_accepts_different_image_types(self, factory, mocker):
+        """Test that different image content types are accepted"""
+        
+        mock_convertor = mocker.patch('views.image_to_html_css', return_value="<html></html>")
+
+        #Test with JPEG
+        jpeg_file = SimpleUploadedFile(
+            "test.jpg",
+            b"fake jpeg",
+            content_type="image/jpeg"
+        )
+        request = factory.post('/api/generate/', {'file': jpeg_file}, format='multipart')
+        view = GenerateView.as_view()
+        response = view(request)
+
+        assert response.status_code == 200
+    
+    def test_generate_mockup_put_returns_error(self, factory):
+        """Test that PUT method returns 405 error."""
+        request = factory.put('/api/generate-mockup/')
+        response = generate_mockup(request)
+
+        assert response.status_code == 405
     

@@ -54,4 +54,34 @@ class TestTestApi:
         assert isinstance(response, JsonResponse)
         assert response['Content-Type'] == 'application/json'
     
+class TestGenerateMockup:
+    """Tests for the generate_mockup view function"""
+    # This function creates a setup and the tears it down after the test is done.
+    @pytest.fixture
+    def factory(self):
+        """Provides a RequestFactory instance."""
+        return RequestFactory()
     
+    def test_generate_mockup_post_returns_success(self, factory):
+        """Test that generate_mockup returns success on POST."""
+        request = factory.post('/api/generate-mockup/')
+        response = generate_mockup(request)
+
+        data = json.loads(response.content)
+        assert 'AI processing would happen here' in data['message']
+    
+    def test_generate_mockup_post_returns_mockup_id(self, factory):
+
+        request = factory.post('/api/generate-mockup/')
+        response = generate_mockup(request)
+
+        data = json.loads(response.content)
+        assert data['mockup_id'] == 'mock_123'
+
+    def test_generate_mockup_get_returns_error(self, factory):
+        request = factory.get('/api/generate-mockup/')
+        response = generate_mockup(request)
+
+        assert response.status_code == 405
+    
+   

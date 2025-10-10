@@ -1,8 +1,10 @@
 import pytest
 from django.test import RequestFactory
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 import json
-from views import test_api, generate_mockup
+
+from pytest_mock import mocker
+from views import test_api, generate_mockup, frontend
 # Create your tests here.
 
 class TestTestApi:
@@ -84,4 +86,38 @@ class TestGenerateMockup:
 
         assert response.status_code == 405
     
-   
+class TestFrontend:
+    """Tests for the frontend view function."""
+    @pytest.fixture
+    def factory(self):
+        return RequestFactory()
+    
+    def test_frontend_renders_template(self, factory, mocker):
+        #Mock the render function to verify it's called correctly
+        mock_render = mocker.patch('views.render')
+        mock_render.return_value = mocker.Mock()
+
+        request = factory.get('/')
+        frontend(request)
+
+        mock_render.assert_called_once_with(request, 'frontend/src/index.html')
+    
+    def test_frontend_returns_render_response(self, factory):
+        #Test that frontend view returns the result from render
+        expected_response = HttpResponse("test content")
+        mock_render = mocker.patch('views.render', return_value = expected_response)
+
+        request = factory.get('/')
+        response = frontend(request)
+        
+        assert response == expected_response
+
+    def test_frontend_accepts_get_requests(self, factory, mocker):
+        #Test that frontend view accepts GET requests
+        mock_render = mocker.patch('views.render')
+        request = factory.get('/')
+
+        frontend(request)
+        assert mock_render.called
+    
+    

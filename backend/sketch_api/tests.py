@@ -2,9 +2,9 @@ import pytest
 from django.test import RequestFactory
 from django.http import JsonResponse, HttpResponse
 import json
+from django.shortcuts import render
+from .views import api_test, generate_mockup, frontend, GenerateView
 
-from pytest_mock import mocker
-from views import test_api, generate_mockup, frontend, GenerateView
 from rest_framework.test import APIRequestFactory
 from django.core.files.uploadedfile import SimpleUploadedFile
 # Create your tests here.
@@ -20,7 +20,7 @@ class TestTestApi:
     def test_api_returns_success_status(self, factory):
         """Test that test_api returns a success status."""
         request = factory.get('/api/test/')
-        response = test_api(request)
+        response = api_test(request)
 
         assert response.status_code == 200
         data = json.loads(response.content)
@@ -29,7 +29,7 @@ class TestTestApi:
     def test_api_returns_correct_message(self, factory):
         """Test that test_api returns the correct message."""
         request = factory.get('/api/test/')
-        response = test_api(request)
+        response = api_test(request)
 
         data = json.loads(response.content)
         assert data['message'] == 'Backend is connected!'
@@ -37,7 +37,7 @@ class TestTestApi:
     def test_api_returns_request_method_get(self, factory):
         """Test that test_api returns the correct request method for GET."""
         request = factory.get('/api/test/')
-        response = test_api(request)
+        response = api_test(request)
 
         data = json.loads(response.content)
         assert data['method'] == 'GET'
@@ -45,7 +45,7 @@ class TestTestApi:
     def test_api_returns_request_method_post(self, factory):
         """Test that test_api returns the correct request method for POST."""
         request = factory.post('/api/test/')
-        response = test_api(request)
+        response = api_test(request)
 
         data = json.loads(response.content)
         assert data['method'] == 'POST'
@@ -53,7 +53,7 @@ class TestTestApi:
     def test_api_response_is_json(self, factory):
         """Test that test_api response is valid JSON."""
         request = factory.get('/api/test/')
-        response = test_api(request)
+        response = api_test(request)
 
         assert isinstance(response, JsonResponse)
         assert response['Content-Type'] == 'application/json'
@@ -88,6 +88,13 @@ class TestGenerateMockup:
 
         assert response.status_code == 405
     
+    def test_generate_mockup_put_returns_error(self, factory):
+        """Test that PUT method returns 405 error."""
+        request = factory.put('/api/generate-mockup/')
+        response = generate_mockup(request)
+
+        assert response.status_code == 405
+
 class TestFrontend:
     """Tests for the frontend view function."""
     @pytest.fixture
@@ -96,18 +103,18 @@ class TestFrontend:
     
     def test_frontend_renders_template(self, factory, mocker):
         #Mock the render function to verify it's called correctly
-        mock_render = mocker.patch('views.render')
-        mock_render.return_value = mocker.Mock()
+        mock_render = mocker.patch('backend.sketch_api.views.render')
+        mock_render.return_value = HttpResponse("<html>Test</html>")
 
         request = factory.get('/')
         frontend(request)
 
         mock_render.assert_called_once_with(request, 'frontend/src/index.html')
     
-    def test_frontend_returns_render_response(self, factory):
+    def test_frontend_returns_render_response(self, factory, mocker):
         #Test that frontend view returns the result from render
         expected_response = HttpResponse("test content")
-        mock_render = mocker.patch('views.render', return_value = expected_response)
+        mock_render = mocker.patch('backend.sketch_api.views.render', return_value = expected_response)
 
         request = factory.get('/')
         response = frontend(request)
@@ -116,7 +123,7 @@ class TestFrontend:
 
     def test_frontend_accepts_get_requests(self, factory, mocker):
         #Test that frontend view accepts GET requests
-        mock_render = mocker.patch('views.render')
+        mock_render = mocker.patch('backend.sketch_api.views.render')
         request = factory.get('/')
 
         frontend(request)
@@ -186,21 +193,22 @@ class TestGenerateView:
     def test_generate_view_successful_generation(self, factory, mock_image_file, mocker):
         #Test successful image processing and HTML generation
         mock_html = "<html><body>Generated HTML</body></html>"
-        mock_convertor = mocker.patch('views.image_to_html_css', return_value = mock_html)
+        # Import views module first, then patch the function on it
+        from backend.sketch_api import views
+        mock_convertor = mocker.patch.object(views, 'image_to_html_css', return_value=mock_html)
 
-        request = factory.post('/api/generate/', {'file': mock_image_file}, format = 'multipart')
+        request = factory.post('/api/generate/', {'file': mock_image_file}, format='multipart')
         view = GenerateView.as_view()
         response = view(request)
 
         assert response.status_code == 200
         assert response.data['html'] == mock_html
         mock_convertor.assert_called_once()
-    
+
     def test_generate_view_with_prompt(self, factory, mock_image_file, mocker):
         """Test that optional prompt parameter is passed correctly"""
-        from views import GenerateView
         
-        mock_converter = mocker.patch('views.image_to_html_css', return_value="<html></html>")
+        mock_converter = mocker.patch('backend.sketch_api.views.image_to_html_css', return_value="<html></html>")
         
         request = factory.post(
             '/api/generate/',
@@ -217,7 +225,7 @@ class TestGenerateView:
 
     def test_generate_view_handles_conversion_exception(self, factory, mock_image_file, mocker):
         # Test to ensure exceptions during conversion return 500 error
-        mock_convertor = mocker.patch('views.image_to_html_css', side_effect=Exception("Conversion failed"))
+        mock_convertor = mocker.patch('sketch_api.views.image_to_html_css', side_effect=Exception("Conversion failed"))
         request = factory.post('/api/generate/', {'file': mock_image_file}, format='multipart')
         view = GenerateView.as_view()
         response = view(request)
@@ -228,7 +236,7 @@ class TestGenerateView:
     def test_generate_view_accepts_different_image_types(self, factory, mocker):
         """Test that different image content types are accepted"""
         
-        mock_convertor = mocker.patch('views.image_to_html_css', return_value="<html></html>")
+        mock_convertor = mocker.patch('backend.sketch_api.views.image_to_html_css', return_value="<html></html>")
 
         #Test with JPEG
         jpeg_file = SimpleUploadedFile(
@@ -241,11 +249,3 @@ class TestGenerateView:
         response = view(request)
 
         assert response.status_code == 200
-    
-    def test_generate_mockup_put_returns_error(self, factory):
-        """Test that PUT method returns 405 error."""
-        request = factory.put('/api/generate-mockup/')
-        response = generate_mockup(request)
-
-        assert response.status_code == 405
-    

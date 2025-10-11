@@ -12,7 +12,7 @@ from .services.claudeClient import image_to_html_css
 MAX_BYTES = 10 * 1024 * 1024  # 10MB max upload
 
 @csrf_exempt
-def test_api(request):
+def api_test(request):
     """Simple test endpoint to verify frontend-backend connection"""
     return JsonResponse({
         'status': 'success',

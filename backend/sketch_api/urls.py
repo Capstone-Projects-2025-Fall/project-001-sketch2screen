@@ -1,9 +1,9 @@
 from django.urls import path, re_path
-from .views import GenerateView, test_api
+from .views import GenerateView, api_test
 from .consumers import SketchConsumer
 
 urlpatterns = [
-    path('', test_api, name='test_api'),
+    path('', api_test, name='api_test'),
 
     #as_view() is a class method provided by Django that wrpas your view class
     #instantiates it when a request comes in,

@@ -6,8 +6,10 @@ sidebar_position: 1
 ## Frontend
 
 All frontend testing will be done with vitest.
+Vitest was chosen as it is designed to work with our chosen dev framework, vite.
 
-Only non-react functions, such as helper functions, will be subject to unit tests.
+Due to the nature of react, only non-react functions, such as helper functions, will be subject to unit tests.
+Components will be tested through integration tests instead.
 
 ### App
 
@@ -15,6 +17,7 @@ Only non-react functions, such as helper functions, will be subject to unit test
 | ------------------------ | ---------------------------------------------------- |
 | makeEmptyScene()         | returns a valid, empty SceneData object              |
 | makeNewSketchPage(index) | returns valid SketchPage object with the given index |
+
 ### Collector
 
 
@@ -34,6 +37,7 @@ All backend testing will be done with pytest. Mock django objects will be used f
 | POST returns mockup id | Blank POST request | Mockup ID of response |
 | GET returns error      | Blank GET request  | HTTP 405              |
 | PUT returns error      | Blank PUT request  | HTTP 405              |
+
 ### Frontend View:
 
 | Goal                         | Input   | Output                                         |

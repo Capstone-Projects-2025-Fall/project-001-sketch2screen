@@ -21,10 +21,10 @@ class SketchConsumer(WebsocketConsumer):
         action = message["action"]
 
         if action == "scene_update":
-            self.server.onSceneUpdate(self.channel_name, self.collabID, "sketchID", "sketchData")
+            self.server.onSceneUpdate(self.channel_name, self.collabID, message["sketchID"], message["sketchData"])
 
         if action == "page_update":
-            self.server.onPageUpdate(self.channel_name, self.collabID, "sketchID", "pageName")
+            self.server.onPageUpdate(self.channel_name, self.collabID, message["sketchID"], message["pageName"])
 
     def scene_update(self, event):
         self.send(text_data=json.dumps({

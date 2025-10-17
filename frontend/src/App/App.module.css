@@ -209,6 +209,13 @@
   position: relative;
 }
 
+/* Single column layout when sidebar is hidden */
+.workRowNoSidebar {
+  display: flex;
+  height: calc(100vh - 5em);
+  position: relative;
+}
+
 /* On Mockup view we still use full width without sidebar.
    The component uses grid only when current page is Drawing. */
 .workMain {

@@ -237,7 +237,7 @@ export default function App() {
         onFilenameChange={setFilename}
       />
 
-      <div className={styles.workRow}>
+      <div className={currentPage === Page.Drawing ? styles.workRow : styles.workRowNoSidebar}>
         {/* sidebar */}
         {currentPage === Page.Drawing && (
           <aside className={styles.sidebar}>

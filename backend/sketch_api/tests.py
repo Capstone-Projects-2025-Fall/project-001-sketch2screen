@@ -1,9 +1,15 @@
 import pytest
 from django.test import RequestFactory
+from channels.testing import WebsocketCommunicator
+
 from django.http import JsonResponse, HttpResponse
 import json
 from django.shortcuts import render
+from channels.routing import URLRouter
+
 from .views import api_test, generate_mockup, frontend, GenerateView
+from .consumers import SketchConsumer
+from .urls import urlpatterns
 
 from rest_framework.test import APIRequestFactory
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -249,3 +255,47 @@ class TestGenerateView:
         response = view(request)
 
         assert response.status_code == 200
+
+@pytest.mark.asyncio
+class TestCollaboration:
+    @pytest.fixture
+    def ws_application(self):
+        return URLRouter(urlpatterns)
+
+    @pytest.fixture
+    def basic_connection(self, ws_application):
+        return WebsocketCommunicator(ws_application, "/ws/collab/123/")
+
+    async def test_connects(self, basic_connection):
+        connected, _ = await basic_connection.connect()
+        assert connected
+
+    async def test_echo_response_scene_update(self, basic_connection):
+        await basic_connection.connect()
+
+        await basic_connection.send_to(text_data=json.dumps({
+            "action": "scene_update",
+            "sketchID": 123,
+            "sketchData": "sample data"
+        }))
+
+        response = json.loads(await basic_connection.receive_from())
+
+        assert response["action"] == "scene_update"
+        assert response["sketchID"] == 123
+        assert response["sketchData"] == "sample data"
+
+    async def test_echo_response_page_update(self, basic_connection):
+        await basic_connection.connect()
+
+        await basic_connection.send_to(text_data=json.dumps({
+            "action": "page_update",
+            "sketchID": 123,
+            "pageName": "sample page name"
+        }))
+
+        response = json.loads(await basic_connection.receive_from())
+
+        assert response["action"] == "page_update"
+        assert response["sketchID"] == 123
+        assert response["pageName"] == "sample page name"

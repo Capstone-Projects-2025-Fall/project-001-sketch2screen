@@ -270,6 +270,7 @@ class TestCollaboration:
         connected, _ = await basic_connection.connect()
         assert connected
 
+    #Replace with true functionality as needed
     async def test_echo_response_scene_update(self, basic_connection):
         await basic_connection.connect()
 
@@ -285,6 +286,7 @@ class TestCollaboration:
         assert response["sketchID"] == 123
         assert response["sketchData"] == "sample data"
 
+    #Replace with true functionality as needed
     async def test_echo_response_page_update(self, basic_connection):
         await basic_connection.connect()
 

@@ -46,7 +46,8 @@ def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", prompt:
     )
     user_instruction = prompt or (
         "Generate HTML and CSS that recreates the layout in the image. Only provide the code, no other text including markdown fences. If an element is labeled as an HTML tag it should "
-        "be that HTML tag. If there is text in the image, it should be included in the HTML. Any icons or images in the sketch should be represented by placeholders. "
+        "be that HTML tag. If there is text in the image, it should be included in the HTML. Any icons or images in the sketch should be represented by placeholders. All sketches generated should be "
+        "for a webpage of size 1440px wider and 1024px height."
     )
 
     client = _client()

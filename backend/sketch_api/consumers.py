@@ -1,23 +1,41 @@
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import WebsocketConsumer
 from .CollabServer import CollabServer
 import channels.layers
+import json
+import uuid
 
 
-class SketchConsumer(AsyncWebsocketConsumer):
+class SketchConsumer(WebsocketConsumer):
     server = CollabServer()
 
-    async def connect(self):
-        await self.accept()
+    def connect(self):
+        self.collabID = self.scope["url_route"]["kwargs"]["collabID"]
+        self.server.onNewConnection(self.channel_name, self.collabID)
+        self.accept()
 
-    async def disconnect(self, close_code):
-        pass
+    def disconnect(self, close_code):
+        self.server.onConnectionEnd(self.channel_name)
 
-    async def receive(self, text_data):
-        command = text_data[0]
-        await self.send(text_data=text_data)
+    def receive(self, text_data):
+        message = json.loads(text_data)
+        action = message["action"]
 
-    async def scene_update(self, event):
-        pass
+        if action == "scene_update":
+            self.server.onSceneUpdate(self.channel_name, self.collabID, "sketchID", "sketchData")
 
-    async def page_update(self, event):
-        pass
+        if action == "page_update":
+            self.server.onPageUpdate(self.channel_name, self.collabID, "sketchID", "pageName")
+
+    def scene_update(self, event):
+        self.send(text_data=json.dumps({
+            "action": "scene_update",
+            "sketchID": event["sketchID"],
+            "sketchData": event["sketchData"]
+        }))
+
+    def page_update(self, event):
+        self.send(text_data=json.dumps({
+            "action": "page_update",
+            "sketchID": event["sketchID"],
+            "pageName": event["pageName"]
+        }))

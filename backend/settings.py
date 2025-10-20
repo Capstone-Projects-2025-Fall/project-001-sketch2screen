@@ -98,6 +98,12 @@ STATICFILES_DIRS = [dist_path] if dist_path.exists() else []
 ROOT_URLCONF = "backend.urls"
 ASGI_APPLICATION = "backend.asgi.application"
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
 # django-vite
 DJANGO_VITE = {
     "default": {

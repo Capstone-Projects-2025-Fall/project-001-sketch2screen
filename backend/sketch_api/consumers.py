@@ -14,7 +14,7 @@ class SketchConsumer(WebsocketConsumer):
         self.accept()
 
     def disconnect(self, close_code):
-        self.server.onConnectionEnd(self.channel_name)
+        self.server.onConnectionEnd(self.channel_name, self.collabID)
 
     def receive(self, text_data):
         message = json.loads(text_data)

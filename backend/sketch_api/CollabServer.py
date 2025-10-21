@@ -42,6 +42,7 @@ class CollabServer(metaclass=SingletonMeta):
 
         if not collabID in self.collabSessions:
             self.collabSessions[collabID] = CollabSession()
+            print(f"collab session created")
 
         self.collabSessions[collabID].members.append(userID)
 
@@ -54,13 +55,19 @@ class CollabServer(metaclass=SingletonMeta):
 
         session = self.collabSessions[collabID]
 
-        [x for x in session.sketches if x.ID == sketchID][0].sceneData = sceneData
+        match = [x for x in session.sketches if x.ID == sketchID]
+
+        if len(match) == 0:
+            print(f"discarding invalid scene update")
+            return
+        else: match = match[0]
+
+        match.sceneData = sceneData
 
         for member in session.members:
             if member != userID:
                 self.sendSceneUpdate(member, sketchID, sceneData)
 
-    #TODO: handle deleted pages
     def onPageUpdate(self, userID, collabID, sketchID, pageName):
         print(f"Page update from {userID} in collab {collabID}")
 
@@ -72,7 +79,11 @@ class CollabServer(metaclass=SingletonMeta):
             match = session.sketches[-1]
         else:
             match = match[0]
-            match.name = pageName
+            if pageName is None:
+                session.sketches.remove(match)
+                print(f"deleting sketch {match}")
+            else:
+                match.name = pageName
 
         for member in session.members:
             if member != userID:
@@ -81,3 +92,6 @@ class CollabServer(metaclass=SingletonMeta):
     def onConnectionEnd(self, userID, collabID):
         print(f"Disconnection from {userID}")
         self.collabSessions[collabID].members.remove(userID)
+        if len(self.collabSessions[collabID].members) == 0:
+            self.collabSessions.pop(collabID)
+            print(f"Ended collab {collabID}")

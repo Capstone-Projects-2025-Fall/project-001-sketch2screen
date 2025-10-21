@@ -292,6 +292,7 @@ class TestCollaboration:
     async def test_connects(self, basic_connection):
         connected, _ = await basic_connection.connect()
         assert connected
+        await basic_connection.disconnect()
 
     async def test_returns_up_to_date_info_on_join(self, basic_connection, basic_collab_connection, sample_page_update, sample_scene_update):
         await basic_connection.connect()
@@ -313,6 +314,9 @@ class TestCollaboration:
         assert sketch_res["sketchID"] == sample_scene_update["sketchID"]
         assert sketch_res["sketchData"] == sample_scene_update["sketchData"]
 
+        await basic_connection.disconnect()
+        await basic_collab_connection.disconnect()
+
 
     async def test_receives_updates_from_collaborators(self, basic_connection, basic_collab_connection, sample_page_update, sample_scene_update):
         await basic_connection.connect()
@@ -331,3 +335,53 @@ class TestCollaboration:
         assert sketch_res["action"] == "scene_update"
         assert sketch_res["sketchID"] == sample_scene_update["sketchID"]
         assert sketch_res["sketchData"] == sample_scene_update["sketchData"]
+
+        await basic_connection.disconnect()
+        await basic_collab_connection.disconnect()
+
+    async def test_null_name_deletes_page(self, basic_connection, basic_collab_connection, sample_page_update):
+        await basic_connection.connect()
+
+        await basic_connection.send_to(text_data=json.dumps(sample_page_update))
+
+        await basic_connection.send_to(text_data=json.dumps({
+            "action": "page_update",
+            "sketchID": sample_page_update["sketchID"],
+            "pageName": None
+        }))
+
+        await basic_connection.receive_nothing()
+
+        await basic_collab_connection.connect()
+
+        assert await basic_collab_connection.receive_nothing()
+
+        await basic_connection.disconnect()
+        await basic_collab_connection.disconnect()
+
+        #assert await does_not_receive(basic_collab_connection)
+
+    async def test_updates_to_deleted_sketches_discarded(self, basic_connection, basic_collab_connection, sample_page_update, sample_scene_update):
+        await basic_connection.connect()
+
+        await basic_connection.send_to(text_data=json.dumps(sample_page_update))
+        await basic_connection.send_to(text_data=json.dumps(sample_scene_update))
+        await basic_connection.send_to(text_data=json.dumps({
+            "action": "page_update",
+            "sketchID": sample_page_update["sketchID"],
+            "pageName": None
+        }))
+
+        await basic_connection.receive_nothing()
+
+        await basic_collab_connection.connect()
+
+        await basic_connection.send_to(text_data=json.dumps(sample_scene_update))
+
+        assert await basic_collab_connection.receive_nothing()
+
+        await basic_connection.disconnect()
+        await basic_collab_connection.disconnect()
+        
+
+        #assert await does_not_receive(basic_collab_connection)

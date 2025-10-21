@@ -266,38 +266,68 @@ class TestCollaboration:
     def basic_connection(self, ws_application):
         return WebsocketCommunicator(ws_application, "/ws/collab/123/")
 
+    @pytest.fixture
+    def basic_collab_connection(self, ws_application):
+        return WebsocketCommunicator(ws_application, "/ws/collab/123/")
+
+    @pytest.fixture
+    def sample_page_update(self):
+        return {
+            "action": "page_update",
+            "sketchID": 123,
+            "pageName": "myPage"
+        }
+
+    @pytest.fixture
+    def sample_scene_update(self):
+        return {
+            "action": "scene_update",
+            "sketchID": 123,
+            "sketchData": {
+                "rectangle": "small",
+                "square": 7
+            }
+        }
+
     async def test_connects(self, basic_connection):
         connected, _ = await basic_connection.connect()
         assert connected
 
-    #Replace with true functionality as needed
-    async def test_echo_response_scene_update(self, basic_connection):
+    async def test_returns_up_to_date_info_on_join(self, basic_connection, basic_collab_connection, sample_page_update, sample_scene_update):
         await basic_connection.connect()
 
-        await basic_connection.send_to(text_data=json.dumps({
-            "action": "scene_update",
-            "sketchID": 123,
-            "sketchData": "sample data"
-        }))
 
-        response = json.loads(await basic_connection.receive_from())
+        await basic_connection.send_to(text_data=json.dumps(sample_page_update))
+        await basic_connection.send_to(text_data=json.dumps(sample_scene_update))
 
-        assert response["action"] == "scene_update"
-        assert response["sketchID"] == 123
-        assert response["sketchData"] == "sample data"
+        await basic_collab_connection.connect()
 
-    #Replace with true functionality as needed
-    async def test_echo_response_page_update(self, basic_connection):
+        page_res = json.loads(await basic_collab_connection.receive_from())
+        sketch_res = json.loads(await basic_collab_connection.receive_from())
+
+        assert page_res["action"] == "page_update"
+        assert page_res["sketchID"] == sample_page_update["sketchID"]
+        assert page_res["pageName"] == sample_page_update["pageName"]
+
+        assert sketch_res["action"] == "scene_update"
+        assert sketch_res["sketchID"] == sample_scene_update["sketchID"]
+        assert sketch_res["sketchData"] == sample_scene_update["sketchData"]
+
+
+    async def test_receives_updates_from_collaborators(self, basic_connection, basic_collab_connection, sample_page_update, sample_scene_update):
         await basic_connection.connect()
+        await basic_collab_connection.connect()
 
-        await basic_connection.send_to(text_data=json.dumps({
-            "action": "page_update",
-            "sketchID": 123,
-            "pageName": "sample page name"
-        }))
+        await basic_connection.send_to(text_data=json.dumps(sample_page_update))
+        await basic_connection.send_to(text_data=json.dumps(sample_scene_update))
 
-        response = json.loads(await basic_connection.receive_from())
+        page_res = json.loads(await basic_collab_connection.receive_from())
+        sketch_res = json.loads(await basic_collab_connection.receive_from())
 
-        assert response["action"] == "page_update"
-        assert response["sketchID"] == 123
-        assert response["pageName"] == "sample page name"
+        assert page_res["action"] == "page_update"
+        assert page_res["sketchID"] == sample_page_update["sketchID"]
+        assert page_res["pageName"] == sample_page_update["pageName"]
+
+        assert sketch_res["action"] == "scene_update"
+        assert sketch_res["sketchID"] == sample_scene_update["sketchID"]
+        assert sketch_res["sketchData"] == sample_scene_update["sketchData"]

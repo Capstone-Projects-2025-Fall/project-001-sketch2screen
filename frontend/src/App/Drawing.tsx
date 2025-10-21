@@ -18,7 +18,7 @@ export type DrawingHandle = {
   getPNGBlob: () => Promise<Blob | null>;
 };
 
-/** Props for the Drawing component */
+//Props that can be passed into <Drawing />
 export interface DrawingProps {
   /** CSS class name for styling */
   className?: string;

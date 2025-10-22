@@ -16,12 +16,18 @@ export enum Page {
 
 /** Represents a single sketch page with its metadata and content */
 type SketchPage = {
+  /** Unique identifier for the page */
   id: string;
+  /** Display name of the page */
   name: string;
+  /** Excalidraw scene data containing elements, state and files */
   scene: SceneData;
 };
 
-/** Creates an empty Excalidraw scene */
+/** 
+ * Creates an empty Excalidraw scene with default settings
+ * @returns A new SceneData object with default values
+ */
 export function makeEmptyScene(): SceneData {
   return {
     elements: [],
@@ -36,7 +42,11 @@ export function makeEmptyScene(): SceneData {
   };
 }
 
-/** Creates a new sketch page */
+/** 
+ * Creates a new sketch page with default settings
+ * @param index - The page number to use in the default name
+ * @returns A new SketchPage object
+ */
 export function makeNewSketchPage(index: number): SketchPage {
   return {
     id: crypto.randomUUID(),
@@ -51,17 +61,23 @@ function getCollabId(): string {
   return params.get('collab') || Date.now().toString();
 }
 
+/** Main application component managing the sketch interface */
 export default function App() {
   // Compute a stable collab id up-front so we can also use it for the very first page id.
   const initialCollabId = getCollabId();
 
+  /** Current active view (Drawing or Mockup) */
   const [currentPage, setCurrentPage] = useState(Page.Drawing);
+  
+  /** Collection of all sketch pages */
   // Make the **first page id deterministic** based on the collab id so both tabs share it.
   const [pages, setPages] = useState<SketchPage[]>(() => [{
     id: `${initialCollabId}-p1`,
     name: "Page 1",
     scene: makeEmptyScene(),
   }]);
+  
+  /** ID of the currently active sketch page */
   const [activePageId, setActivePageId] = useState<string>(() => `${initialCollabId}-p1`);
 
   // Keep a ref that always has the latest activePageId
@@ -72,10 +88,19 @@ export default function App() {
     activePageIdRef.current = activePageId;
   }, [activePageId]);
 
+  /** Reference to access Drawing component methods */
   const drawingRef = useRef<DrawingHandle | null>(null);
+  
+  /** Generated HTML code from the backend */
   const [html, setHtml] = useState<string>("");
+  
+  /** Loading state during backend processing */
   const [loading, setLoading] = useState(false);
+  
+  /** Current filename for the sketch */
   const [filename, setFilename] = useState<string>("");
+  
+  /** ID of the page currently being renamed, if any */
   const [editingId, setEditingId] = useState<string | null>(null);
   
   // Collaboration state
@@ -92,15 +117,19 @@ export default function App() {
   const pendingSceneRef = useRef<{ pageId: string; scene: SceneData } | null>(null);
   const [sceneVersion, setSceneVersion] = useState<number>(0);
 
+  /** Index of the active page in the pages array */
   const activeIndex = useMemo(
     () => pages.findIndex((p) => p.id === activePageId),
     [pages, activePageId]
   );
 
+  /** Currently active sketch page */
   const activeSketch = pages[activeIndex] ?? pages[0];
+  
+  /** Refs to page DOM elements for scrolling */
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Scroll active page into view
+  /** Scroll active page into view when it changes */
   useEffect(() => {
     const el = itemRefs.current[activePageId];
     if (el) {
@@ -262,7 +291,10 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [collabEnabled, collabId]);
 
-  // Handle scene changes (drawing)
+  /** 
+   * Updates the scene data for the active page
+   * @param scene - New scene data from Excalidraw
+   */
   const handleSceneChange = (scene: SceneData) => {
     setPages(prev => {
       const i = prev.findIndex(p => p.id === activePageId);
@@ -280,7 +312,7 @@ export default function App() {
           pendingSceneRef.current = { pageId: activePageId, scene: sceneToSend };
         } else {
           // User is not drawing - send immediately (e.g., undo, paste, etc.)
-          console.log(" Sending scene update immediately:", activePageId);
+          console.log("Sending scene update immediately:", activePageId);
           collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
         }
       }
@@ -290,6 +322,7 @@ export default function App() {
   };
 
   // === PAGE MANAGEMENT ===
+  /** Creates and activates a new blank page */
   const handleAddPage = () => {
     const newPage = makeNewSketchPage(pages.length + 1);
     setPages(prev => [...prev, newPage]);
@@ -300,6 +333,9 @@ export default function App() {
     }
   };
 
+  /** 
+   * Creates a copy of the current page and activates it
+   */
   const handleDuplicatePage = () => {
     if (!activeSketch) return;
 
@@ -324,6 +360,11 @@ export default function App() {
     }
   };
 
+  /** 
+   * Updates the name of a specific page
+   * @param id - ID of the page to rename
+   * @param name - New name for the page
+   */
   const handleRenamePage = (id: string, name: string) => {
     setPages(prev => prev.map(p => p.id === id ? { ...p, name } : p));
 
@@ -332,6 +373,10 @@ export default function App() {
     }
   };
 
+  /** 
+   * Removes a page and updates active page if necessary
+   * @param id - ID of the page to delete
+   */
   const handleDeletePage = (id: string) => {
     setPages(prev => {
       if (prev.length <= 1) return prev;
@@ -348,7 +393,11 @@ export default function App() {
     }
   };
 
-  // === GENERATE HTML ===
+
+  /** 
+   * Generates HTML from current sketch via backend API
+   * Exports current drawing as PNG and sends to backend
+   */
   const handleGenerate = async () => {
     const blob = await drawingRef.current?.getPNGBlob?.();
     if (!blob) {
@@ -402,6 +451,7 @@ export default function App() {
       />
 
       <div className={currentPage === Page.Drawing ? styles.workRow : styles.workRowNoSidebar}>
+        {/* sidebar */}
         {currentPage === Page.Drawing && (
           <aside className={styles.sidebar}>
             <div className={styles.sidebarHeader}>Pages</div>
@@ -427,6 +477,7 @@ export default function App() {
                     title={p.name}
                   >
                     <div className={styles.pageItemLabel}>
+                      {/* tiny page icon (pure CSS) */}
                       <span className={styles.pageIcon} aria-hidden />
                       {isEditing ? (
                         <input
@@ -488,6 +539,7 @@ export default function App() {
             onSceneChange={handleSceneChange}
           />
           {currentPage === Page.Mockup && <Mockup html={html} />}
+          {/* Loading overlay */}
           {loading && (
             <div style={{
               position: "absolute",

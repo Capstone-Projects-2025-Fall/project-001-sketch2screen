@@ -38,6 +38,17 @@ export default class CollabClient {
     this.connection.onmessage = (event) => {
       let message = JSON.parse(event.data)
       let action = message.action
+      
+      // Filter: only accept messages where sketchID starts with our collabID
+      // This prevents cross-contamination between different collab sessions
+      const sketchID = message.sketchID;
+      const expectedPrefix = `${this.collabID}-`;
+      
+      if (!sketchID || !sketchID.startsWith(expectedPrefix)) {
+        console.log(`Ignoring message for different collab session. Expected prefix: ${expectedPrefix}, got: ${sketchID}`);
+        return;
+      }
+      
       if(action === "scene_update") {
         if(this.sceneUpdateHandler) {
           this.sceneUpdateHandler(message.sketchID, message.sketchData)

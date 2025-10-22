@@ -139,13 +139,21 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
           ) {
             return;
           }
+          
+          // Only trigger onSceneChange if elements or files changed (actual drawing content)
+          // Ignore appState changes (zoom, pan, tool selection, etc.)
+          const elementsChanged = lastSceneRefs.current.elements !== elements;
+          const filesChanged = lastSceneRefs.current.files !== files;
+          
           lastSceneRefs.current = { elements, appState, files };
 
-          onSceneChange?.({
-            elements: elements ?? ([] as readonly any[]),
-            appState: appState ?? {},
-            files: files ?? {},
-          });
+          if (elementsChanged || filesChanged) {
+            onSceneChange?.({
+              elements: elements ?? ([] as readonly any[]),
+              appState: appState ?? {},
+              files: files ?? {},
+            });
+          }
         }}
         UIOptions={{
           canvasActions: {
@@ -227,4 +235,3 @@ export default Drawing;
     // Clean up when the tab closes
     w.addEventListener("beforeunload", () => URL.revokeObjectURL(url));
   }, [getPNGBlob]);*/
-

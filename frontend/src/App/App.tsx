@@ -64,6 +64,14 @@ export default function App() {
   }]);
   const [activePageId, setActivePageId] = useState<string>(() => `${initialCollabId}-p1`);
 
+  // Keep a ref that always has the latest activePageId
+  const activePageIdRef = useRef<string>(activePageId);
+  
+  // Update ref whenever activePageId changes
+  useEffect(() => {
+    activePageIdRef.current = activePageId;
+  }, [activePageId]);
+
   const drawingRef = useRef<DrawingHandle | null>(null);
   const [html, setHtml] = useState<string>("");
   const [loading, setLoading] = useState(false);
@@ -80,7 +88,8 @@ export default function App() {
   const needsRemountRef = useRef(false);
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
   const suppressRemoteUpdates = useRef(false);
-  const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
+  // Track pending scene data to send after stroke completes
+  const pendingSceneRef = useRef<{ pageId: string; scene: SceneData } | null>(null);
   const [sceneVersion, setSceneVersion] = useState<number>(0);
 
   const activeIndex = useMemo(
@@ -104,12 +113,22 @@ export default function App() {
     const host: EventTarget = canvasHostRef.current ?? document;
     const onDown = () => { isDrawingRef.current = true; };
     const end = () => {
-      if (isDrawingRef.current && needsRemountRef.current) {
-        // Apply deferred remount once the stroke ends
-        setSceneVersion((v: number) => v + 1);
-      }
+      const wasDrawing = isDrawingRef.current;
       isDrawingRef.current = false;
-      needsRemountRef.current = false;
+      
+      // Apply deferred remount if needed
+      if (wasDrawing && needsRemountRef.current) {
+        setSceneVersion((v: number) => v + 1);
+        needsRemountRef.current = false;
+      }
+      
+      // Send pending scene data after stroke completes
+      if (wasDrawing && pendingSceneRef.current && collabEnabled && collabClientRef.current) {
+        const { pageId, scene } = pendingSceneRef.current;
+        console.log("Stroke complete - sending scene update:", pageId);
+        collabClientRef.current.sendSceneUpdate(pageId, scene);
+        pendingSceneRef.current = null;
+      }
     };
 
     host.addEventListener('pointerdown', onDown as any, { passive: true } as any);
@@ -123,7 +142,7 @@ export default function App() {
       host.removeEventListener('pointercancel', end as any);
       host.removeEventListener('pointerleave', end as any);
     };
-  }, [activePageId]);
+  }, [activePageId, collabEnabled]);
 
   // === COLLABORATION LOGIC ===
   useEffect(() => {
@@ -174,7 +193,8 @@ export default function App() {
 
     // Handle incoming scene updates
     client.setSceneUpdateHandler((sketchID: string, sceneData: SceneData) => {
-      console.log(" Received scene update for:", sketchID, "Current active:", activePageId);
+      const currentActivePageId = activePageIdRef.current;
+      console.log("Received scene update for:", sketchID, "Current active:", currentActivePageId);
       suppressRemoteUpdates.current = true;
 
       setPages(prev => {
@@ -185,21 +205,11 @@ export default function App() {
         }
         const next = [...prev];
         
-        // Filter out UI state that shouldn't be synced (tool selection, colors, etc.)
-        const { currentItemStrokeColor, currentItemBackgroundColor, currentItemFillStyle, 
-                currentItemStrokeWidth, currentItemStrokeStyle, currentItemRoughness,
-                currentItemOpacity, currentItemFontFamily, currentItemFontSize, 
-                currentItemTextAlign, currentItemStartArrowhead, currentItemEndArrowhead,
-                ...syncedAppState } = sceneData.appState || {};
-        
         next[index] = {
           ...next[index],
           scene: {
             elements: sceneData.elements,
-            appState: {
-              ...syncedAppState,
-              collaborators: new Map(),
-            },
+            appState: prev[index].scene.appState,
             files: sceneData.files,
           },
         };
@@ -207,8 +217,8 @@ export default function App() {
       });
 
       // If this update is for the currently active page, force remount
-      console.log("Checking remount:", sketchID, "===", activePageId, "?", sketchID === activePageId);
-      if (sketchID === activePageId) {
+      console.log("Checking remount:", sketchID, "===", currentActivePageId, "?", sketchID === currentActivePageId);
+      if (sketchID === currentActivePageId) {
         if (isDrawingRef.current) {
           console.log("Deferring remount until stroke end");
           needsRemountRef.current = true;
@@ -217,7 +227,7 @@ export default function App() {
           setSceneVersion((v: number) => v + 1);
         }
       } else {
-        console.log("⏭ Update for different page - will show when switched");
+        console.log("Update for different page - will show when switched");
       }
 
       // Reset flag after update processes
@@ -230,7 +240,7 @@ export default function App() {
     client.connection.onopen = () => {
       console.log(" WebSocket connected");
       setTimeout(() => {
-        const active = pages.find(p => p.id === activePageId) ?? pages[0];
+        const active = pages.find(p => p.id === activePageIdRef.current) ?? pages[0];
         client.sendPageUpdate(active.id, active.name);
         if ((active.scene?.elements?.length ?? 0) > 0) {
           client.sendSceneUpdate(active.id, active.scene);
@@ -261,17 +271,18 @@ export default function App() {
       const next = [...prev];
       next[i] = { ...next[i], scene };
 
-      // Send to collaborators with debounce
+      // Send to collaborators
       if (collabEnabled && collabClientRef.current && !suppressRemoteUpdates.current) {
-        if (updateTimerRef.current) {
-          clearTimeout(updateTimerRef.current);
+        const sceneToSend = {...scene, appState: null};
+        
+        if (isDrawingRef.current) {
+          // User is currently drawing - store the scene to send after stroke completes
+          pendingSceneRef.current = { pageId: activePageId, scene: sceneToSend };
+        } else {
+          // User is not drawing - send immediately (e.g., undo, paste, etc.)
+          console.log(" Sending scene update immediately:", activePageId);
+          collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
         }
-
-        updateTimerRef.current = setTimeout(() => {
-          console.log(" Sending scene update for page:", activePageId);
-          // IMPORTANT: Only send scene during drawing; page meta is for add/rename/delete
-          collabClientRef.current?.sendSceneUpdate(activePageId, scene);
-        }, 500);
       }
 
       return next;

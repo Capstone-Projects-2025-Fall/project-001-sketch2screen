@@ -1,15 +1,19 @@
 import type { SceneData } from "./Drawing"
 
+
 /** Client for handling real-time collaboration features */
 export default class CollabClient {
   /** Unique identifier for this collaboration session */
   collabID: number;
 
+
   /** Connection to server */
   connection: WebSocket;
 
+
   sceneUpdateHandler: ((sketchID: string, sceneData: SceneData) => void) | null = null
   pageUpdateHandler: ((sketchID: string, name: string | null) => void) | null = null
+
 
   /**
    * Creates a new collaboration client
@@ -18,19 +22,19 @@ export default class CollabClient {
   constructor(collabID: number) {
     this.collabID = collabID
     this.connection = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/ws/collab/"+collabID+"/")
-    
+   
     this.connection.onopen = () => {
       console.log("WebSocket connected for collaboration:", collabID)
     }
-    
+   
     this.connection.onerror = (error) => {
       console.error("WebSocket error:", error)
     }
-    
+   
     this.connection.onclose = () => {
       console.log("WebSocket disconnected")
     }
-    
+   
     this.connection.onmessage = (event) => {
       let message = JSON.parse(event.data)
       let action = message.action
@@ -47,6 +51,7 @@ export default class CollabClient {
     }
   }
 
+
   /**
    * Sets up handler for receiving scene updates from other clients
    * @param handler - Callback function that processes received scene updates
@@ -56,6 +61,7 @@ export default class CollabClient {
   setSceneUpdateHandler(handler: (sketchID: string, sceneData: SceneData) => void) {
     this.sceneUpdateHandler = handler
   }
+
 
   /**
    * Sends scene updates to other clients
@@ -69,13 +75,13 @@ export default class CollabClient {
         // Remove non-serializable properties like collaborators (Map object)
         const cleanAppState = sceneData.appState ? {...sceneData.appState} : {};
         delete cleanAppState.collaborators; // Remove Map object
-        
+       
         const cleanSceneData = {
           elements: sceneData.elements ? JSON.parse(JSON.stringify(sceneData.elements)) : [],
           appState: cleanAppState,
           files: sceneData.files ? JSON.parse(JSON.stringify(sceneData.files)) : {}
         };
-        
+       
         this.connection.send(JSON.stringify({
           action: "scene_update",
           sketchID: sketchID,
@@ -89,6 +95,7 @@ export default class CollabClient {
     }
   }
 
+
   /**
    * Sets up handler for receiving page updates from other clients
    * @param handler - Callback function that processes received page updates
@@ -98,6 +105,7 @@ export default class CollabClient {
   setPageUpdateHandler(handler: (sketchID: string, name: string | null) => void) {
     this.pageUpdateHandler = handler
   }
+
 
   /**
    * Sends page updates to other clients

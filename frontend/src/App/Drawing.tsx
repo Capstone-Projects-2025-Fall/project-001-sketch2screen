@@ -32,6 +32,8 @@ export interface DrawingProps {
   initialScene?: SceneData;
   /** Callback fired when the scene changes */
   onSceneChange?: (scene: SceneData) => void;
+  /** Callback to receive Excalidraw API */
+  onExcalidrawAPI?: (api: any) => void;
 }
 
 /** Type representing Excalidraw's API methods */
@@ -47,7 +49,7 @@ type ExcalidrawAPI = NonNullable<
  * @param ref - Forwarded ref for accessing component methods
  */
 const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
-  { className, visible, initialScene, onSceneChange},
+  { className, visible, initialScene, onSceneChange, onExcalidrawAPI },
   ref
 ) {
   /** Reference to Excalidraw's API methods */
@@ -116,6 +118,7 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
       <Excalidraw
         excalidrawAPI={(api) => {
           excaliRef.current = api;
+          onExcalidrawAPI?.(api);
         }}
         // Load the page scene on mount
         initialData={

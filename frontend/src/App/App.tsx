@@ -16,18 +16,12 @@ export enum Page {
 
 /** Represents a single sketch page with its metadata and content */
 type SketchPage = {
-  /** Unique identifier for the page */
   id: string;
-  /** Display name of the page */
   name: string;
-  /** Excalidraw scene data containing elements, state and files */
   scene: SceneData;
 };
 
-/** 
- * Creates an empty Excalidraw scene with default settings
- * @returns A new SceneData object with default values
- */
+/** Creates an empty Excalidraw scene */
 export function makeEmptyScene(): SceneData {
   return {
     elements: [],
@@ -37,19 +31,12 @@ export function makeEmptyScene(): SceneData {
       currentItemFillColor: "transparent",
       exportBackground: true,
       exportWithDarkMode: false,
-      currentItemOpacity: 100,
-      currentItemRoughness: 1,
-      currentItemStrokeWidth: 1,
     } as any,
     files: {},
   };
 }
 
-/** 
- * Creates a new sketch page with default settings
- * @param index - The page number to use in the default name
- * @returns A new SketchPage object
- */
+/** Creates a new sketch page */
 export function makeNewSketchPage(index: number): SketchPage {
   return {
     id: crypto.randomUUID(),
@@ -58,224 +45,53 @@ export function makeNewSketchPage(index: number): SketchPage {
   };
 }
 
-/**
- * Gets or creates a collaboration ID from URL or generates a new one
- * @returns Collaboration ID string
- */
+/** Gets collaboration ID from URL or generates new one */
 function getCollabId(): string {
   const params = new URLSearchParams(window.location.search);
-  const collabParam = params.get('collab');
-  
-  if (collabParam) {
-    // Use existing collab ID from URL
-    return collabParam;
-  }
-  
-  // Check if we have a stored collab ID for this session
-  const stored = sessionStorage.getItem('collabId');
-  if (stored) {
-    return stored;
-  }
-  
-  // Generate new collab ID
-  const newId = Date.now().toString();
-  sessionStorage.setItem('collabId', newId);
-  return newId;
+  return params.get('collab') || Date.now().toString();
 }
 
-/** Main application component managing the sketch interface */
 export default function App() {
-  /** Current active view (Drawing or Mockup) */
+  // Compute a stable collab id up-front so we can also use it for the very first page id.
+  const initialCollabId = getCollabId();
+
   const [currentPage, setCurrentPage] = useState(Page.Drawing);
-  
-  /** Collection of all sketch pages */
-  const [pages, setPages] = useState<SketchPage[]>(() => [makeNewSketchPage(1)]);
-  
-  /** ID of the currently active sketch page */
-  const [activePageId, setActivePageId] = useState<string>(() => pages[0].id);
-  
-  /** Reference to access Drawing component methods */
+  // Make the **first page id deterministic** based on the collab id so both tabs share it.
+  const [pages, setPages] = useState<SketchPage[]>(() => [{
+    id: `${initialCollabId}-p1`,
+    name: "Page 1",
+    scene: makeEmptyScene(),
+  }]);
+  const [activePageId, setActivePageId] = useState<string>(() => `${initialCollabId}-p1`);
+
   const drawingRef = useRef<DrawingHandle | null>(null);
-
-  /** Generated HTML code from the backend */
   const [html, setHtml] = useState<string>("");
-  
-  /** Loading state during backend processing */
   const [loading, setLoading] = useState(false);
-
-  /** Current filename for the sketch */
   const [filename, setFilename] = useState<string>("");
-
-  /** ID of the page currently being renamed, if any */
   const [editingId, setEditingId] = useState<string | null>(null);
-
-  /** Collaboration dialog visibility */
+  
+  // Collaboration state
   const [showCollabDialog, setShowCollabDialog] = useState(false);
-
-  /** Collaboration ID for this session */
-  const [collabId] = useState<string>(() => getCollabId());
-
-  /** Collaboration client reference */
+  const [collabEnabled, setCollabEnabled] = useState(false);
+  const [collabId] = useState<string>(() => initialCollabId);
   const collabClientRef = useRef<CollabClient | null>(null);
+  // Track if the local user is currently drawing to avoid mid-stroke remounts
+  const isDrawingRef = useRef(false);
+  const needsRemountRef = useRef(false);
+  const canvasHostRef = useRef<HTMLDivElement | null>(null);
+  const suppressRemoteUpdates = useRef(false);
+  const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [sceneVersion, setSceneVersion] = useState<number>(0);
 
-  /** Flag to prevent echo of own updates */
-  const isLocalUpdate = useRef(false);
-
-  /** Index of the active page in the pages array */
   const activeIndex = useMemo(
     () => pages.findIndex((p) => p.id === activePageId),
     [pages, activePageId]
   );
 
-  /** Currently active sketch page */
   const activeSketch = pages[activeIndex] ?? pages[0];
-
-  /** Refs to page DOM elements for scrolling */
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  /** Initialize collaboration client */
-  useEffect(() => {
-    const client = new CollabClient(Number(collabId));
-    collabClientRef.current = client;
-
-    // Track if we've received initial data
-    const receivedPages = new Set<string>();
-
-    // Handle incoming page updates from collaborators FIRST
-    client.setPageUpdateHandler((sketchID: string, name: string | null) => {
-      console.log("Received page update:", sketchID, name);
-      receivedPages.add(sketchID);
-      isLocalUpdate.current = false;
-
-      if (name === null) {
-        // Page deleted
-        console.log("Deleting page:", sketchID);
-        receivedPages.delete(sketchID);
-        setPages((prev) => {
-          if (prev.length <= 1) return prev;
-          const next = prev.filter((p) => p.id !== sketchID);
-          
-          // Update active page if deleted page was active
-          if (activePageId === sketchID) {
-            const newActive = next[0];
-            setActivePageId(newActive.id);
-          }
-          
-          return next;
-        });
-      } else {
-        // Page created or renamed
-        setPages((prev) => {
-          const exists = prev.find((p) => p.id === sketchID);
-          
-          if (exists) {
-            // Update name only
-            console.log("Renaming page:", sketchID, "to", name);
-            return prev.map((p) => 
-              p.id === sketchID ? { ...p, name } : p
-            );
-          } else {
-            // Create new page
-            console.log("Adding new page from collaborator:", sketchID, name);
-            
-            // If this is the first page received and we only have default page, replace it
-            if (prev.length === 1 && prev[0].name === "Page 1" && prev[0].scene.elements.length === 0) {
-              console.log("Replacing default page with received page");
-              setActivePageId(sketchID); // Update active page ID to the new one
-              return [{
-                id: sketchID,
-                name,
-                scene: makeEmptyScene(),
-              }];
-            }
-            
-            // Otherwise add as new page
-            return [...prev, {
-              id: sketchID,
-              name,
-              scene: makeEmptyScene(),
-            }];
-          }
-        });
-      }
-    });
-
-    // Handle incoming scene updates from collaborators
-    client.setSceneUpdateHandler((sketchID: string, sceneData: SceneData) => {
-      console.log("Received scene update for page:", sketchID);
-      
-      if (!sceneData || !sceneData.elements) {
-        console.warn("Received invalid sceneData");
-        return;
-      }
-      
-      // Ensure sceneData has all required fields with proper defaults
-      // IMPORTANT: collaborators must be a Map for Excalidraw to work
-      const fullSceneData: SceneData = {
-        elements: Array.isArray(sceneData.elements) ? sceneData.elements : [],
-        appState: {
-          viewBackgroundColor: "#ffffff",
-          currentItemStrokeColor: "#000000",
-          currentItemFillColor: "transparent",
-          exportBackground: true,
-          exportWithDarkMode: false,
-          currentItemOpacity: 100,
-          currentItemRoughness: 1,
-          currentItemStrokeWidth: 1,
-          ...(sceneData.appState || {}),
-          collaborators: new Map(), // Always create a new Map for collaborators
-        } as any,
-        files: sceneData.files || {},
-      };
-      
-      isLocalUpdate.current = false;
-      
-      setPages((prev) => {
-        const index = prev.findIndex((p) => p.id === sketchID);
-        if (index === -1) {
-          console.warn("Received scene for unknown page:", sketchID, "- page will be created when page update arrives");
-          return prev;
-        }
-        
-        const next = [...prev];
-        next[index] = { ...next[index], scene: fullSceneData };
-        console.log("Updated page scene:", sketchID);
-        return next;
-      });
-    });
-
-    // Wait for WebSocket to open
-    client.connection.onopen = () => {
-      console.log("WebSocket connected");
-      
-      // Wait to see if we receive any pages from collaborators
-      setTimeout(() => {
-        if (receivedPages.size === 0) {
-          console.log("No pages received, sending our pages to collaboration");
-          // Only send our pages if no one else has pages
-          pages.forEach((page) => {
-            client.sendPageUpdate(page.id, page.name);
-            setTimeout(() => {
-              if (page.scene.elements.length > 0) {
-                client.sendSceneUpdate(page.id, page.scene);
-              }
-            }, 100);
-          });
-        } else {
-          console.log("Received pages from collaborators:", receivedPages.size);
-        }
-      }, 1000);
-    };
-
-    return () => {
-      console.log("Cleaning up WebSocket connection");
-      if (client.connection.readyState === WebSocket.OPEN) {
-        client.connection.close();
-      }
-    };
-  }, [collabId]);
-
-  /** Scroll active page into view when it changes */
+  // Scroll active page into view
   useEffect(() => {
     const el = itemRefs.current[activePageId];
     if (el) {
@@ -283,143 +99,252 @@ export default function App() {
     }
   }, [activePageId, pages.length]);
 
-  /** 
-   * Updates the scene data for the active page
-   * @param scene - New scene data from Excalidraw
-   */
+  // Avoid remounts during a local stroke: detect pointer activity on the canvas host
+  useEffect(() => {
+    const host: EventTarget = canvasHostRef.current ?? document;
+    const onDown = () => { isDrawingRef.current = true; };
+    const end = () => {
+      if (isDrawingRef.current && needsRemountRef.current) {
+        // Apply deferred remount once the stroke ends
+        setSceneVersion((v: number) => v + 1);
+      }
+      isDrawingRef.current = false;
+      needsRemountRef.current = false;
+    };
+
+    host.addEventListener('pointerdown', onDown as any, { passive: true } as any);
+    host.addEventListener('pointerup', end as any, { passive: true } as any);
+    host.addEventListener('pointercancel', end as any, { passive: true } as any);
+    host.addEventListener('pointerleave', end as any, { passive: true } as any);
+
+    return () => {
+      host.removeEventListener('pointerdown', onDown as any);
+      host.removeEventListener('pointerup', end as any);
+      host.removeEventListener('pointercancel', end as any);
+      host.removeEventListener('pointerleave', end as any);
+    };
+  }, [activePageId]);
+
+  // === COLLABORATION LOGIC ===
+  useEffect(() => {
+    if (!collabEnabled) return;
+
+    console.log(" Starting collaboration with ID:", collabId);
+    const client = new CollabClient(Number(collabId));
+    collabClientRef.current = client;
+
+    // Handle incoming page updates
+    client.setPageUpdateHandler((sketchID: string, name: string | null) => {
+      console.log(" Received page update:", sketchID, name);
+
+      if (name === null) {
+        // Delete page
+        setPages(prev => {
+          if (prev.length <= 1) return prev;
+          return prev.filter(p => p.id !== sketchID);
+        });
+        return;
+      }
+
+      setPages(prev => {
+        const existingIndex = prev.findIndex(p => p.id === sketchID);
+        if (existingIndex >= 0) {
+          // rename/update
+          const next = [...prev];
+          next[existingIndex] = { ...next[existingIndex], name };
+          return next;
+        }
+
+        // If we only have one *empty default* page with a different id, REPLACE it.
+        const onlyOne = prev.length === 1;
+        const emptyDefault = onlyOne && ((prev[0].scene?.elements?.length ?? 0) === 0);
+        const differentId = onlyOne && prev[0].id !== sketchID;
+        if (emptyDefault && differentId) {
+          console.log(" Replacing empty default page with collaborator page:", sketchID);
+          // Only switch to received page on initial replacement
+          setActivePageId(sketchID);
+          return [{ id: sketchID, name: name ?? "Page 1", scene: prev[0].scene ?? makeEmptyScene() }];
+        }
+
+        console.log(" Adding page from collaborator:", sketchID, "- NOT switching to it");
+        // Add new page but DON'T switch to it
+        return [...prev, { id: sketchID, name: name ?? "Page 1", scene: makeEmptyScene() }];
+      });
+    });
+
+    // Handle incoming scene updates
+    client.setSceneUpdateHandler((sketchID: string, sceneData: SceneData) => {
+      console.log(" Received scene update for:", sketchID, "Current active:", activePageId);
+      suppressRemoteUpdates.current = true;
+
+      setPages(prev => {
+        const index = prev.findIndex(p => p.id === sketchID);
+        if (index === -1) {
+          console.warn(" Page not found:", sketchID);
+          return prev;
+        }
+        const next = [...prev];
+        
+        // Filter out UI state that shouldn't be synced (tool selection, colors, etc.)
+        const { currentItemStrokeColor, currentItemBackgroundColor, currentItemFillStyle, 
+                currentItemStrokeWidth, currentItemStrokeStyle, currentItemRoughness,
+                currentItemOpacity, currentItemFontFamily, currentItemFontSize, 
+                currentItemTextAlign, currentItemStartArrowhead, currentItemEndArrowhead,
+                ...syncedAppState } = sceneData.appState || {};
+        
+        next[index] = {
+          ...next[index],
+          scene: {
+            elements: sceneData.elements,
+            appState: {
+              ...syncedAppState,
+              collaborators: new Map(),
+            },
+            files: sceneData.files,
+          },
+        };
+        return next;
+      });
+
+      // If this update is for the currently active page, force remount
+      console.log("Checking remount:", sketchID, "===", activePageId, "?", sketchID === activePageId);
+      if (sketchID === activePageId) {
+        if (isDrawingRef.current) {
+          console.log("Deferring remount until stroke end");
+          needsRemountRef.current = true;
+        } else {
+          console.log(" Forcing remount for active page");
+          setSceneVersion((v: number) => v + 1);
+        }
+      } else {
+        console.log("⏭ Update for different page - will show when switched");
+      }
+
+      // Reset flag after update processes
+      setTimeout(() => {
+        suppressRemoteUpdates.current = false;
+      }, 50);
+    });
+
+    // When WebSocket opens, send ONLY the active page once
+    client.connection.onopen = () => {
+      console.log(" WebSocket connected");
+      setTimeout(() => {
+        const active = pages.find(p => p.id === activePageId) ?? pages[0];
+        client.sendPageUpdate(active.id, active.name);
+        if ((active.scene?.elements?.length ?? 0) > 0) {
+          client.sendSceneUpdate(active.id, active.scene);
+        }
+      }, 300);
+    };
+
+    client.connection.onclose = () => {
+      console.log("WebSocket closed");
+    };
+
+    return () => {
+      console.log("Disconnecting WebSocket");
+      if (client.connection.readyState === WebSocket.OPEN) {
+        client.connection.close();
+      }
+    };
+  // We intentionally avoid depending on pages/activePageId to keep handlers stable
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [collabEnabled, collabId]);
+
+  // Handle scene changes (drawing)
   const handleSceneChange = (scene: SceneData) => {
-    console.log("Scene change detected for page:", activePageId);
-    
-    setPages((prev) => {
-      const i = prev.findIndex((p) => p.id === activePageId);
+    setPages(prev => {
+      const i = prev.findIndex(p => p.id === activePageId);
       if (i < 0) return prev;
 
-      const cur = prev[i].scene;
-
-      if (
-        cur.elements === scene.elements &&
-        cur.appState === scene.appState &&
-        cur.files === scene.files
-      ) {
-        return prev;
-      }
-
       const next = [...prev];
-      next[i] = { ...prev[i], scene };
+      next[i] = { ...next[i], scene };
 
-      // Send update to collaborators only if this is a local change
-      if (collabClientRef.current && isLocalUpdate.current !== false) {
-        console.log("Sending scene update to collaborators for page:", activePageId);
-        // Ensure the page is registered first
-        collabClientRef.current.sendPageUpdate(activePageId, next[i].name);
-        // Then send the scene
-        setTimeout(() => {
+      // Send to collaborators with debounce
+      if (collabEnabled && collabClientRef.current && !suppressRemoteUpdates.current) {
+        if (updateTimerRef.current) {
+          clearTimeout(updateTimerRef.current);
+        }
+
+        updateTimerRef.current = setTimeout(() => {
+          console.log(" Sending scene update for page:", activePageId);
+          // IMPORTANT: Only send scene during drawing; page meta is for add/rename/delete
           collabClientRef.current?.sendSceneUpdate(activePageId, scene);
-        }, 10);
+        }, 500);
       }
-      isLocalUpdate.current = true;
 
       return next;
     });
   };
 
-  /** Creates and activates a new blank page */
+  // === PAGE MANAGEMENT ===
   const handleAddPage = () => {
     const newPage = makeNewSketchPage(pages.length + 1);
-    setPages((prev) => [...prev, newPage]);
+    setPages(prev => [...prev, newPage]);
     setActivePageId(newPage.id);
 
-    // Notify collaborators - send page FIRST, then scene
-    if (collabClientRef.current) {
+    if (collabEnabled && collabClientRef.current) {
       collabClientRef.current.sendPageUpdate(newPage.id, newPage.name);
-      // Give backend time to register the page before sending scene
-      setTimeout(() => {
-        collabClientRef.current?.sendSceneUpdate(newPage.id, newPage.scene);
-      }, 50);
     }
   };
 
-  /** 
-   * Creates a copy of the current page and activates it
-   */
   const handleDuplicatePage = () => {
     if (!activeSketch) return;
 
-    const dupeScene: SceneData =
-      typeof structuredClone === "function"
-        ? structuredClone(activeSketch.scene)
-        : JSON.parse(JSON.stringify(activeSketch.scene));
-
+    const dupeScene: SceneData = JSON.parse(JSON.stringify(activeSketch.scene));
     const dupe: SketchPage = {
       id: crypto.randomUUID(),
       name: `${activeSketch.name} (copy)`,
       scene: dupeScene,
     };
 
-    setPages((prev) => {
+    setPages(prev => {
       const next = [...prev];
-      const i = next.findIndex((p) => p.id === activePageId);
+      const i = next.findIndex(p => p.id === activePageId);
       next.splice(Math.max(0, i) + 1, 0, dupe);
       return next;
     });
-
     setActivePageId(dupe.id);
 
-    // Notify collaborators
-    if (collabClientRef.current) {
+    if (collabEnabled && collabClientRef.current) {
       collabClientRef.current.sendPageUpdate(dupe.id, dupe.name);
       collabClientRef.current.sendSceneUpdate(dupe.id, dupe.scene);
     }
   };
 
-  /** 
-   * Updates the name of a specific page
-   * @param id - ID of the page to rename
-   * @param name - New name for the page
-   */
   const handleRenamePage = (id: string, name: string) => {
-    setPages((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
+    setPages(prev => prev.map(p => p.id === id ? { ...p, name } : p));
 
-    // Notify collaborators
-    if (collabClientRef.current) {
+    if (collabEnabled && collabClientRef.current) {
       collabClientRef.current.sendPageUpdate(id, name);
     }
   };
 
-  /** 
-   * Removes a page and updates active page if necessary
-   * @param id - ID of the page to delete
-   */
   const handleDeletePage = (id: string) => {
-    setPages((prev) => {
-      if (prev.length <= 1) return prev; // must keep one
-      const i = prev.findIndex((p) => p.id === id);
-      const next = prev.filter((p) => p.id !== id);
-      // pick a neighbor to become active
+    setPages(prev => {
+      if (prev.length <= 1) return prev;
+      const i = prev.findIndex(p => p.id === id);
+      const next = prev.filter(p => p.id !== id);
       const newActive = next[Math.max(0, i - 1)];
       setActivePageId(newActive.id);
       if (editingId === id) setEditingId(null);
-
-      // Notify collaborators
-      if (collabClientRef.current) {
-        collabClientRef.current.sendPageUpdate(id, null);
-      }
-
       return next;
     });
+
+    if (collabEnabled && collabClientRef.current) {
+      collabClientRef.current.sendPageUpdate(id, null);
+    }
   };
 
-  /** 
-   * Generates HTML from current sketch via backend API
-   * Exports current drawing as PNG and sends to backend
-   */
+  // === GENERATE HTML ===
   const handleGenerate = async () => {
     const blob = await drawingRef.current?.getPNGBlob?.();
     if (!blob) {
-      alert("Please create a sketch first. No sketch to export");
+      alert("Please create a sketch first");
       return;
     }
-    //form data to send to backend
+
     const sketch = new FormData();
     sketch.append("file", new File([blob], "sketch.png", { type: "image/png" }));
 
@@ -431,29 +356,26 @@ export default function App() {
       });
 
       if (!res.ok) {
-        alert("Failed to generate HTML from sketch");
+        alert("Failed to generate HTML");
         return;
       }
 
-      //Export JSON back from the server
-      const data = (await res.json()) as {html?: string};
+      const data = (await res.json()) as { html?: string };
       const htmlStr = (data.html ?? "").trim();
       if (!htmlStr) {
-        alert("No HTML received from server");
+        alert("No HTML received");
         return;
       }
-      //Save HTML
+      
       setHtml(htmlStr);
-
-      //Here you can set the current page to Mockup if you want to switch automatically
-      setCurrentPage(Page.Mockup); 
+      setCurrentPage(Page.Mockup);
     } finally {
       setLoading(false);
     }
   };
 
-  /** Opens the collaboration dialog */
   const handleShowCollaboration = () => {
+    setCollabEnabled(true);
     setShowCollabDialog(true);
   };
 
@@ -469,45 +391,40 @@ export default function App() {
       />
 
       <div className={currentPage === Page.Drawing ? styles.workRow : styles.workRowNoSidebar}>
-        {/* sidebar */}
         {currentPage === Page.Drawing && (
           <aside className={styles.sidebar}>
             <div className={styles.sidebarHeader}>Pages</div>
 
             <div className={styles.pageList}>
-              {pages.map((p) => {
+              {pages.map(p => {
                 const selected = p.id === activePageId;
                 const isEditing = editingId === p.id;
 
                 return (
                   <div
                     key={p.id}
-                    ref={(node) => { itemRefs.current[p.id] = node; }}
-
-                    className={
-                      styles.pageItem + " " + (selected ? styles.pageItemSelected : "")
-                    }
+                    ref={node => { itemRefs.current[p.id] = node; }}
+                    className={`${styles.pageItem} ${selected ? styles.pageItemSelected : ""}`}
                     onClick={() => {
                       setActivePageId(p.id);
                       setEditingId(null);
                     }}
-                    onDoubleClick={(e) => {
+                    onDoubleClick={e => {
                       e.stopPropagation();
                       setEditingId(p.id);
                     }}
                     title={p.name}
                   >
                     <div className={styles.pageItemLabel}>
-                      {/* tiny page icon (pure CSS) */}
                       <span className={styles.pageIcon} aria-hidden />
                       {isEditing ? (
                         <input
                           className={styles.pageNameInput}
                           autoFocus
                           value={p.name}
-                          onPointerUp={(e) => handleRenamePage(p.id, e.target.value)}
+                          onChange={e => handleRenamePage(p.id, e.target.value)}
                           onBlur={() => setEditingId(null)}
-                          onKeyDown={(e) => {
+                          onKeyDown={e => {
                             if (e.key === "Enter" || e.key === "Escape") setEditingId(null);
                           }}
                           spellCheck={false}
@@ -520,7 +437,7 @@ export default function App() {
                     {pages.length > 1 && (
                       <button
                         className={styles.pageDeleteBtn}
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           handleDeletePage(p.id);
                         }}
@@ -550,26 +467,32 @@ export default function App() {
           </aside>
         )}
 
-        <div className={styles.main}>
-          <Drawing 
-            key={activeSketch?.id ?? "sketch"}
-            ref={drawingRef} 
-            className={styles.canvas} 
+        <div className={styles.main} ref={canvasHostRef}>
+          <Drawing
+            key={`${activeSketch?.id}-v${sceneVersion}`}
+            ref={drawingRef}
+            className={styles.canvas}
             visible={currentPage === Page.Drawing}
             initialScene={activeSketch?.scene}
             onSceneChange={handleSceneChange}
           />
           {currentPage === Page.Mockup && <Mockup html={html} />}
-          {/* Loading overlay */}
           {loading && (
-            <div style={{position: "absolute", inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 200}}>
+            <div style={{
+              position: "absolute",
+              inset: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(255,255,255,0.6)',
+              zIndex: 200
+            }}>
               <LoadingSpinner />
             </div>
           )}
         </div>
       </div>
 
-      {/* Collaboration Dialog */}
       <CollaborationDialog
         isOpen={showCollabDialog}
         onClose={() => setShowCollabDialog(false)}

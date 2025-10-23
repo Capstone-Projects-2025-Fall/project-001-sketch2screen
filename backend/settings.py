@@ -30,7 +30,7 @@ print(prod_env)
 print(PRODUCTION)
 
 # Debug
-DEBUG = True#not PRODUCTION   # switch to False in production
+DEBUG = not PRODUCTION   # switch to False in production
 ALLOWED_HOSTS = ["*"]  # tighten this in production
 
 print(DEBUG)

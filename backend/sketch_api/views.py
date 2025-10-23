@@ -58,6 +58,6 @@ class GenerateView(APIView):
             image_bytes = up.read()                  # raw PNG bytes from the upload
             html = image_to_html_css(image_bytes, media_type=ctype, prompt=prompt)
             return Response({"html": html}, status=status.HTTP_200_OK)
-        except Exception:
+        except Exception as e:
             # In production, log details to your logger/Sentry
-            return Response({"detail": "Generation failed."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"detail": f"Generation failed. {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

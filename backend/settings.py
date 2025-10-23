@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 
     # Third-party
     "django_vite",
+    "channels",
 
     # Your apps
     "backend.sketch_api",

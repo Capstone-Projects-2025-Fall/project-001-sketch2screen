@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 from django.core.management.utils import get_random_secret_key
+import os
 
 SECRET_KEY = get_random_secret_key()
 # Paths
@@ -19,10 +20,20 @@ BASE_DIR = Path(__file__).resolve().parent       # => .../backend
 PROJECT_ROOT = BASE_DIR.parent                   # => repo root (has templates/, frontend/)
 CLAUDE_API_KEY = PROJECT_ROOT / "APIkey.txt"
 CLAUDE_MODEL = "claude-sonnet-4-20250514"
+
+PRODUCTION = False
+prod_env = os.environ.get("PROD")
+if prod_env == "True":
+    PRODUCTION = True
+
+print(prod_env)
+print(PRODUCTION)
+
 # Debug
-DEBUG = True   # switch to False in production
+DEBUG = True#not PRODUCTION   # switch to False in production
 ALLOWED_HOSTS = ["*"]  # tighten this in production
 
+print(DEBUG)
 # Installed apps
 INSTALLED_APPS = [
     # Core Django apps (required)
@@ -92,7 +103,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # Only include dist/ if it exists (so you don’t get warnings in dev)
-dist_path = PROJECT_ROOT / "frontend" / "dist"
+dist_path = PROJECT_ROOT / "backend" / "static"
 STATICFILES_DIRS = [dist_path] if dist_path.exists() else []
 
 ROOT_URLCONF = "backend.urls"
@@ -105,9 +116,13 @@ CHANNEL_LAYERS = {
 }
 
 # django-vite
+DJANGO_VITE_DEV_MODE = not PRODUCTION
+DJANGO_VITE_DEV_SERVER_HOST = "localhost"
+DJANGO_VITE_DEV_SERVER_PORT = 5173
+
 DJANGO_VITE = {
     "default": {
-        "dev_mode": True,                 # True in dev, False in prod
+        "dev_mode": DJANGO_VITE_DEV_MODE,                 # True in dev, False in prod
         "dev_server_host": "localhost",   # or "127.0.0.1"
         "dev_server_port": 5173,
         "manifest_path": dist_path / ".vite" / "manifest.json",
@@ -115,10 +130,6 @@ DJANGO_VITE = {
     }
 }
 
-# Some django-vite versions also require these env-style flags:
-DJANGO_VITE_DEV_MODE = True
-DJANGO_VITE_DEV_SERVER_HOST = "localhost"
-DJANGO_VITE_DEV_SERVER_PORT = 5173
 
 # Production-only: enable optimized static storage
 # if not DEBUG:

@@ -79,6 +79,9 @@ export default function App() {
   /** ID of the page currently being renamed, if any */
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  /** Controls whether the sidebar is expanded or collapsed */
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+
   /** Index of the active page in the pages array */
   const activeIndex = useMemo(
     () => pages.findIndex((p) => p.id === activePageId),
@@ -237,10 +240,23 @@ export default function App() {
         onFilenameChange={setFilename}
       />
 
-      <div className={currentPage === Page.Drawing ? styles.workRow : styles.workRowNoSidebar}>
-        {/* sidebar */}
+      <div className={`${currentPage === Page.Drawing ? styles.workRow : styles.workRowNoSidebar} ${!sidebarExpanded && currentPage === Page.Drawing ? styles.workRowCollapsed : ''}`}>
+        {/* sidebar toggle button - outside sidebar so it stays visible*/}
         {currentPage === Page.Drawing && (
-          <aside className={styles.sidebar}>
+            <button 
+              className={styles.sidebarToggle}
+              onClick={() => setSidebarExpanded(!sidebarExpanded)}
+              aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+              title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+              style={{ left: sidebarExpanded ? '260px' : '0px' }}
+              >
+              {sidebarExpanded ? '«' : '»'}
+            </button>
+        )}
+
+        {/* sidebar - only show in Drawing mode */}
+        {currentPage === Page.Drawing && (
+          <aside className={`${styles.sidebar} ${!sidebarExpanded ? styles.sidebarCollapsed : ""}`}>
             <div className={styles.sidebarHeader}>Pages</div>
 
             <div className={styles.pageList}>

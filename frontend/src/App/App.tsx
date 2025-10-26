@@ -2,8 +2,9 @@ import styles from "./App.module.css";
 import { useMemo, useRef, useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import type { DrawingHandle, SceneData } from "./Drawing";
-import Mockup from "./Mockup";
+import Mockup, { MockupPage } from "./Mockup";
 import Drawing from "./Drawing";
+import PageSidebar from "./reusable_sidebar";
 import { LoadingSpinner } from "./LoadingScreen";
 
 /** Represents the available pages/views in the application */
@@ -67,8 +68,14 @@ export default function App() {
   /** Reference to access Drawing component methods */
   const drawingRef = useRef<DrawingHandle | null>(null);
 
+  /** References to all Drawing components (one per page) */
+  const drawingRefs = useRef<Record<string, DrawingHandle | null>>({});
+
   /** Generated HTML code from the backend */
   const [html, setHtml] = useState<string>("");
+
+  /** Generated mockup pages */
+  const [mockups, setMockups] = useState<MockupPage[]>([]);
   
   /** Loading state during backend processing */
   const [loading, setLoading] = useState(false);
@@ -90,17 +97,6 @@ export default function App() {
 
   /** Currently active sketch page */
   const activeSketch = pages[activeIndex] ?? pages[0];
-
-  /** Refs to page DOM elements for scrolling */
-  const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
-
-  /** Scroll active page into view when it changes */
-  useEffect(() => {
-    const el = itemRefs.current[activePageId];
-    if (el) {
-      el.scrollIntoView({ block: "nearest", inline: "nearest" });
-    }
-  }, [activePageId, pages.length]);
 
   /** 
    * Updates the scene data for the active page
@@ -192,43 +188,77 @@ export default function App() {
    * Exports current drawing as PNG and sends to backend
    */
   const handleGenerate = async () => {
-    const blob = await drawingRef.current?.getPNGBlob?.();
-    if (!blob) {
-      alert("Please create a sketch first. No sketch to export");
-      return;
-    }
-    //form data to send to backend
-    const sketch = new FormData();
-    sketch.append("file", new File([blob], "sketch.png", { type: "image/png" }));
-
     setLoading(true);
+    
     try {
-      const res = await fetch("/api/generate/", {
-        method: "POST",
-        body: sketch,
-      });
+      // Collect all page blobs
+      const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
+      
+      for (const page of pages) {
+        // Get the drawing ref for this page
+        const drawingRef = drawingRefs.current[page.id];
+        const blob = await drawingRef?.getPNGBlob?.();
+        
+        if (blob) {
+          pageBlobs.push({ id: page.id, name: page.name, blob });
+        }
+      }
 
-      if (!res.ok) {
-        alert("Failed to generate HTML from sketch");
+      if (pageBlobs.length === 0) {
+        alert("No sketches to export. Please create at least one sketch.");
         return;
       }
 
-      //Export JSON back from the server
-      const data = (await res.json()) as {html?: string};
-    const htmlStr = (data.html ?? "").trim();
-    if (!htmlStr) {
+      // Create form data with all images
+      const formData = new FormData();
+      pageBlobs.forEach((item, index) => {
+        formData.append(`file_${index}`, item.blob, `${item.name}.png`);
+        formData.append(`name_${index}`, item.name);
+        formData.append(`id_${index}`, item.id);
+      });
+      formData.append('count', pageBlobs.length.toString());
+
+      const res = await fetch("/api/generate-multi/", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) {
+        alert("Failed to generate HTML from sketches");
+        return;
+      }
+
+      // Expect array of HTML strings
+      const data = (await res.json()) as { results: Array<{ id: string; html: string }> };
+      
+      if (!data.results || data.results.length === 0) {
         alert("No HTML received from server");
         return;
-    }
-    //Save HTML
-    setHtml(htmlStr);
+      }
 
-    //Here you can set the current page to Mockup if you want to switch automatically
-    setCurrentPage(Page.Mockup); 
-    } finally {
+      // Build mockup pages
+      const newMockups: MockupPage[] = data.results.map((result) => {
+        const page = pages.find((p) => p.id === result.id);
+        return {
+          id: result.id,
+          name: page?.name || "Untitled",
+          html: result.html,
+        };
+      });
+
+      setMockups(newMockups);
+      setCurrentPage(Page.Mockup);
+    }
+
+    catch (error) {
+      console.error("Generation error:", error);
+      alert("An error occurred during generation");
+    } 
+
+    finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
     <div className={styles.appRoot}>
@@ -243,112 +273,46 @@ export default function App() {
       <div className={`${currentPage === Page.Drawing ? styles.workRow : styles.workRowNoSidebar} ${!sidebarExpanded && currentPage === Page.Drawing ? styles.workRowCollapsed : ''}`}>
         {/* sidebar toggle button - outside sidebar so it stays visible*/}
         {currentPage === Page.Drawing && (
-            <button 
-              className={styles.sidebarToggle}
-              onClick={() => setSidebarExpanded(!sidebarExpanded)}
-              aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-              title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-              style={{ left: sidebarExpanded ? '260px' : '0px' }}
-              >
-              {sidebarExpanded ? '«' : '»'}
-            </button>
+            <PageSidebar<SketchPage>
+            title="Pages"
+            items={pages}
+            activeItemId={activePageId}
+            onSelectItem={setActivePageId}
+            onRenameItem={handleRenamePage}
+            onDeleteItem={handleDeletePage}
+            onAddItem={handleAddPage}
+            onDuplicateItem={handleDuplicatePage}
+            editingId={editingId}
+            onSetEditingId={setEditingId}
+            expanded={sidebarExpanded}
+            onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
+          />
         )}
 
-        {/* sidebar - only show in Drawing mode */}
-        {currentPage === Page.Drawing && (
-          <aside className={`${styles.sidebar} ${!sidebarExpanded ? styles.sidebarCollapsed : ""}`}>
-            <div className={styles.sidebarHeader}>Pages</div>
-
-            <div className={styles.pageList}>
-              {pages.map((p) => {
-                const selected = p.id === activePageId;
-                const isEditing = editingId === p.id;
-
-                return (
-                  <div
-                    key={p.id}
-                    ref={(node) => { itemRefs.current[p.id] = node; }}  // <-- add this
-
-                    className={
-                      styles.pageItem + " " + (selected ? styles.pageItemSelected : "")
-                    }
-                    onClick={() => {
-                      setActivePageId(p.id);
-                      setEditingId(null);
-                    }}
-                    onDoubleClick={(e) => {
-                      e.stopPropagation();
-                      setEditingId(p.id);
-                    }}
-                    title={p.name}
-                  >
-                    <div className={styles.pageItemLabel}>
-                      {/* tiny page icon (pure CSS) */}
-                      <span className={styles.pageIcon} aria-hidden />
-                      {isEditing ? (
-                        <input
-                          className={styles.pageNameInput}
-                          autoFocus
-                          value={p.name}
-                          onChange={(e) => handleRenamePage(p.id, e.target.value)}
-                          onBlur={() => setEditingId(null)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" || e.key === "Escape") setEditingId(null);
-                          }}
-                          spellCheck={false}
-                        />
-                      ) : (
-                        <span className={styles.pageNameText}>{p.name}</span>
-                      )}
-                    </div>
-
-                    {pages.length > 1 && (
-                      <button
-                        className={styles.pageDeleteBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeletePage(p.id);
-                        }}
-                        aria-label="Delete page"
-                        title="Delete page"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className={styles.sidebarFooter}>
-              <button className={styles.sidebarBtn} onClick={handleAddPage} title="New page">
-                + New
-              </button>
-              <button
-                className={styles.sidebarBtn}
-                onClick={handleDuplicatePage}
-                title="Duplicate current page"
-              >
-                Duplicate
-              </button>
-            </div>
-          </aside>
-        )}
 
       <div className={styles.main}>
+        {/* Render all Drawing components (hidden when not active) */}
+        {pages.map((page) => (
         <Drawing 
-          key={activeSketch?.id ?? "sketch"}
-          ref={drawingRef} 
+          key={page.id}
+          ref={(ref) => { drawingRefs.current[page.id] = ref; }} 
           className={styles.canvas} 
-          visible={currentPage === Page.Drawing}
-          initialScene={activeSketch?.scene}
-          onSceneChange={handleSceneChange}
+          visible={currentPage === Page.Drawing && page.id === activePageId}
+          initialScene={page.scene}
+          onSceneChange={page.id === activePageId ? handleSceneChange : undefined}
         />
-        {currentPage === Page.Mockup && <Mockup html = {html} />}
+        ))}
+
+        {/*Mockup view*/}
+        {currentPage === Page.Mockup && <Mockup mockups={mockups} />}
+
+        {/* Loading overlay */}
+
         {/* Loading overlay */}
         {loading && (
           <div style={{position: "absolute", inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 200}}>
             <LoadingSpinner />
+            <p style={{ marginLeft: '1rem' }}>Generating {pages.length} page{pages.length > 1 ? 's' : ''}...</p>
           </div>
         )}
       </div>

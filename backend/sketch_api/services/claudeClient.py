@@ -6,6 +6,7 @@ from typing import Optional, Sequence
 from django.conf import settings
 from anthropic import Anthropic
 
+import os
 
 def _load_anthropic_key_from_file() -> str:
     """Read API key from plaintext file defined in settings."""
@@ -20,7 +21,16 @@ def _load_anthropic_key_from_file() -> str:
 
 
 def _client() -> Anthropic:
-    return Anthropic(api_key=_load_anthropic_key_from_file())
+    key = ""
+    try:
+        key = _load_anthropic_key_from_file()
+    except Exception:
+        key = os.environ.get("ANTHROPIC_API_KEY")
+    
+    if not key or key == "":
+        raise RuntimeError("Anthropic API key is missing.")
+
+    return Anthropic(api_key=key)
 
 #This function would help extract text from the response received from Claude API focusing on only the output.
 def _extract_text(resp) -> str:

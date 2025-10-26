@@ -116,7 +116,34 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
       <Excalidraw
         excalidrawAPI={(api) => {
           excaliRef.current = api;
+
+          // Force zoom to 100% and disable zoom changes
+          const initialAppState = api.getAppState();
+          api.updateScene({
+            appState: {
+              ...initialAppState,
+              zoom: { value: 1 }, // Force 100% zoom
+              scrollX: 0,
+              scrollY: 0,
+            },
+          });
+
+          // Disable wheel and pinch zoom
+          const canvas = document.querySelector(".excalidraw .excalidraw__canvas");
+          if (canvas) {
+            canvas.addEventListener("wheel", (e) => {
+              // Prevent zooming out above 100%
+              if (e.deltaY > 0 && api.getAppState().zoom.value <= 1) {
+                e.preventDefault();
+              }
+            }, { passive: false });
+            
+            canvas.addEventListener("gesturestart", (e) => e.preventDefault(), { passive: false });
+            canvas.addEventListener("gesturechange", (e) => e.preventDefault(), { passive: false });
+          }
         }}
+
+
         // Load the page scene on mount
         initialData={
           initialScene
@@ -128,6 +155,13 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
             : undefined
         }
         onChange={(elements, appState, files) => {
+          // This already fires on every state change
+          if (appState.zoom.value < 1) {
+            // Handle zoom lock here if needed
+            excaliRef.current?.updateScene({
+              appState: { ...appState, zoom: { value: 1 } }
+            });
+          }
           //Guard against duplicate calls
           if (
             lastSceneRefs.current.elements === elements &&
@@ -144,6 +178,8 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
             files: files ?? {},
           });
         }}
+
+
         UIOptions={{
           canvasActions: {
             changeViewBackgroundColor: false,

@@ -261,12 +261,34 @@ export default function App() {
     }
   };
 
+  /** 
+ * Exports the currently visible mockup as an HTML file 
+ */
+const handleExport = () => {
+  if (mockups.length === 0) {
+    alert("No mockups available to export. Please generate first.");
+    return;
+  }
+
+  // Get currently active mockup
+  const activeMockup = mockups.find((m) => m.id === activePageId) || mockups[0];
+
+  const blob = new Blob([activeMockup.html], { type: "text/html" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `${activeMockup.name || "mockup"}.html`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+};
+
+
   return (
     <div className={styles.appRoot}>
       <Navbar
         curPage={currentPage}
         onPageChange={setCurrentPage}
         onGenerate={handleGenerate}
+        onExport = {handleExport}
         filename={filename}
         onFilenameChange={setFilename}
       />

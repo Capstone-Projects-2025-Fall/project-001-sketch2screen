@@ -1,5 +1,5 @@
 from django.urls import path, re_path
-from .views import GenerateView, api_test
+from .views import GenerateView, GenerateMultiView,api_test
 from .consumers import SketchConsumer
 
 urlpatterns = [
@@ -9,5 +9,6 @@ urlpatterns = [
     #instantiates it when a request comes in,
     #returns a function that Django's URL dispatcher can call.
     path('generate/', GenerateView.as_view(), name='generate_mockup'),
+    path('generate-multi/', GenerateMultiView.as_view(), name='generate_multi'),
     re_path(r"ws/collab/(?P<collabID>\d+)/$", SketchConsumer.as_asgi())
 ]

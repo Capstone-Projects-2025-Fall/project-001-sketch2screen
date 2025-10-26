@@ -54,30 +54,30 @@ export default function Mockup ({ mockups = [] }: Props){
   }
 
 
-return (
-  <div className={styles.mockupContainer}>
-      <PageSidebar<MockupPage>
-        title="Generated Pages"
-        items={mockups}
-        activeItemId={activeMockupId || mockups[0].id}
-        onSelectItem={setActiveMockupId}
-        editingId={null}
-        onSetEditingId={() => {}} // No editing in mockup view
-        expanded={sidebarExpanded}
-        onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
-        showActions={false} // No add/duplicate in mockup view
-        allowDelete={false} // No delete in mockup view
-      />
+  return (
+    <div className = {styles.mockupContainer}>
+        <PageSidebar<MockupPage>
+          title="Generated Pages"
+          items={mockups}
+          activeItemId={activeMockupId || mockups[0].id}
+          onSelectItem={setActiveMockupId}
+          editingId={null}
+          onSetEditingId={() => {}} // No editing in mockup view
+          expanded={sidebarExpanded}
+          onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
+          showActions={false} // No add/duplicate in mockup view
+          allowDelete={false} // No delete in mockup view
+        />
 
-      <div className={styles.mockup}>
-        {activeMockup && (
-          <iframe
-            srcDoc={safeHtml}
-            className={styles.preview}
-            title={`Mockup preview: ${activeMockup.name}`}
-          />
-        )}
-      </div>
+        <div className={styles.mockup}>
+          {activeMockup && (
+            <iframe
+              srcDoc={safeHtml}
+              className={styles.preview}
+              title={`Mockup preview: ${activeMockup.name}`}
+            />
+          )}
+        </div>
     </div>
-);
+    );
 }

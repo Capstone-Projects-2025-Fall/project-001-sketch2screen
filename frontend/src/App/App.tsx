@@ -2,7 +2,8 @@ import styles from "./App.module.css";
 import { useMemo, useRef, useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import type { DrawingHandle, SceneData } from "./Drawing";
-import Mockup, { MockupPage } from "./Mockup";
+import Mockup from "./Mockup";
+import type { MockupPage } from "./Mockup";
 import Drawing from "./Drawing";
 import PageSidebar from "./reusable_sidebar";
 import { LoadingSpinner } from "./LoadingScreen";
@@ -241,7 +242,7 @@ export default function App() {
         const page = pages.find((p) => p.id === result.id);
         return {
           id: result.id,
-          name: page?.name || "Untitled",
+          name: page?.name || `Sketch Generated ${result.id + 1}`,
           html: result.html,
         };
       });
@@ -289,24 +290,21 @@ export default function App() {
           />
         )}
 
-
-      <div className={styles.main}>
-        {/* Render all Drawing components (hidden when not active) */}
-        {pages.map((page) => (
-        <Drawing 
-          key={page.id}
-          ref={(ref) => { drawingRefs.current[page.id] = ref; }} 
-          className={styles.canvas} 
-          visible={currentPage === Page.Drawing && page.id === activePageId}
-          initialScene={page.scene}
-          onSceneChange={page.id === activePageId ? handleSceneChange : undefined}
-        />
-        ))}
+        <div className={styles.main}>
+          {/* Render all Drawing components (hidden when not active) */}
+          {pages.map((page) => (
+          <Drawing 
+            key={page.id}
+            ref={(ref) => { drawingRefs.current[page.id] = ref; }} 
+            className={styles.canvas} 
+            visible={currentPage === Page.Drawing && page.id === activePageId}
+            initialScene={page.scene}
+            onSceneChange={page.id === activePageId ? handleSceneChange : undefined}
+          />
+          ))}
 
         {/*Mockup view*/}
         {currentPage === Page.Mockup && <Mockup mockups={mockups} />}
-
-        {/* Loading overlay */}
 
         {/* Loading overlay */}
         {loading && (

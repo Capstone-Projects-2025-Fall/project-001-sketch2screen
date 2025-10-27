@@ -20,7 +20,7 @@ export default defineConfig({
     emptyOutDir: true,
     manifest: true,
     rollupOptions: {
-      input: path.resolve(__dirname, 'src/index.html'),
+      input: path.resolve(__dirname, 'src/main.tsx'),
     },
   },
   server: { host: 'localhost', port: 5173, strictPort: true },

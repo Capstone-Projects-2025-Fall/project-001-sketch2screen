@@ -8,13 +8,14 @@
 }
 
 /* main content area under navbar (hosts the canvas) */
-.main {
-  flex: 1;                  /* fill remaining space */
+.main {             /* fill remaining space */
   min-height: 0;            /* IMPORTANT: prevents page from scrolling */
-  display: flex;            /* let inner page fill height */
   overflow: hidden;         /* stop page-level scroll so Excalidraw toolbar stays visible */
 }
 
+.workRow .main{
+  flex: 1;
+}
 /* Drawing container fills the space under the navbar */
 .canvas {
   flex: 1;
@@ -113,18 +114,6 @@
   text-decoration: none;
 }
                   
-
-
-.mockup {
-  width: 100%;
-  height: 100%;
-}
-
-.mockup iframe {
-  width: 100%;
-  height: 100%;
-}
-
 /* --- Sketch page tabs (multi-page) --- */
 .pageTabs {
   display: flex;
@@ -207,11 +196,17 @@
   grid-template-columns: 260px 1fr; /* sidebar | main */
   height: calc(100vh - 5em); /* match your navbar height (5em) */
   position: relative;
+  transition: grid-template-columns 0.3s ease;
+
+}
+
+/*When sidebar is collapsed, first column become 0 width*/
+.workRowCollapsed {
+  grid-template-columns: 0 1fr;
 }
 
 /* Single column layout when sidebar is hidden */
 .workRowNoSidebar {
-  display: flex;
   height: calc(100vh - 5em);
   position: relative;
 }
@@ -232,7 +227,10 @@
   background: #f7f7f9;
   min-width: 220px;
   max-width: 360px;
+  position: relative;
+  transition: width 0.3s ease, min-width 0.3s ease, opacity 0.3s ease;
 }
+
 
 .sidebarHeader {
   padding: 10px 14px;
@@ -248,6 +246,44 @@
   padding: 8px;
   overflow: auto;
   flex: 1;
+}
+
+/* Sidebar toggle button */
+.sidebarToggle {
+  position: absolute;
+  top: 50%;
+  right: -12px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 48px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 0 4px 4px 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #666;
+  transition: left 0.3s ease, background 0.3s ease;
+  z-index: 10;
+}
+
+.sidebarToggle:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.sidebarCollapsed {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  transition: width 0.3s ease, min-width 0.3s ease, opacity 0.3s ease, border-right 0.3s ease;
+}
+
+.sidebarCollapsed .sidebarToggle {
+  right: -24px;
+  border-radius: 4px;
 }
 
 /* page row */
@@ -351,4 +387,41 @@
   justify-content: center;
   background: rgba(255,255,255,0.6);
   z-index: 200;
+}
+
+
+/* Mockup Container Styling */
+.mockupContainer {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  height: 100%;
+  position: relative;
+  transition: grid-template-columns 0.3s ease;
+}
+
+/* When mockup sidebar is collapsed */
+.mockupContainer:has(.sidebarCollapsed) {
+  grid-template-columns: 0px 1fr;
+}
+
+/* Mockup display area */
+.mockup {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  background: #f5f5f5;
+}
+
+.mockup iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+
+.mockup em {
+  color: #6b7280;
+  font-size: 14px;
 }

@@ -8,12 +8,14 @@
 }
 
 /* main content area under navbar (hosts the canvas) */
-.main {
-  flex: 1;                  /* fill remaining space */
+.main {             /* fill remaining space */
   min-height: 0;            /* IMPORTANT: prevents page from scrolling */
   overflow: hidden;         /* stop page-level scroll so Excalidraw toolbar stays visible */
 }
 
+.workRow .main{
+  flex: 1;
+}
 /* Drawing container fills the space under the navbar */
 .canvas {
   flex: 1;
@@ -112,11 +114,6 @@
   text-decoration: none;
 }
                   
-.mockup {
-  width: 100%;
-  height: 100%;
-}
-
 /* --- Sketch page tabs (multi-page) --- */
 .pageTabs {
   display: flex;
@@ -210,7 +207,6 @@
 
 /* Single column layout when sidebar is hidden */
 .workRowNoSidebar {
-  display: flex;
   height: calc(100vh - 5em);
   position: relative;
 }

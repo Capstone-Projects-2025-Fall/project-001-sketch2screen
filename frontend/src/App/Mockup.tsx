@@ -48,7 +48,7 @@ export default function Mockup ({ mockups = [] }: Props){
   if (mockups.length === 0) {
     return (
       <div className={styles.mockup}>
-        <em>No mockup yet. Click "Generate" to create mockups from your sketches.</em>
+        <em>No mockup yet. Draw your sketch and press "Generate".</em>
       </div>
     );
   }

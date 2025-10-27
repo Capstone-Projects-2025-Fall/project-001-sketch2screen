@@ -13,7 +13,7 @@ from django.core.asgi import get_asgi_application
 from django.urls import include
 from channels.routing import URLRouter, ProtocolTypeRouter
 
-from . import sketch_api
+from .sketch_api import urls
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 
@@ -22,6 +22,6 @@ asgi_app = get_asgi_application()
 application = ProtocolTypeRouter(
     {
         "http": asgi_app,
-        "websocket": URLRouter(sketch_api.urls.urlpatterns),
+        "websocket": URLRouter(urls.urlpatterns),
     }
 )

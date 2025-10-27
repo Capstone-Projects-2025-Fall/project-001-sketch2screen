@@ -18,7 +18,7 @@ export type DrawingHandle = {
   getPNGBlob: () => Promise<Blob | null>;
 };
 
-/** Props for the Drawing component */
+//Props that can be passed into <Drawing />
 export interface DrawingProps {
   /** CSS class name for styling */
   className?: string;
@@ -32,6 +32,8 @@ export interface DrawingProps {
   initialScene?: SceneData;
   /** Callback fired when the scene changes */
   onSceneChange?: (scene: SceneData) => void;
+  /** Callback to receive Excalidraw API */
+  onExcalidrawAPI?: (api: any) => void;
 }
 
 /** Type representing Excalidraw's API methods */
@@ -47,7 +49,7 @@ type ExcalidrawAPI = NonNullable<
  * @param ref - Forwarded ref for accessing component methods
  */
 const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
-  { className, visible, initialScene, onSceneChange},
+  { className, visible, initialScene, onSceneChange, onExcalidrawAPI },
   ref
 ) {
   /** Reference to Excalidraw's API methods */
@@ -170,13 +172,21 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
           ) {
             return;
           }
+          
+          // Only trigger onSceneChange if elements or files changed (actual drawing content)
+          // Ignore appState changes (zoom, pan, tool selection, etc.)
+          const elementsChanged = lastSceneRefs.current.elements !== elements;
+          const filesChanged = lastSceneRefs.current.files !== files;
+          
           lastSceneRefs.current = { elements, appState, files };
 
-          onSceneChange?.({
-            elements: elements ?? ([] as readonly any[]),
-            appState: appState ?? {},
-            files: files ?? {},
-          });
+          if (elementsChanged || filesChanged) {
+            onSceneChange?.({
+              elements: elements ?? ([] as readonly any[]),
+              appState: appState ?? {},
+              files: files ?? {},
+            });
+          }
         }}
 
 
@@ -260,4 +270,3 @@ export default Drawing;
     // Clean up when the tab closes
     w.addEventListener("beforeunload", () => URL.revokeObjectURL(url));
   }, [getPNGBlob]);*/
-

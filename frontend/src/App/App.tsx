@@ -416,16 +416,35 @@ export default function App() {
    * Exports current drawing as PNG and sends to backend
    */
   const handleGenerate = async () => {
+
     setLoading(true);
     
     try {
+
+      const { exportToBlob } = await import("@excalidraw/excalidraw");
       // Collect all page blobs
       const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
       
       for (const page of pages) {
-        // Get the drawing ref for this page
-        const drawingRef = drawingRefs.current[page.id];
-        const blob = await drawingRef?.getPNGBlob?.();
+      // Skip pages with no elements
+        if (!page.scene.elements || page.scene.elements.length === 0) {
+          console.log(`Skipping empty page: ${page.name}`);
+          continue;
+        }
+        
+        // Export directly from scene data instead of using refs
+        const blob = await exportToBlob({
+          elements: page.scene.elements,
+          appState: {
+            ...page.scene.appState,
+            exportBackground: true,
+            exportWithDarkMode: false,
+          },
+          files: page.scene.files || {},
+          mimeType: "image/png",
+          quality: 1,
+          backgroundColor: "white",
+        });
         
         if (blob) {
           pageBlobs.push({ id: page.id, name: page.name, blob });

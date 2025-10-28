@@ -131,20 +131,8 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
             },
           });
 
-          // Disable wheel and pinch zoom
-          const canvas = document.querySelector(".excalidraw .excalidraw__canvas");
-          if (canvas) {
-            canvas.addEventListener("wheel", (e) => {
-              // Prevent zooming out above 100%
-              const wheelEvent = e as WheelEvent;
-              if (wheelEvent.deltaY > 0 && api.getAppState().zoom.value <= 1) {
-                wheelEvent.preventDefault();
-              }
-            }, { passive: false });
-            
-            canvas.addEventListener("gesturestart", (e) => e.preventDefault(), { passive: false });
-            canvas.addEventListener("gesturechange", (e) => e.preventDefault(), { passive: false });
-          }
+         
+         
         }}
 
 

@@ -1,6 +1,8 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
+import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
+
 
 /** Represents a complete Excalidraw scene with all its components */
 export type SceneData = {
@@ -62,6 +64,7 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
     files: Record<string, any> | null;
   }>({ elements: null, appState: null, files: null });
 
+  const zoomLocked = useRef(false);
   /**
    * Exports the current drawing as a PNG blob
    * @returns Promise resolving to PNG blob or null if export fails
@@ -119,24 +122,29 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
         excalidrawAPI={(api) => {
           excaliRef.current = api;
 
-          // Force zoom to 100% and disable zoom changes
-          const initialAppState = api.getAppState();
-          api.updateScene({
-            appState: {
-              ...initialAppState,
-              zoom: { value: 1 }, // Force 100% zoom
-              scrollX: 0,
-              scrollY: 0,
-            },
-          });
+          if(!zoomLocked.current) 
+          {
+              zoomLocked.current = true;
+              // Force zoom to 100% and disable zoom changes
+              const initialAppState = api.getAppState();
+              api.updateScene({
+                appState: {
+                  ...initialAppState,
+                  zoom: { value: 1 as NormalizedZoomValue }, // Force 100% zoom
+                  scrollX: 0,
+                  scrollY: 0,
+                },
+            });
+          }
 
           // Disable wheel and pinch zoom
           const canvas = document.querySelector(".excalidraw .excalidraw__canvas");
           if (canvas) {
             canvas.addEventListener("wheel", (e) => {
               // Prevent zooming out above 100%
-              if (e.deltaY > 0 && api.getAppState().zoom.value <= 1) {
-                e.preventDefault();
+              const wheelEvent = e as WheelEvent;
+              if (wheelEvent.deltaY > 0 && api.getAppState().zoom.value <= 1) {
+                wheelEvent.preventDefault();
               }
             }, { passive: false });
             
@@ -157,13 +165,7 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
             : undefined
         }
         onChange={(elements, appState, files) => {
-          // This already fires on every state change
-          if (appState.zoom.value < 1) {
-            // Handle zoom lock here if needed
-            excaliRef.current?.updateScene({
-              appState: { ...appState, zoom: { value: 1 } }
-            });
-          }
+          
           //Guard against duplicate calls
           if (
             lastSceneRefs.current.elements === elements &&

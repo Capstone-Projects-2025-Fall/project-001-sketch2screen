@@ -314,7 +314,8 @@ export default function App() {
       next[i] = { ...next[i], scene };
 
       // Send to collaborators
-      if (collabEnabled && collabClientRef.current && !suppressRemoteUpdates.current) {
+      if (collabEnabled && collabClientRef.current && !suppressRemoteUpdates.current) 
+      {
         const sceneToSend = {...scene, appState: null};
         
         if (isDrawingRef.current) {
@@ -347,9 +348,23 @@ export default function App() {
    * Creates a copy of the current page and activates it
    */
   const handleDuplicatePage = () => {
-    if (!activeSketch) return;
+    console.log("Duplicate clicked");
+    console.log("activePageId:", activePageId);
+    console.log("activeIndex:", activeIndex);
+    console.log("activeSketch:", activeSketch);
+    console.log("activeSketch?.scene:", activeSketch?.scene);
+    if (!activeSketch)
+       return;
 
-    const dupeScene: SceneData = JSON.parse(JSON.stringify(activeSketch.scene));
+    console.log("appState keys:", Object.keys(activeSketch.scene.appState));
+    console.log("collaborators:", activeSketch.scene.appState.collaborators);
+    
+    const dupeScene: SceneData = {
+    elements: JSON.parse(JSON.stringify(activeSketch.scene.elements || [])),
+    appState: makeEmptyScene().appState, // Use fresh appState instead of cloning
+    files: JSON.parse(JSON.stringify(activeSketch.scene.files || {})),
+    };
+    
     const dupe: SketchPage = {
       id: crypto.randomUUID(),
       name: `${activeSketch.name} (copy)`,
@@ -462,7 +477,7 @@ export default function App() {
         const page = pages.find((p) => p.id === result.id);
         return {
           id: result.id,
-          name: page?.name || `Sketch Generated ${result.id + 1}`,
+          name: page?.name || `Sketch Generated ${result.id}`,
           html: result.html,
         };
       });
@@ -538,20 +553,22 @@ const handleExport = () => {
           />
         )}
 
+        
         <div className={styles.main}>
-          {/* Render all Drawing components (hidden when not active) */}
-          {pages.map((page) => (
+        {/* Only render the ACTIVE Drawing component */}
+        {currentPage === Page.Drawing && activeSketch && (
           <Drawing 
-            key={page.id}
-            ref={(ref) => { drawingRefs.current[page.id] = ref; }} 
+            key={activePageId}
+            ref={(ref) => { drawingRefs.current[activePageId] = ref; }} 
             className={styles.canvas} 
-            visible={currentPage === Page.Drawing && page.id === activePageId}
-            initialScene={page.scene}
-            onSceneChange={page.id === activePageId ? handleSceneChange : undefined}
+            visible={true}
+            initialScene={activeSketch.scene}
+            onSceneChange={handleSceneChange}
           />
-          ))}
+        )}
         </div>
 
+      
         {/*Mockup view*/}
         {currentPage === Page.Mockup && <Mockup mockups={mockups} />}
 

@@ -348,16 +348,8 @@ export default function App() {
    * Creates a copy of the current page and activates it
    */
   const handleDuplicatePage = () => {
-    console.log("Duplicate clicked");
-    console.log("activePageId:", activePageId);
-    console.log("activeIndex:", activeIndex);
-    console.log("activeSketch:", activeSketch);
-    console.log("activeSketch?.scene:", activeSketch?.scene);
     if (!activeSketch)
        return;
-
-    console.log("appState keys:", Object.keys(activeSketch.scene.appState));
-    console.log("collaborators:", activeSketch.scene.appState.collaborators);
     
     const dupeScene: SceneData = {
     elements: JSON.parse(JSON.stringify(activeSketch.scene.elements || [])),

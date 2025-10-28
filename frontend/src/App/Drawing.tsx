@@ -64,7 +64,6 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
     files: Record<string, any> | null;
   }>({ elements: null, appState: null, files: null });
 
-  const zoomLocked = useRef(false);
   /**
    * Exports the current drawing as a PNG blob
    * @returns Promise resolving to PNG blob or null if export fails
@@ -122,20 +121,15 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
         excalidrawAPI={(api) => {
           excaliRef.current = api;
 
-          if(!zoomLocked.current) 
-          {
-              zoomLocked.current = true;
-              // Force zoom to 100% and disable zoom changes
-              const initialAppState = api.getAppState();
-              api.updateScene({
-                appState: {
-                  ...initialAppState,
-                  zoom: { value: 1 as NormalizedZoomValue }, // Force 100% zoom
-                  scrollX: 0,
-                  scrollY: 0,
-                },
-            });
-          }
+          const initialAppState = api.getAppState();
+          api.updateScene({
+            appState: {
+              ...initialAppState,
+              zoom: { value: 1 as NormalizedZoomValue },
+              scrollX: 0,
+              scrollY: 0,
+            },
+          });
 
           // Disable wheel and pinch zoom
           const canvas = document.querySelector(".excalidraw .excalidraw__canvas");
@@ -166,6 +160,17 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
         }
         onChange={(elements, appState, files) => {
           
+          if (excaliRef.current && appState.zoom.value < 1) 
+          {
+          excaliRef.current.updateScene({
+            appState: {
+              ...appState,
+              zoom: { value: 1 as NormalizedZoomValue },
+            },
+          });
+          return; // Don't process this change
+          }
+
           //Guard against duplicate calls
           if (
             lastSceneRefs.current.elements === elements &&

@@ -5,6 +5,7 @@ import styles from "./App.module.css";
 import {useState} from "react";
 import PageSidebar from "./reusable_sidebar";
 import type { Mock } from "node:test";
+import { Setting } from "./setting/setting";
 
 
 export type MockupPage = {
@@ -76,7 +77,7 @@ export default function Mockup ({ mockups = [] }: Props){
               className={styles.preview}
               title={`Mockup preview: ${activeMockup.name}`}
             />
-          )}
+          )&& <Setting/>}
         </div>
     </div>
     );

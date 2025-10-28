@@ -522,7 +522,8 @@ const handleExport = () => {
   }
 
   // Get currently active mockup
-  const activeMockup = mockups.find((m) => m.id === activePageId) || mockups[0];
+  const activeMockupIndex = mockups.findIndex((m) => m.id === activePageId);
+  const activeMockup = activeMockupIndex >= 0 ? mockups[activeMockupIndex] : mockups[0];
 
   const blob = new Blob([activeMockup.html], { type: "text/html" });
   const link = document.createElement("a");
@@ -581,7 +582,7 @@ const handleExport = () => {
 
       
         {/*Mockup view*/}
-        {currentPage === Page.Mockup && <Mockup mockups={mockups} />}
+        {currentPage === Page.Mockup && <Mockup mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} />}
 
         {/* Loading overlay */}
         {loading && (

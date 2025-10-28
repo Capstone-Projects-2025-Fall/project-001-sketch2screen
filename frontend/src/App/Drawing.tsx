@@ -104,9 +104,6 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
   useImperativeHandle(ref, () => ({
     getPNGBlob,
   }));
-
-
-  
  
   return (
     <div
@@ -130,11 +127,7 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
               scrollY: 0,
             },
           });
-
-         
-         
         }}
-
 
         // Load the page scene on mount
         initialData={

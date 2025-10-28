@@ -20,6 +20,9 @@ export type MockupPage = {
 type Props = {
   /** The HTML string returned by the backend (Claude) */
  mockups?: MockupPage[];
+ activePageId: string | null;
+ onSelectPage: (id : string) => void;
+ 
 };
 
 
@@ -29,17 +32,12 @@ type Props = {
  * @param props.mockups - Array of generated mockups to display
  */
 
-export default function Mockup ({ mockups = [] }: Props){
+export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Props){
   /** Sidebar expanded or not */
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
-  /** ID of currently displayed mockup */
-  const [activeMockupId, setActiveMockupId] = useState<string | null>(
-    mockups.length > 0 ? mockups[0].id : null
-  );
-
   /** Currently active mockup */
-  const activeMockup = mockups.find((m) => m.id === activeMockupId);
+  const activeMockup = mockups.find((m) => m.id === activePageId);
 
   /** Sanitized HTML for display */
   const safeHtml = activeMockup ? DOMPurify.sanitize(activeMockup.html) : "";
@@ -59,8 +57,8 @@ export default function Mockup ({ mockups = [] }: Props){
         <PageSidebar<MockupPage>
           title="Generated Pages"
           items={mockups}
-          activeItemId={activeMockupId || mockups[0].id}
-          onSelectItem={setActiveMockupId}
+          activeItemId={activePageId || mockups[0].id}
+          onSelectItem={onSelectPage || (() => {})}
           editingId={null}
           onSetEditingId={() => {}} // No editing in mockup view
           expanded={sidebarExpanded}

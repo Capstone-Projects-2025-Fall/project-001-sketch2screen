@@ -69,25 +69,25 @@ Sketch2Screen fills this gap by combining the collaborative design strengths of 
 
 ### To Run Project
 
-Terminal 1
-source .venv/bin/activate (different for windows)
-python manage.py runserver
+Terminal 1  
+source .venv/bin/activate (different for windows)  
+python manage.py runserver  
 
-Terminal 2
-cd frontend
+Terminal 2  
+cd frontend  
 
-1.
-npm run build
+1.  
+npm run build  
 
-2.
-npm run serve
-or
-npm run start 
+2.  
+npm run serve  
+or  
+npm run start  
 
 ### To run Docusaurus locally
-cd documentation
-yarn install (if doing first time)
-yarn start
+cd documentation  
+yarn install (if doing first time)  
+yarn start  
 
 
 ## Collaborators

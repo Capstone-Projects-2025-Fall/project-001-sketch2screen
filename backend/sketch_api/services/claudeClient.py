@@ -4,7 +4,7 @@ import base64
 from typing import Optional, Sequence
 
 from django.conf import settings
-from anthropic import Anthropic
+from anthropic import AsyncAnthropic
 
 import os
 
@@ -20,7 +20,7 @@ def _load_anthropic_key_from_file() -> str:
     return key
 
 
-def _client() -> Anthropic:
+def _client() -> AsyncAnthropic:
     key = ""
     try:
         key = _load_anthropic_key_from_file()
@@ -30,7 +30,7 @@ def _client() -> Anthropic:
     if not key or key == "":
         raise RuntimeError("Anthropic API key is missing.")
 
-    return Anthropic(api_key=key)
+    return AsyncAnthropic(api_key=key)
 
 #This function would help extract text from the response received from Claude API focusing on only the output.
 def _extract_text(resp) -> str:
@@ -42,7 +42,7 @@ def _extract_text(resp) -> str:
     return "".join(parts).strip()
 
 
-def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", prompt: Optional[str] = None) -> str:
+async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", prompt: Optional[str] = None) -> str:
     """
     Send one image + optional prompt to Claude and get back HTML/CSS.
     Returns HTML string (sanitize on the client before injecting into DOM).
@@ -63,7 +63,7 @@ def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", prompt:
     client = _client()
     model = getattr(settings, "CLAUDE_MODEL", "claude-sonnet-4-20250514")
 
-    resp = client.messages.create(
+    resp = await client.messages.create(
         model=model,
         max_tokens=2000,
         system=system_msg,

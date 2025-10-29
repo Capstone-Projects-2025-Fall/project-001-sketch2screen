@@ -314,7 +314,8 @@ export default function App() {
       next[i] = { ...next[i], scene };
 
       // Send to collaborators
-      if (collabEnabled && collabClientRef.current && !suppressRemoteUpdates.current) {
+      if (collabEnabled && collabClientRef.current && !suppressRemoteUpdates.current) 
+      {
         const sceneToSend = {...scene, appState: null};
         
         if (isDrawingRef.current) {
@@ -347,9 +348,15 @@ export default function App() {
    * Creates a copy of the current page and activates it
    */
   const handleDuplicatePage = () => {
-    if (!activeSketch) return;
-
-    const dupeScene: SceneData = JSON.parse(JSON.stringify(activeSketch.scene));
+    if (!activeSketch)
+       return;
+    
+    const dupeScene: SceneData = {
+    elements: JSON.parse(JSON.stringify(activeSketch.scene.elements || [])),
+    appState: makeEmptyScene().appState, // Use fresh appState instead of cloning
+    files: JSON.parse(JSON.stringify(activeSketch.scene.files || {})),
+    };
+    
     const dupe: SketchPage = {
       id: crypto.randomUUID(),
       name: `${activeSketch.name} (copy)`,
@@ -409,16 +416,35 @@ export default function App() {
    * Exports current drawing as PNG and sends to backend
    */
   const handleGenerate = async () => {
+
     setLoading(true);
     
     try {
+
+      const { exportToBlob } = await import("@excalidraw/excalidraw");
       // Collect all page blobs
       const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
       
       for (const page of pages) {
-        // Get the drawing ref for this page
-        const drawingRef = drawingRefs.current[page.id];
-        const blob = await drawingRef?.getPNGBlob?.();
+      // Skip pages with no elements
+        if (!page.scene.elements || page.scene.elements.length === 0) {
+          console.log(`Skipping empty page: ${page.name}`);
+          continue;
+        }
+        
+        // Export directly from scene data instead of using refs
+        const blob = await exportToBlob({
+          elements: page.scene.elements,
+          appState: {
+            ...page.scene.appState,
+            exportBackground: true,
+            exportWithDarkMode: false,
+          },
+          files: page.scene.files || {},
+          mimeType: "image/png",
+          quality: 1,
+          backgroundColor: "white",
+        });
         
         if (blob) {
           pageBlobs.push({ id: page.id, name: page.name, blob });
@@ -462,7 +488,7 @@ export default function App() {
         const page = pages.find((p) => p.id === result.id);
         return {
           id: result.id,
-          name: page?.name || `Sketch Generated ${result.id + 1}`,
+          name: page?.name || `Sketch Generated ${result.id}`,
           html: result.html,
         };
       });
@@ -496,7 +522,8 @@ const handleExport = () => {
   }
 
   // Get currently active mockup
-  const activeMockup = mockups.find((m) => m.id === activePageId) || mockups[0];
+  const activeMockupIndex = mockups.findIndex((m) => m.id === activePageId);
+  const activeMockup = activeMockupIndex >= 0 ? mockups[activeMockupIndex] : mockups[0];
 
   const blob = new Blob([activeMockup.html], { type: "text/html" });
   const link = document.createElement("a");
@@ -538,22 +565,24 @@ const handleExport = () => {
           />
         )}
 
+        
         <div className={styles.main}>
-          {/* Render all Drawing components (hidden when not active) */}
-          {pages.map((page) => (
+        {/* Only render the ACTIVE Drawing component */}
+        {currentPage === Page.Drawing && activeSketch && (
           <Drawing 
-            key={page.id}
-            ref={(ref) => { drawingRefs.current[page.id] = ref; }} 
+            key={activePageId}
+            ref={(ref) => { drawingRefs.current[activePageId] = ref; }} 
             className={styles.canvas} 
-            visible={currentPage === Page.Drawing && page.id === activePageId}
-            initialScene={page.scene}
-            onSceneChange={page.id === activePageId ? handleSceneChange : undefined}
+            visible={true}
+            initialScene={activeSketch.scene}
+            onSceneChange={handleSceneChange}
           />
-          ))}
+        )}
         </div>
 
+      
         {/*Mockup view*/}
-        {currentPage === Page.Mockup && <Mockup mockups={mockups} />}
+        {currentPage === Page.Mockup && <Mockup mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} />}
 
         {/* Loading overlay */}
         {loading && (

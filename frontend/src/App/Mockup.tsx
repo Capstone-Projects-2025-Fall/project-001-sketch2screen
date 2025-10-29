@@ -5,8 +5,7 @@ import styles from "./App.module.css";
 import {useState} from "react";
 import PageSidebar from "./reusable_sidebar";
 import type { Mock } from "node:test";
-import { Setting } from "./setting/setting";
-
+import { Setting } from "./setting/Setting";
 
 export type MockupPage = {
   /** Unique identifier */
@@ -73,7 +72,7 @@ export default function Mockup ({ mockups = [] }: Props){
         <div className={styles.mockup}>
           {activeMockup && (
             <iframe
-              srcDoc={safeHtml}
+              src={"sample.html"}
               className={styles.preview}
               title={`Mockup preview: ${activeMockup.name}`}
             />

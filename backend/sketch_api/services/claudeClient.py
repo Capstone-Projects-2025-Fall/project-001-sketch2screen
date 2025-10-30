@@ -6,6 +6,7 @@ from typing import Optional, Sequence
 from django.conf import settings
 from anthropic import Anthropic
 
+import os
 
 def _load_anthropic_key_from_file() -> str:
     """Read API key from plaintext file defined in settings."""
@@ -20,7 +21,16 @@ def _load_anthropic_key_from_file() -> str:
 
 
 def _client() -> Anthropic:
-    return Anthropic(api_key=_load_anthropic_key_from_file())
+    key = ""
+    try:
+        key = _load_anthropic_key_from_file()
+    except Exception:
+        key = os.environ.get("ANTHROPIC_API_KEY")
+    
+    if not key or key == "":
+        raise RuntimeError("Anthropic API key is missing.")
+
+    return Anthropic(api_key=key)
 
 #This function would help extract text from the response received from Claude API focusing on only the output.
 def _extract_text(resp) -> str:
@@ -47,7 +57,7 @@ def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", prompt:
     user_instruction = prompt or (
         "Generate HTML and CSS that recreates the layout in the image. Only provide the code, no other text including markdown fences. If an element is labeled as an HTML tag it should "
         "be that HTML tag. If there is text in the image, it should be included in the HTML. Any icons or images in the sketch should be represented by placeholders. All sketches generated should be "
-        "for a webpage of size 1440px wider and 1024px height."
+        "width 100 percent and height 100 percent."
     )
 
     client = _client()

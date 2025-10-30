@@ -1,6 +1,8 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
 import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
+import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
+
 
 /** Represents a complete Excalidraw scene with all its components */
 export type SceneData = {
@@ -102,9 +104,6 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
   useImperativeHandle(ref, () => ({
     getPNGBlob,
   }));
-
-
-  
  
   return (
     <div
@@ -118,8 +117,18 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
       <Excalidraw
         excalidrawAPI={(api) => {
           excaliRef.current = api;
-          onExcalidrawAPI?.(api);
+
+          const initialAppState = api.getAppState();
+          api.updateScene({
+            appState: {
+              ...initialAppState,
+              zoom: { value: 1 as NormalizedZoomValue },
+              scrollX: 0,
+              scrollY: 0,
+            },
+          });
         }}
+
         // Load the page scene on mount
         initialData={
           initialScene
@@ -131,6 +140,18 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
             : undefined
         }
         onChange={(elements, appState, files) => {
+          
+          if (excaliRef.current && appState.zoom.value < 1) 
+          {
+          excaliRef.current.updateScene({
+            appState: {
+              ...appState,
+              zoom: { value: 1 as NormalizedZoomValue },
+            },
+          });
+          return; // Don't process this change
+          }
+
           //Guard against duplicate calls
           if (
             lastSceneRefs.current.elements === elements &&
@@ -155,6 +176,8 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
             });
           }
         }}
+
+
         UIOptions={{
           canvasActions: {
             changeViewBackgroundColor: false,

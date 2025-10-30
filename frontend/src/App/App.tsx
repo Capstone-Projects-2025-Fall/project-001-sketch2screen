@@ -3,7 +3,9 @@ import { useMemo, useRef, useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import type { DrawingHandle, SceneData } from "./Drawing";
 import Mockup from "./Mockup";
+import type { MockupPage } from "./Mockup";
 import Drawing from "./Drawing";
+import PageSidebar from "./reusable_sidebar";
 import { LoadingSpinner } from "./LoadingScreen";
 import CollabClient from "./CollabClient";
 import CollaborationDialog from "./CollaborationDialog";
@@ -90,9 +92,14 @@ export default function App() {
 
   /** Reference to access Drawing component methods */
   const drawingRef = useRef<DrawingHandle | null>(null);
-  
+
+  /** References to all Drawing components (one per page) */
+  const drawingRefs = useRef<Record<string, DrawingHandle | null>>({});
   /** Generated HTML code from the backend */
   const [html, setHtml] = useState<string>("");
+
+  /** Generated mockup pages */
+  const [mockups, setMockups] = useState<MockupPage[]>([]);
   
   /** Loading state during backend processing */
   const [loading, setLoading] = useState(false);
@@ -116,6 +123,9 @@ export default function App() {
   // Track pending scene data to send after stroke completes
   const pendingSceneRef = useRef<{ pageId: string; scene: SceneData } | null>(null);
   const [sceneVersion, setSceneVersion] = useState<number>(0);
+
+  /** Controls whether the sidebar is expanded or collapsed */
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
   /** Index of the active page in the pages array */
   const activeIndex = useMemo(
@@ -304,7 +314,8 @@ export default function App() {
       next[i] = { ...next[i], scene };
 
       // Send to collaborators
-      if (collabEnabled && collabClientRef.current && !suppressRemoteUpdates.current) {
+      if (collabEnabled && collabClientRef.current && !suppressRemoteUpdates.current) 
+      {
         const sceneToSend = {...scene, appState: null};
         
         if (isDrawingRef.current) {
@@ -337,9 +348,15 @@ export default function App() {
    * Creates a copy of the current page and activates it
    */
   const handleDuplicatePage = () => {
-    if (!activeSketch) return;
-
-    const dupeScene: SceneData = JSON.parse(JSON.stringify(activeSketch.scene));
+    if (!activeSketch)
+       return;
+    
+    const dupeScene: SceneData = {
+    elements: JSON.parse(JSON.stringify(activeSketch.scene.elements || [])),
+    appState: makeEmptyScene().appState, // Use fresh appState instead of cloning
+    files: JSON.parse(JSON.stringify(activeSketch.scene.files || {})),
+    };
+    
     const dupe: SketchPage = {
       id: crypto.randomUUID(),
       name: `${activeSketch.name} (copy)`,
@@ -399,37 +416,93 @@ export default function App() {
    * Exports current drawing as PNG and sends to backend
    */
   const handleGenerate = async () => {
-    const blob = await drawingRef.current?.getPNGBlob?.();
-    if (!blob) {
-      alert("Please create a sketch first");
-      return;
-    }
-
-    const sketch = new FormData();
-    sketch.append("file", new File([blob], "sketch.png", { type: "image/png" }));
 
     setLoading(true);
+    
     try {
-      const res = await fetch("/api/generate/", {
+
+      const { exportToBlob } = await import("@excalidraw/excalidraw");
+      // Collect all page blobs
+      const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
+      
+      for (const page of pages) {
+      // Skip pages with no elements
+        if (!page.scene.elements || page.scene.elements.length === 0) {
+          console.log(`Skipping empty page: ${page.name}`);
+          continue;
+        }
+        
+        // Export directly from scene data instead of using refs
+        const blob = await exportToBlob({
+          elements: page.scene.elements,
+          appState: {
+            ...page.scene.appState,
+            exportBackground: true,
+            exportWithDarkMode: false,
+          },
+          files: page.scene.files || {},
+          mimeType: "image/png",
+          quality: 1,
+          backgroundColor: "white",
+        });
+        
+        if (blob) {
+          pageBlobs.push({ id: page.id, name: page.name, blob });
+        }
+      }
+
+      if (pageBlobs.length === 0) {
+        alert("No sketches to export. Please create at least one sketch.");
+        return;
+      }
+
+      // Create form data with all images
+      const formData = new FormData();
+      pageBlobs.forEach((item, index) => {
+        formData.append(`file_${index}`, item.blob, `${item.name}.png`);
+        formData.append(`name_${index}`, item.name);
+        formData.append(`id_${index}`, item.id);
+      });
+      formData.append('count', pageBlobs.length.toString());
+
+      const res = await fetch("/api/generate-multi/", {
         method: "POST",
-        body: sketch,
+        body: formData,
       });
 
       if (!res.ok) {
-        alert("Failed to generate HTML");
+        alert("Failed to generate HTML from sketches");
         return;
       }
 
-      const data = (await res.json()) as { html?: string };
-      const htmlStr = (data.html ?? "").trim();
-      if (!htmlStr) {
-        alert("No HTML received");
+      // Expect array of HTML strings
+      const data = (await res.json()) as { results: Array<{ id: string; html: string }> };
+      
+      if (!data.results || data.results.length === 0) {
+        alert("No HTML received from server");
         return;
       }
-      
-      setHtml(htmlStr);
+
+      // Build mockup pages
+      const newMockups: MockupPage[] = data.results.map((result) => {
+        const page = pages.find((p) => p.id === result.id);
+        return {
+          id: result.id,
+          name: page?.name || `Sketch Generated ${result.id}`,
+          html: result.html,
+        };
+      });
+
+      setMockups(newMockups);
       setCurrentPage(Page.Mockup);
-    } finally {
+    }
+
+    catch (error) {
+      console.error("Generation error:", error);
+      alert("An error occurred during generation");
+    } 
+
+    finally {
       setLoading(false);
     }
   };
@@ -439,121 +512,85 @@ export default function App() {
     setShowCollabDialog(true);
   };
 
+  /** 
+ * Exports the currently visible mockup as an HTML file 
+ */
+const handleExport = () => {
+  if (mockups.length === 0) {
+    alert("No mockups available to export. Please generate first.");
+    return;
+  }
+
+  // Get currently active mockup
+  const activeMockupIndex = mockups.findIndex((m) => m.id === activePageId);
+  const activeMockup = activeMockupIndex >= 0 ? mockups[activeMockupIndex] : mockups[0];
+
+  const blob = new Blob([activeMockup.html], { type: "text/html" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = `${activeMockup.name || "mockup"}.html`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+};
+
+
   return (
     <div className={styles.appRoot}>
       <Navbar
         curPage={currentPage}
         onPageChange={setCurrentPage}
         onGenerate={handleGenerate}
+        onExport = {handleExport}
         filename={filename}
         onFilenameChange={setFilename}
         onStartCollab={handleShowCollaboration}
       />
 
-      <div className={currentPage === Page.Drawing ? styles.workRow : styles.workRowNoSidebar}>
-        {/* sidebar */}
+      <div className={`${currentPage === Page.Drawing ? styles.workRow : styles.workRowNoSidebar} ${!sidebarExpanded && currentPage === Page.Drawing ? styles.workRowCollapsed : ''}`}>
+        {/* sidebar toggle button - outside sidebar so it stays visible*/}
         {currentPage === Page.Drawing && (
-          <aside className={styles.sidebar}>
-            <div className={styles.sidebarHeader}>Pages</div>
-
-            <div className={styles.pageList}>
-              {pages.map(p => {
-                const selected = p.id === activePageId;
-                const isEditing = editingId === p.id;
-
-                return (
-                  <div
-                    key={p.id}
-                    ref={node => { itemRefs.current[p.id] = node; }}
-                    className={`${styles.pageItem} ${selected ? styles.pageItemSelected : ""}`}
-                    onClick={() => {
-                      setActivePageId(p.id);
-                      setEditingId(null);
-                    }}
-                    onDoubleClick={e => {
-                      e.stopPropagation();
-                      setEditingId(p.id);
-                    }}
-                    title={p.name}
-                  >
-                    <div className={styles.pageItemLabel}>
-                      {/* tiny page icon (pure CSS) */}
-                      <span className={styles.pageIcon} aria-hidden />
-                      {isEditing ? (
-                        <input
-                          className={styles.pageNameInput}
-                          autoFocus
-                          value={p.name}
-                          onChange={e => handleRenamePage(p.id, e.target.value)}
-                          onBlur={() => setEditingId(null)}
-                          onKeyDown={e => {
-                            if (e.key === "Enter" || e.key === "Escape") setEditingId(null);
-                          }}
-                          spellCheck={false}
-                        />
-                      ) : (
-                        <span className={styles.pageNameText}>{p.name}</span>
-                      )}
-                    </div>
-
-                    {pages.length > 1 && (
-                      <button
-                        className={styles.pageDeleteBtn}
-                        onClick={e => {
-                          e.stopPropagation();
-                          handleDeletePage(p.id);
-                        }}
-                        aria-label="Delete page"
-                        title="Delete page"
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className={styles.sidebarFooter}>
-              <button className={styles.sidebarBtn} onClick={handleAddPage} title="New page">
-                + New
-              </button>
-              <button
-                className={styles.sidebarBtn}
-                onClick={handleDuplicatePage}
-                title="Duplicate current page"
-              >
-                Duplicate
-              </button>
-            </div>
-          </aside>
+            <PageSidebar<SketchPage>
+            title="Pages"
+            items={pages}
+            activeItemId={activePageId}
+            onSelectItem={setActivePageId}
+            onRenameItem={handleRenamePage}
+            onDeleteItem={handleDeletePage}
+            onAddItem={handleAddPage}
+            onDuplicateItem={handleDuplicatePage}
+            editingId={editingId}
+            onSetEditingId={setEditingId}
+            expanded={sidebarExpanded}
+            onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
+          />
         )}
 
-        <div className={styles.main} ref={canvasHostRef}>
-          <Drawing
-            key={`${activeSketch?.id}-v${sceneVersion}`}
-            ref={drawingRef}
-            className={styles.canvas}
-            visible={currentPage === Page.Drawing}
-            initialScene={activeSketch?.scene}
+        
+        <div className={styles.main}>
+        {/* Only render the ACTIVE Drawing component */}
+        {currentPage === Page.Drawing && activeSketch && (
+          <Drawing 
+            key={activePageId}
+            ref={(ref) => { drawingRefs.current[activePageId] = ref; }} 
+            className={styles.canvas} 
+            visible={true}
+            initialScene={activeSketch.scene}
             onSceneChange={handleSceneChange}
           />
-          {currentPage === Page.Mockup && <Mockup html={html} />}
-          {/* Loading overlay */}
-          {loading && (
-            <div style={{
-              position: "absolute",
-              inset: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              background: 'rgba(255,255,255,0.6)',
-              zIndex: 200
-            }}>
-              <LoadingSpinner />
-            </div>
-          )}
+        )}
         </div>
+
+      
+        {/*Mockup view*/}
+        {currentPage === Page.Mockup && <Mockup mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} />}
+
+        {/* Loading overlay */}
+        {loading && (
+          <div style={{position: "absolute", inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 200}}>
+            <LoadingSpinner />
+            <p style={{ marginLeft: '1rem' }}>Generating {pages.length} page{pages.length > 1 ? 's' : ''}...</p>
+          </div>
+        )}
       </div>
 
       <CollaborationDialog

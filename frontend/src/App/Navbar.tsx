@@ -15,6 +15,8 @@ type Props = {
   onStartCollab?: () => void;
   /** Callback to generate mockup */
   onGenerate?: () => void;
+  /** Callback to export code */
+  onExport?: () => void;
 };
 
 /**
@@ -44,7 +46,8 @@ export default function Navbar({
   filename = "untitled.sketch", 
   onFilenameChange, 
   onStartCollab, 
-  onGenerate
+  onGenerate,
+  onExport
 }: Props) {
   /** Handles changes to the filename input */
   const handleNameInput: React.ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -88,8 +91,8 @@ export default function Navbar({
       <button className={styles.collabButton} onClick={onStartCollab}>
         Collaborate
       </button>
-      <button className={styles.generateButton} onClick={onGenerate}>
-        Generate
+      <button className={styles.generateButton} onClick={curPage === Page.Mockup ? onExport : onGenerate}>
+        {curPage === Page.Mockup ? "Export code" : "Generate"}
       </button>
     </div>
   </div>

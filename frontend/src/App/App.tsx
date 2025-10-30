@@ -570,7 +570,7 @@ const handleExport = () => {
         {/* Only render the ACTIVE Drawing component */}
         {currentPage === Page.Drawing && activeSketch && (
           <Drawing 
-            key={activePageId}
+            key={`${activeSketch?.id}-v${sceneVersion}`}
             ref={(ref) => { drawingRefs.current[activePageId] = ref; }} 
             className={styles.canvas} 
             visible={true}

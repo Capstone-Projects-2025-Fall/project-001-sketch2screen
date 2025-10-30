@@ -143,6 +143,9 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
           
           if (excaliRef.current && appState.zoom.value < 1) 
           {
+
+          lastSceneRefs.current = { elements, appState, files };
+          
           excaliRef.current.updateScene({
             appState: {
               ...appState,

@@ -10,6 +10,7 @@ import { LoadingSpinner } from "./LoadingScreen";
 import CollaborationDialog from "./CollaborationDialog";
 import { useCollaboration } from "./useCollaboration";
 import type { SketchPage } from "./sketchPage";
+import { exportToBlob } from "@excalidraw/excalidraw";
 
 
 /** Represents the available pages/views in the application */
@@ -267,7 +268,6 @@ export default function App() {
     setLoading(true);
     
     try {
-      const { exportToBlob } = await import("@excalidraw/excalidraw");
       // Collect all page blobs
       const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
       

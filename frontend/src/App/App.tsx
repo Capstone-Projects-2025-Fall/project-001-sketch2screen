@@ -10,6 +10,7 @@ import { LoadingSpinner } from "./LoadingScreen";
 import CollabClient from "./CollabClient";
 import CollaborationDialog from "./CollaborationDialog";
 
+
 /** Represents the available pages/views in the application */
 export enum Page {
   Drawing,
@@ -180,21 +181,23 @@ export default function App() {
             return prev;
           });
         }
+    }else if (wasDrawing) {
+        console.log("Stroke complete - collaboration not enabled or client not ready");
     }
   };
 
-    host.addEventListener('pointerdown', onDown as any, { passive: true } as any);
-    host.addEventListener('pointerup', end as any, { passive: true } as any);
-    host.addEventListener('pointercancel', end as any, { passive: true } as any);
-    host.addEventListener('pointerleave', end as any, { passive: true } as any);
+  host.addEventListener('pointerdown', onDown as any, { passive: true, capture: true } as any);
+  host.addEventListener('pointerup', end as any, { passive: true, capture: true } as any);
+  host.addEventListener('pointercancel', end as any, { passive: true, capture: true } as any);
+  host.addEventListener('pointerleave', end as any, { passive: true, capture: true } as any);
 
-    return () => {
-      host.removeEventListener('pointerdown', onDown as any);
-      host.removeEventListener('pointerup', end as any);
-      host.removeEventListener('pointercancel', end as any);
-      host.removeEventListener('pointerleave', end as any);
-    };
-  }, [activePageId, collabEnabled]);
+  return () => {
+    host.removeEventListener('pointerdown', onDown as any, true);
+    host.removeEventListener('pointerup', end as any, true);
+    host.removeEventListener('pointercancel', end as any, true);
+    host.removeEventListener('pointerleave', end as any, true);
+  };
+}, [activePageId, collabEnabled]);
 
   // === COLLABORATION LOGIC ===
   useEffect(() => {

@@ -119,7 +119,6 @@ export default function App() {
   const isDrawingRef = useRef(false);
   const needsRemountRef = useRef(false);
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
-  const suppressRemoteUpdates = useRef(false);
   // Track pending scene data to send after stroke completes
   const pendingSceneRef = useRef<{ pageId: string; scene: SceneData } | null>(null);
   const [sceneVersion, setSceneVersion] = useState<number>(0);
@@ -162,13 +161,27 @@ export default function App() {
       }
       
       // Send pending scene data after stroke completes
-      if (wasDrawing && pendingSceneRef.current && collabEnabled && collabClientRef.current) {
+      if (wasDrawing && collabEnabled && collabClientRef.current) {
+        if (pendingSceneRef.current) {
         const { pageId, scene } = pendingSceneRef.current;
         console.log("Stroke complete - sending scene update:", pageId);
         collabClientRef.current.sendSceneUpdate(pageId, scene);
         pendingSceneRef.current = null;
-      }
-    };
+        }else {
+          setPages(prev => {
+            const i = prev.findIndex(p => p.id === activePageId);
+            if (i >= 0){
+              const currentScene = prev[i].scene;
+              collabClientRef.current?.sendSceneUpdate(activePageId, {
+                ...currentScene,
+                appState: null
+              });
+            }
+            return prev;
+          });
+        }
+    }
+  };
 
     host.addEventListener('pointerdown', onDown as any, { passive: true } as any);
     host.addEventListener('pointerup', end as any, { passive: true } as any);
@@ -234,7 +247,6 @@ export default function App() {
     client.setSceneUpdateHandler((sketchID: string, sceneData: SceneData) => {
       const currentActivePageId = activePageIdRef.current;
       console.log("Received scene update for:", sketchID, "Current active:", currentActivePageId);
-      suppressRemoteUpdates.current = true;
 
       setPages(prev => {
         const index = prev.findIndex(p => p.id === sketchID);
@@ -268,11 +280,6 @@ export default function App() {
       } else {
         console.log("Update for different page - will show when switched");
       }
-
-      // Reset flag after update processes
-      setTimeout(() => {
-        suppressRemoteUpdates.current = false;
-      }, 50);
     });
 
     // When WebSocket opens, send ONLY the active page once
@@ -309,25 +316,30 @@ export default function App() {
     setPages(prev => {
       const i = prev.findIndex(p => p.id === activePageId);
       if (i < 0) return prev;
+      
+      const oldScene = prev[i]?.scene;
 
       const next = [...prev];
       next[i] = { ...next[i], scene };
 
       // Send to collaborators
-      if (collabEnabled && collabClientRef.current && !suppressRemoteUpdates.current) 
+      if (collabEnabled && collabClientRef.current) 
       {
-        const sceneToSend = {...scene, appState: null};
-        
-        if (isDrawingRef.current) {
-          // User is currently drawing - store the scene to send after stroke completes
-          pendingSceneRef.current = { pageId: activePageId, scene: sceneToSend };
-        } else {
-          // User is not drawing - send immediately (e.g., undo, paste, etc.)
-          console.log("Sending scene update immediately:", activePageId);
-          collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
-        }
-      }
+        const elementsChanged = oldScene?.elements !== scene.elements;
+        const filesChanged = oldScene?.files !== scene.files;
 
+        if (elementsChanged || filesChanged) {
+          const sceneToSend = {...scene, appState: null };
+
+          if (isDrawingRef.current) {
+            pendingSceneRef.current = { pageId: activePageId, scene: sceneToSend };
+          } else {
+            collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
+          }
+        }
+      }else {
+        console.log("Collaboration not enabled or client not ready");
+      }
       return next;
     });
   };
@@ -335,11 +347,22 @@ export default function App() {
   // === PAGE MANAGEMENT ===
   /** Creates and activates a new blank page */
   const handleAddPage = () => {
-    const newPage = makeNewSketchPage(pages.length + 1);
+    // Generate new page ID based on collab ID
+    const pageNumber = pages.length + 1;
+    const newPageId = collabEnabled ? `${collabId}-p${pageNumber}` : crypto.randomUUID();
+    
+    const newPage: SketchPage = {
+      id: newPageId,
+      name: `Page ${pageNumber}`,
+      scene: makeEmptyScene(),
+    };
+    
+    console.log("Adding new page:", newPageId);
     setPages(prev => [...prev, newPage]);
     setActivePageId(newPage.id);
 
     if (collabEnabled && collabClientRef.current) {
+      console.log("Sending page update:", newPageId, newPage.name);
       collabClientRef.current.sendPageUpdate(newPage.id, newPage.name);
     }
   };
@@ -357,8 +380,13 @@ export default function App() {
     files: JSON.parse(JSON.stringify(activeSketch.scene.files || {})),
     };
     
+    const dupeID = collabEnabled
+      ? `${collabId}-p${Date.now()}`
+      : crypto.randomUUID();
+  
+      
     const dupe: SketchPage = {
-      id: crypto.randomUUID(),
+      id: dupeID,
       name: `${activeSketch.name} (copy)`,
       scene: dupeScene,
     };
@@ -373,7 +401,7 @@ export default function App() {
 
     if (collabEnabled && collabClientRef.current) {
       collabClientRef.current.sendPageUpdate(dupe.id, dupe.name);
-      collabClientRef.current.sendSceneUpdate(dupe.id, dupe.scene);
+      collabClientRef.current.sendSceneUpdate(dupe.id, {...dupe.scene, appState: null });
     }
   };
 
@@ -406,6 +434,7 @@ export default function App() {
     });
 
     if (collabEnabled && collabClientRef.current) {
+      console.log("Sending page deletion:", id);
       collabClientRef.current.sendPageUpdate(id, null);
     }
   };

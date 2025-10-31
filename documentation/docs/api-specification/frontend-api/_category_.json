@@ -1,0 +1,8 @@
+{
+  "label": "Frontend API",
+  "position": 2,
+  "link": {
+    "type": "generated-index",
+    "description": "Complete frontend API reference including React components, CollabClient class, and TypeScript types."
+  }
+}

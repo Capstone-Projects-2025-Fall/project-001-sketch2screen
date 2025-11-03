@@ -51,13 +51,19 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
 
     system_msg = (
         "You are a frontend assistant that converts UI sketches into high-fidelity, clean, "
-        "production-ready HTML and CSS. Prefer semantic HTML, minimal wrappers, inline styles for each of the components of the image. Do not use body tag"
-        "Use modern CSS if possible. Use Bootstrap or Tailwind CSS only. Do not include markdown fences in the code."
+        "production-ready HTML code with Tailwind styling. Prefer semantic HTML, minimal wrappers, inline styles for each of the components of the image. Do not use body tag"
+        "Use Tailwind CSS only. Do not include markdown fences in the code."
     )
     user_instruction = prompt or (
-        "Generate HTML and CSS that recreates the layout in the image. Only provide the code, no other text including markdown fences. If an element is labeled as an HTML tag it should "
-        "be that HTML tag. If there is text in the image, it should be included in the HTML. Any icons or images in the sketch should be represented by placeholders. All sketches generated should be "
-        "width 100 percent and height 100 percent."
+        "Generate HTML and CSS that recreates the design in the image. Only provide the code, no other text including markdown fences. If an element is labeled as an HTML tag it should "
+        "be that HTML tag. If there is text in the image, it should be included in the HTML. Any icons or images in the sketch should be represented by placeholders. "
+        "Use Tailwind CSS for styling. Ensure the layout is responsive and visually matches the sketch as closely as possible."
+        ""
+        "IMPORTANT: This will be rendered in an iframe, so:"
+        "1. Include complete HTML document structure with <!DOCTYPE html>"
+        "2. Add padding to the body so content is visible"
+        "3. Include the Tailwind CDN in the <head>"
+        "4. Make sure all elements have explicit heights or content."
     )
 
     client = _client()
@@ -65,7 +71,8 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
 
     resp = await client.messages.create(
         model=model,
-        max_tokens=2000,
+        max_tokens=3000,
+        temperature = 0.7,
         system=system_msg,
         messages=[
             {
@@ -85,6 +92,7 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
         ],
     )
     html = _extract_text(resp)
+    print(html)
     if not html:
         raise RuntimeError("Claude returned no text content.")
     return html

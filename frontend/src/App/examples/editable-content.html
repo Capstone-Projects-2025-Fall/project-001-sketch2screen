@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Editable Content Example</title>
+    <style>
+        /* Styles for hoverable elements */
+        .hoverable:hover {
+            outline: 2px dashed blue;
+            cursor: pointer;
+        }
+        .selected {
+            outline: 2px solid blue !important;
+        }
+
+        /* Style panel */
+        #style-panel {
+            position: fixed;
+            padding: 15px;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 1000;
+            min-width: 250px;
+            display: none;
+        }
+
+        /* Input container */
+        .input-group {
+            margin-bottom: 10px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Color picker group */
+        .color-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .color-group input[type="color"] {
+            width: 50px;
+        }
+
+        .color-group input[type="text"] {
+            flex: 1;
+        }
+
+        /* Buttons */
+        .button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .button:hover {
+            background: #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+    <!-- Your editable content -->
+    <div id="content">
+        <h1 class="hoverable">Edit me!</h1>
+        <p class="hoverable">Click any element to edit its styles</p>
+        <button class="hoverable">I'm editable too!</button>
+    </div>
+
+    <!-- Style panel -->
+    <div id="style-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <h3 style="margin: 0;">Edit Styles</h3>
+            <button onclick="closeStylePanel()" style="background: none; border: none; cursor: pointer; font-size: 18px;">×</button>
+        </div>
+
+        <!-- Dimensions -->
+        <div class="input-group">
+            <label>Width:</label>
+            <input type="text" data-style="width" placeholder="e.g., 100px">
+        </div>
+        <div class="input-group">
+            <label>Height:</label>
+            <input type="text" data-style="height" placeholder="e.g., 100px">
+        </div>
+
+        <!-- Colors -->
+        <div class="input-group">
+            <label>Background Color:</label>
+            <div class="color-group">
+                <input type="color" data-style="backgroundColor">
+                <input type="text" data-style="backgroundColor" placeholder="#ffffff">
+            </div>
+        </div>
+        <div class="input-group">
+            <label>Text Color:</label>
+            <div class="color-group">
+                <input type="color" data-style="color">
+                <input type="text" data-style="color" placeholder="#000000">
+            </div>
+        </div>
+
+        <!-- Text styles -->
+        <div class="input-group">
+            <label>Font Size:</label>
+            <input type="text" data-style="fontSize" placeholder="e.g., 16px">
+        </div>
+
+        <!-- Spacing -->
+        <div class="input-group">
+            <label>Padding:</label>
+            <input type="text" data-style="padding" placeholder="e.g., 10px">
+        </div>
+        <div class="input-group">
+            <label>Margin:</label>
+            <input type="text" data-style="margin" placeholder="e.g., 10px">
+        </div>
+
+        <!-- Border -->
+        <div class="input-group">
+            <label>Border Radius:</label>
+            <input type="text" data-style="borderRadius" placeholder="e.g., 4px">
+        </div>
+
+        <button class="button" onclick="resetStyles()">Reset Styles</button>
+    </div>
+
+    <script>
+        let selectedElement = null;
+        const stylePanel = document.getElementById('style-panel');
+
+        // Make elements clickable
+        document.querySelectorAll('.hoverable').forEach(element => {
+            element.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Remove previous selection
+                if (selectedElement) {
+                    selectedElement.classList.remove('selected');
+                }
+                
+                // Update selection
+                selectedElement = element;
+                element.classList.add('selected');
+                
+                // Show and position the style panel
+                stylePanel.style.display = 'block';
+                const rect = element.getBoundingClientRect();
+                stylePanel.style.top = (rect.bottom + 10) + 'px';
+                stylePanel.style.left = rect.left + 'px';
+
+                // Update input values
+                const style = window.getComputedStyle(element);
+                stylePanel.querySelectorAll('input').forEach(input => {
+                    const property = input.dataset.style;
+                    if (input.type === 'color') {
+                        // Convert RGB to hex for color inputs
+                        const rgb = style[property];
+                        const hex = rgbToHex(rgb);
+                        input.value = hex;
+                    } else {
+                        input.value = style[property];
+                    }
+                });
+            });
+        });
+
+        // Handle style input changes
+        stylePanel.querySelectorAll('input').forEach(input => {
+            const updateStyle = (value) => {
+                if (selectedElement) {
+                    const property = input.dataset.style;
+                    selectedElement.style[property] = value;
+                    
+                    // Update paired input if it exists
+                    const pairedInputs = stylePanel.querySelectorAll(`[data-style="${property}"]`);
+                    pairedInputs.forEach(pairedInput => {
+                        if (pairedInput !== input) {
+                            pairedInput.value = value;
+                        }
+                    });
+                }
+            };
+
+            input.addEventListener('change', (e) => updateStyle(e.target.value));
+            input.addEventListener('input', (e) => updateStyle(e.target.value));
+        });
+
+        // Close panel when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!stylePanel.contains(e.target) && 
+                !e.target.classList.contains('hoverable')) {
+                closeStylePanel();
+            }
+        });
+
+        function closeStylePanel() {
+            if (selectedElement) {
+                selectedElement.classList.remove('selected');
+                selectedElement = null;
+            }
+            stylePanel.style.display = 'none';
+        }
+
+        function resetStyles() {
+            if (selectedElement) {
+                selectedElement.removeAttribute('style');
+                selectedElement.style.outline = '2px solid blue';
+                
+                // Update input values to reflect reset
+                const style = window.getComputedStyle(selectedElement);
+                stylePanel.querySelectorAll('input').forEach(input => {
+                    const property = input.dataset.style;
+                    if (input.type === 'color') {
+                        const rgb = style[property];
+                        const hex = rgbToHex(rgb);
+                        input.value = hex;
+                    } else {
+                        input.value = style[property];
+                    }
+                });
+            }
+        }
+
+        // Utility function to convert RGB to Hex
+        function rgbToHex(rgb) {
+            if (!rgb) return '#000000';
+            if (rgb.startsWith('#')) return rgb;
+            
+            // Extract RGB values
+            const matches = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            if (!matches) return '#000000';
+
+            function componentToHex(c) {
+                const hex = parseInt(c).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            }
+
+            return '#' + 
+                componentToHex(matches[1]) + 
+                componentToHex(matches[2]) + 
+                componentToHex(matches[3]);
+        }
+    </script>
+</body>
+</html>

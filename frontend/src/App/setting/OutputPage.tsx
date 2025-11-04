@@ -1,5 +1,6 @@
 export function OutputPage(safeHtml: string) {
 
+    
     var outputString: string = `
     <!DOCTYPE html>
     <html>
@@ -10,9 +11,14 @@ export function OutputPage(safeHtml: string) {
         </head>
         <body>
             <div class="content">
+                <div class="generated-content">
                 ${safeHtml}
-                <p>worked</p>
+                </div>
             </div>
+            <script>
+                var items = document.querySelectorAll('.generated-content');
+                items.forEach(item => {item.addEventListener('click',()=>{item.style.outline = '2px dashed blue'})})
+            </script>
         </body>
     </html>`;
 

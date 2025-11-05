@@ -1,27 +1,15 @@
-export function OutputPage(safeHtml: string) {
+import { EditableComponents } from './EditableComponentsToString';
 
-    
-    var outputString: string = `
-    <!DOCTYPE html>
-    <html>
-        <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <script src=""></script>
-        </head>
-        <body>
-            <div class="content">
-                <div class="generated-content">
-                ${safeHtml}
-                </div>
-            </div>
-            <script>
-                var items = document.querySelectorAll('.generated-content');
-                items.forEach(item => {item.addEventListener('click',()=>{item.style.outline = '2px dashed blue'})})
-            </script>
-        </body>
-    </html>`;
+export function OutputPage(safeHtml: string): string {
+    // Use EditableComponents to generate the HTML string with editing capabilities
+    const content = EditableComponents({
+        htmlContent: safeHtml,
+        onStyleChange: (elements) => {
+            // Optional: Handle style changes if needed
+            console.log('Styles updated:', elements);
+        }
+    });
 
-
-    return (outputString)
+    // Ensure we always return a string
+    return typeof content === 'string' ? content : '';
 }

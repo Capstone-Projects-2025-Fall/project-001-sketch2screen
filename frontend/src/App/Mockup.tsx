@@ -5,7 +5,6 @@ import styles from "./App.module.css";
 import {useState, useRef} from "react";
 import PageSidebar from "./reusable_sidebar";
 import type { Mock } from "node:test";
-import { Setting } from "./setting/Setting";
 import { OutputPage } from "./setting/OutputPage";
 
 export type MockupPage = {
@@ -76,7 +75,8 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
                 srcDoc={OutputPage(safeHtml)}
                 className={styles.preview}
                 title={`Mockup preview: ${activeMockup.name}`}
-                sandbox="allow-same-origin allow-scripts"
+                sandbox="allow-same-origin allow-scripts allow-forms"
+                referrerPolicy="same-origin"
                 ref={iframeRef}
               />
             </div>

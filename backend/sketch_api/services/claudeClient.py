@@ -55,10 +55,10 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
         "Use modern CSS if possible. Use Bootstrap or Tailwind CSS only. Do not include markdown fences in the code."
     )
     user_instruction = prompt or (
-        "Generate HTML and CSS that recreates the layout in the image. Only provide the code, no other text including markdown fences. If an element is labeled as an HTML tag it should "
+        "Generate HTML and CSS that recreates the layout in the image. Only provide the code, no other text including markdown fences.If an element is labeled as an HTML tag it should "
         "be that HTML tag. If there is text in the image, it should be included in the HTML. Any icons or images in the sketch should be represented by placeholders. All sketches generated should be "
         "width 100 percent and height 100 percent."
-    )
+       )
 
     client = _client()
     model = getattr(settings, "CLAUDE_MODEL", "claude-sonnet-4-20250514")

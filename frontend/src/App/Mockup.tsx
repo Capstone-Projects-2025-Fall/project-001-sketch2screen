@@ -2,10 +2,10 @@
 //This is just for safety purposes. You can remove it if you want. It just detects unsafe HTML code.
 import DOMPurify from "dompurify";
 import styles from "./App.module.css";
-import {useState} from "react";
+import {useState, useRef} from "react";
 import PageSidebar from "./reusable_sidebar";
 import type { Mock } from "node:test";
-
+import { OutputPage } from "./setting/OutputPage";
 
 export type MockupPage = {
   /** Unique identifier */
@@ -35,6 +35,7 @@ type Props = {
 export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Props){
   /** Sidebar expanded or not */
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
 
   /** Currently active mockup */
   const activeMockup = mockups.find((m) => m.id === activePageId);
@@ -74,11 +75,16 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
 
         <div className={styles.mockup}>
           {activeMockup && (
-            <iframe
-              srcDoc={safeHtml}
-              className={styles.preview}
-              title={`Mockup preview: ${activeMockup.name}`}
-            />
+            <div className={styles.previewContainer}>
+              <iframe
+                srcDoc={OutputPage(safeHtml)}
+                className={styles.preview}
+                title={`Mockup preview: ${activeMockup.name}`}
+                sandbox="allow-same-origin allow-scripts allow-forms"
+                referrerPolicy="same-origin"
+                ref={iframeRef}
+              />
+            </div>
           )}
         </div>
     </div>

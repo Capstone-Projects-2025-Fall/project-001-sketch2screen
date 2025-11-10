@@ -494,6 +494,10 @@ export default function App() {
       });
 
       setMockups(newMockups);
+      if(newMockups.length > 0) 
+      {
+        setActivePageId(newMockups[0].id);
+      }
       setCurrentPage(Page.Mockup);
     }
 

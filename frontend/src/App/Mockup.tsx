@@ -72,6 +72,7 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
           {activeMockup && (
             <div className={styles.previewContainer}>
               <iframe
+                key={`${activeMockup.id}-${activeMockup.html.length}`}
                 srcDoc={OutputPage(safeHtml)}
                 className={styles.preview}
                 title={`Mockup preview: ${activeMockup.name}`}

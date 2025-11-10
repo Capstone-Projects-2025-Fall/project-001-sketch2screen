@@ -8,13 +8,11 @@
 }
 
 /* main content area under navbar (hosts the canvas) */
-.main {             /* fill remaining space */
+.main {
   min-height: 0;            /* IMPORTANT: prevents page from scrolling */
   overflow: hidden;         /* stop page-level scroll so Excalidraw toolbar stays visible */
-}
-
-.workRow .main{
-  flex: 1;
+  height: 100%;             /* ensure full height for child components */
+  position: relative;       /* establish positioning context */
 }
 /* Drawing container fills the space under the navbar */
 .canvas {

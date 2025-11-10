@@ -162,7 +162,7 @@ export default function App() {
     setPages(prev => {
       const i = prev.findIndex(p => p.id === activePageId);
       if (i < 0) return prev;
-      
+
       const oldScene = prev[i]?.scene;
       const next = [...prev];
       next[i] = { ...next[i], scene };
@@ -266,11 +266,11 @@ export default function App() {
    */
   const handleGenerate = async () => {
     setLoading(true);
-    
+
     try {
       // Collect all page blobs
       const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
-      
+
       for (const page of pages) {
       // Skip pages with no elements
         if (!page.scene.elements || page.scene.elements.length === 0) {
@@ -403,22 +403,31 @@ const handleExport = () => {
 
         
         <div className={styles.main} ref={canvasHostRef}>
-        {/* Only render the ACTIVE Drawing component */}
-        {currentPage === Page.Drawing && activeSketch && (
-          <Drawing 
-            key={`${activeSketch?.id}-v${sceneVersion}`}
-            ref={(ref) => { drawingRefs.current[activePageId] = ref; }} 
-            className={styles.canvas} 
-            visible={true}
-            initialScene={activeSketch.scene}
-            onSceneChange={handleSceneChange}
-          />
+        {/* Keep Drawing component mounted but control visibility */}
+        {activeSketch && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            display: currentPage === Page.Drawing ? 'block' : 'none'
+          }}>
+            <Drawing
+              key={`${activeSketch?.id}-v${sceneVersion}`}
+              ref={(ref) => { drawingRefs.current[activePageId] = ref; }}
+              className={styles.canvas}
+              visible={true}
+              initialScene={activeSketch.scene}
+              onSceneChange={handleSceneChange}
+            />
+          </div>
+        )}
+
+        {/*Mockup view*/}
+        {currentPage === Page.Mockup && (
+          <div style={{ position: 'absolute', inset: 0 }}>
+            <Mockup mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} />
+          </div>
         )}
         </div>
-
-      
-        {/*Mockup view*/}
-        {currentPage === Page.Mockup && <Mockup mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} />}
 
         {/* Loading overlay */}
         {loading && (

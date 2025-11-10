@@ -3,6 +3,7 @@
 
 # Local development files
 CLAUDE.md
+.claude/
 *.pyc
 
 # Misc

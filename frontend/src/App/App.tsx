@@ -309,7 +309,6 @@ export default function App() {
     try {
 
       // Collect all page blobs
-      const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
       // Identify pages that need regeneration
       const pagesToGenerate: SketchPage[] = [];
       const unchangedPages: SketchPage[] = [];

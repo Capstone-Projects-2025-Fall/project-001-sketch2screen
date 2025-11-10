@@ -268,23 +268,22 @@ export function useCollaboration({
    * Should be called from the main handleSceneChange function
    */
   const handleCollabSceneChange = (scene: SceneData, oldScene?: SceneData) => {
-    if (!collabEnabled || !collabClientRef.current) {
-      console.log("Collaboration not enabled or client not ready");
-      return;
-    }
+    if (collabEnabled && collabClientRef.current) 
+    {
+      const elementsChanged = oldScene?.elements !== scene.elements;
+      const filesChanged = oldScene?.files !== scene.files;
 
-    const elementsChanged = oldScene?.elements !== scene.elements;
-    const filesChanged = oldScene?.files !== scene.files;
+      if (elementsChanged || filesChanged) {
+        const sceneToSend = { ...scene, appState: null };
 
-    if (elementsChanged || filesChanged) {
-      const sceneToSend = { ...scene, appState: null };
-
-      if (isDrawingRef.current) {
-        pendingSceneRef.current = { pageId: activePageId, scene: sceneToSend };
-      } else {
-        collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
+        if (isDrawingRef.current) {
+          pendingSceneRef.current = { pageId: activePageId, scene: sceneToSend };
+        } else {
+          collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
+        }
       }
     }
+
   };
 
   /**

@@ -173,16 +173,32 @@ export default function App() {
    * @param scene - New scene data from Excalidraw
    */
   const handleSceneChange = (scene: SceneData) => {
+
+    console.log("🔵 App.handleSceneChange called", {
+    activePageId,
+    elementsCount: scene.elements?.length,
+    pagesCount: pages.length
+   });
+
     setPages(prev => {
       const i = prev.findIndex(p => p.id === activePageId);
+      console.log("🔵 Found page at index:", i, "ID:", activePageId);
+
       if (i < 0) return prev;
       
       const oldScene = prev[i]?.scene;
       const next = [...prev];
       next[i] = { ...next[i], scene };
 
+      console.log("🔵 Updated page scene", {
+      pageId: next[i].id,
+      newElementsCount: scene.elements?.length
+    });
+
       //handle collaboration scene change
+      
       handleCollabSceneChange(scene, oldScene);
+      
 
       return next;
     });
@@ -291,6 +307,9 @@ export default function App() {
     setLoading(true);
     
     try {
+
+      // Collect all page blobs
+      const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
       // Identify pages that need regeneration
       const pagesToGenerate: SketchPage[] = [];
       const unchangedPages: SketchPage[] = [];

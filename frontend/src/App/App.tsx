@@ -340,11 +340,18 @@ export default function App() {
       });
 
       setMockups(newMockups);
+      if(newMockups.length > 0) 
+      {
+        setActivePageId(newMockups[0].id);
+      }
       setCurrentPage(Page.Mockup);
+
     }catch (error) {
       console.error("Generation error:", error);
       alert("An error occurred during generation");
-    }finally {
+    }
+    
+    finally {
       setLoading(false);
     }
   };

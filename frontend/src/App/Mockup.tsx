@@ -41,8 +41,13 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
   const activeMockup = mockups.find((m) => m.id === activePageId);
 
   /** Sanitized HTML for display */
-  const safeHtml = activeMockup ? DOMPurify.sanitize(activeMockup.html) : "";
-
+   const safeHtml = activeMockup ? DOMPurify.sanitize(activeMockup.html, {
+    WHOLE_DOCUMENT: true,
+    FORCE_BODY: false,
+    ADD_TAGS: ['link','script'],
+    ADD_ATTR: ['target']
+  }) : "";
+  
   /**Message if no mockups */
   if (mockups.length === 0) {
     return (

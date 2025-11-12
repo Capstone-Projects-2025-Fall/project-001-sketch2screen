@@ -6,6 +6,8 @@ import {useState, useRef} from "react";
 import PageSidebar from "./reusable_sidebar";
 import type { Mock } from "node:test";
 import { OutputPage } from "./setting/OutputPage";
+import { useEffect } from 'react';
+import VariationSidebar from "./DesignStyleChangeUsingAI/components/VariationSidebar";
 
 export type MockupPage = {
   /** Unique identifier */
@@ -35,6 +37,13 @@ type Props = {
 export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Props){
   /** Sidebar expanded or not */
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  // Variation sidebar state
+  const [selectedElement, setSelectedElement] = useState<{
+    id: string;
+    html: string;
+    type: string;
+  } | null>(null);
+
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   /** Currently active mockup */
@@ -56,6 +65,42 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
       </div>
     );
   }
+
+  /**  Listen for element selection messages from iframe*/
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'ELEMENT_SELECTED') {
+        setSelectedElement({
+          id: event.data.elementId,
+          html: event.data.elementHtml,
+          type: event.data.elementType,
+        });
+      } else if (event.data.type === 'APPLY_VARIATION') {
+        // Variation was applied - could add success notification here
+        console.log('Variation applied:', event.data.elementId);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Handle applying a variation
+  const handleApplyVariation = (newHtml: string) => {
+    if (!iframeRef.current || !selectedElement) return;
+    
+    // Send message to iframe to update the element
+    iframeRef.current.contentWindow?.postMessage({
+      type: 'APPLY_VARIATION',
+      elementId: selectedElement.id,
+      newHtml: newHtml,
+    }, '*');
+  };
+
+   // Close variation sidebar
+  const handleCloseSidebar = () => {
+    setSelectedElement(null);
+  };
 
 
   return (
@@ -87,6 +132,16 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
             </div>
           )}
         </div>
+        {/* Variation sidebar */}
+        {selectedElement && (
+          <VariationSidebar
+            elementId={selectedElement.id}
+            elementHtml={selectedElement.html}
+            elementType={selectedElement.type}
+            onApplyVariation={handleApplyVariation}
+            onClose={handleCloseSidebar}
+          />
+        )}
     </div>
     );
 }

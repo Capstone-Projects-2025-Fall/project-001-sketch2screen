@@ -19,7 +19,8 @@ SECRET_KEY = get_random_secret_key()
 BASE_DIR = Path(__file__).resolve().parent       # => .../backend
 PROJECT_ROOT = BASE_DIR.parent                   # => repo root (has templates/, frontend/)
 CLAUDE_API_KEY = PROJECT_ROOT / "APIkey.txt"
-CLAUDE_MODEL = "claude-sonnet-4-20250514"
+CLAUDE_VARIATION_KEY = PROJECT_ROOT / "APIkey2.txt"
+CLAUDE_MODEL = "claude-haiku-4-5-20251001"
 
 PRODUCTION = False
 prod_env = os.environ.get("PROD")

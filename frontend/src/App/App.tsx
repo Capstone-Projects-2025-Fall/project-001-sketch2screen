@@ -3,12 +3,14 @@ import { useMemo, useRef, useState, useEffect } from "react";
 import Navbar from "./Navbar";
 import type { DrawingHandle, SceneData } from "./Drawing";
 import Mockup from "./Mockup";
-import type { MockupPage } from "./Mockup";
+import type { MockupPage, MockupHandle } from "./Mockup";
 import Drawing from "./Drawing";
 import PageSidebar from "./reusable_sidebar";
 import { LoadingSpinner } from "./LoadingScreen";
 import CollabClient from "./CollabClient";
 import CollaborationDialog from "./CollaborationDialog";
+import { downloadModifiedHTML, getCleanModifiedHTML } from "./utils/exportUtils";
+import { EditableComponents } from "./setting/EditableComponentsToString";
 
 /** Represents the available pages/views in the application */
 export enum Page {
@@ -90,11 +92,17 @@ export default function App() {
     activePageIdRef.current = activePageId;
   }, [activePageId]);
 
+
+
   /** Reference to access Drawing component methods */
   const drawingRef = useRef<DrawingHandle | null>(null);
 
   /** References to all Drawing components (one per page) */
   const drawingRefs = useRef<Record<string, DrawingHandle | null>>({});
+  
+  /** Reference to Mockup component to access iframe */
+  const mockupRef = useRef<MockupHandle | null>(null);
+  
   /** Generated HTML code from the backend */
   const [html, setHtml] = useState<string>("");
 
@@ -513,25 +521,29 @@ export default function App() {
   };
 
   /** 
- * Exports the currently visible mockup as an HTML file 
- */
-const handleExport = () => {
-  if (mockups.length === 0) {
-    alert("No mockups available to export. Please generate first.");
-    return;
-  }
+   * Exports the currently visible mockup as an HTML file with all style changes applied
+   */
+  const handleExport = () => {
+    if (mockups.length === 0) {
+      alert("No mockups available to export. Please generate first.");
+      return;
+    }
 
-  // Get currently active mockup
-  const activeMockupIndex = mockups.findIndex((m) => m.id === activePageId);
-  const activeMockup = activeMockupIndex >= 0 ? mockups[activeMockupIndex] : mockups[0];
+    // Get the mockup component ref
+    const iframeRef = mockupRef.current?.getIframeRef();
+    
+    if (!iframeRef?.current) {
+      alert("Iframe not available. Please try again.");
+      return;
+    }
 
-  const blob = new Blob([activeMockup.html], { type: "text/html" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `${activeMockup.name || "mockup"}.html`;
-  link.click();
-  URL.revokeObjectURL(link.href);
-};
+    // Get the active mockup
+    const activeMockupIndex = mockups.findIndex((m) => m.id === activePageId);
+    const activeMockup = activeMockupIndex >= 0 ? mockups[activeMockupIndex] : mockups[0];
+
+    // Export the modified HTML with all changes applied
+    downloadModifiedHTML(iframeRef, `${activeMockup.name || "mockup"}.html`);
+  };
 
 
   return (
@@ -582,7 +594,7 @@ const handleExport = () => {
 
       
         {/*Mockup view*/}
-        {currentPage === Page.Mockup && <Mockup mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} />}
+        {currentPage === Page.Mockup && <Mockup ref={mockupRef} mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} />}
 
         {/* Loading overlay */}
         {loading && (

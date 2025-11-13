@@ -2,7 +2,7 @@
 //This is just for safety purposes. You can remove it if you want. It just detects unsafe HTML code.
 import DOMPurify from "dompurify";
 import styles from "./App.module.css";
-import {useState, useRef} from "react";
+import {useState, useRef, forwardRef, useImperativeHandle} from "react";
 import PageSidebar from "./reusable_sidebar";
 import type { Mock } from "node:test";
 import { OutputPage } from "./setting/OutputPage";
@@ -25,6 +25,9 @@ type Props = {
  
 };
 
+export interface MockupHandle {
+  getIframeRef: () => React.MutableRefObject<HTMLIFrameElement | null>;
+}
 
 /**
  * Display generated HTML/CSS mockups with a sidebar for navigation
@@ -32,10 +35,15 @@ type Props = {
  * @param props.mockups - Array of generated mockups to display
  */
 
-export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Props){
+const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, onSelectPage }: Props, ref) => {
   /** Sidebar expanded or not */
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Expose iframe ref to parent component
+  useImperativeHandle(ref, () => ({
+    getIframeRef: () => iframeRef,
+  }), []);
 
   /** Currently active mockup */
   const activeMockup = mockups.find((m) => m.id === activePageId);
@@ -84,4 +92,7 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
         </div>
     </div>
     );
-}
+});
+
+Mockup.displayName = 'Mockup';
+export default Mockup;

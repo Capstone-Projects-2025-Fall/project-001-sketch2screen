@@ -4,7 +4,7 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 import json
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import status
 from .services.claudeClient import image_to_html_css
@@ -153,14 +153,22 @@ class GenerateVariationsView(APIView):
     """API endpoint to generate design variations for a selected component
        POST /api/generate-variations/"""
     
-    parser_classes = [MultiPartParser]  # accept multipart/form-data (file upload)
+    parser_classes = [JSONParser]  # accept multipart/form-data (file upload)
 
     def post(self, request):
+
+        try:
+            data = request.data if hasattr(request, 'data') else json.loads(request.body)
+        except json.JSONDecodeError:
+            return Response(
+                {"detail": "Invalid JSON body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         # Get parameters from request
-        element_html = request.POST.get("element_html")
-        element_type = request.POST.get("element_type", "component")
-        custom_prompt = request.POST.get("prompt")  # None if not provided
-        count_str = request.POST.get("count", "3")
+        element_html = data.get("element_html")
+        element_type = data.get("element_type", "component")
+        custom_prompt = data.get("prompt")  # None if not provided
+        count_str = data.get("count", 3)
 
         #Validation
         if not element_html:
@@ -184,8 +192,7 @@ class GenerateVariationsView(APIView):
 
         #Generate Variations
         try:
-            # Import here to avoid circular imports
-            
+
             # Run async function
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)

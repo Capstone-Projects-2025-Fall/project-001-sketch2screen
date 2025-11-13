@@ -104,7 +104,7 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
 
 
   return (
-    <div className = {styles.mockupContainer}>
+    <div className = {selectedElement ? styles.mockupContainerWithVariations : styles.mockupContainer}>
         <PageSidebar<MockupPage>
           title="Generated Pages"
           items={mockups}

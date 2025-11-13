@@ -99,7 +99,7 @@ export default function VariationPreview({
           border: 'none',
           display: 'block',
         }}
-        sandbox="allow-same-origin"
+        sandbox="allow-same-origin allow-scripts"
         title={`Variation ${index + 1}`}
       />
 

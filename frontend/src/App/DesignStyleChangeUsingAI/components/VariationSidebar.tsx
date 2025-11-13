@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useVariations } from '../hooks/useVariations';
 import PromptInput from './PromptInput';
 import VariationPreview from './VariationPreview';
+import styles from '../../App.module.css';
 
 type VariationSidebarProps = {
   elementId: string | null;
@@ -58,48 +59,21 @@ export default function VariationSidebar({
   }
 
   return (
-    <div
-      style={{
-        width: '320px',
-        height: '100%',
-        background: 'white',
-        borderLeft: '1px solid #ddd',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
+    <aside className={styles.variationSidebar}>
       {/* Header */}
-      <div
-        style={{
-          padding: '16px',
-          borderBottom: '1px solid #eee',
-          background: '#f9f9f9',
-        }}
-      >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>
-            Design Options
-          </h3>
-          <button
-            onClick={onClose}
-            style={{
-              background: 'none',
-              border: 'none',
-              fontSize: '20px',
-              cursor: 'pointer',
-              padding: '4px 8px',
-              color: '#666',
-            }}
-            title="Close sidebar"
-          >
-            ×
-          </button>
-        </div>
+      <div className={styles.variationSidebarHeader}>
+        <span>Design Options</span>
+        <button
+          onClick={onClose}
+          className={styles.variationCloseBtn}
+          title="Close sidebar"
+        >
+          ×
+        </button>
       </div>
 
       {/* Scrollable content */}
-      <div style={{ flex: 1, overflow: 'auto', padding: '16px' }}>
+      <div className={styles.variationSidebarContent}>
         {/* Element ID display */}
         <div style={{ marginBottom: '16px' }}>
           <label
@@ -119,7 +93,7 @@ export default function VariationSidebar({
               gap: '8px',
               alignItems: 'center',
               padding: '8px',
-              background: '#f5f5f5',
+              background: '#fff',
               borderRadius: '6px',
               border: '1px solid #e0e0e0',
             }}
@@ -137,13 +111,14 @@ export default function VariationSidebar({
             <button
               onClick={() => setShowPromptInput(!showPromptInput)}
               style={{
-                background: showPromptInput ? '#2196F3' : '#f0f0f0',
-                border: 'none',
-                borderRadius: '4px',
+                background: showPromptInput ? '#6366f1' : '#fff',
+                border: '1px solid #e0e0e0',
+                borderRadius: '6px',
                 cursor: 'pointer',
-                padding: '4px 8px',
+                padding: '6px 10px',
                 fontSize: '16px',
                 transition: 'all 0.2s',
+                color: showPromptInput ? '#fff' : '#333',
               }}
               title={showPromptInput ? 'Hide prompt input' : 'Custom prompt'}
             >
@@ -197,7 +172,7 @@ export default function VariationSidebar({
                 width: '32px',
                 height: '32px',
                 border: '3px solid #f3f3f3',
-                borderTop: '3px solid #2196F3',
+                borderTop: '3px solid #6366f1',
                 borderRadius: '50%',
                 margin: '0 auto 12px',
                 animation: 'spin 1s linear infinite',
@@ -276,14 +251,8 @@ export default function VariationSidebar({
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
           }
-          .click-hint {
-            opacity: 0 !important;
-          }
-          *:hover > .click-hint {
-            opacity: 1 !important;
-          }
         `}
       </style>
-    </div>
+    </aside>
   );
 }

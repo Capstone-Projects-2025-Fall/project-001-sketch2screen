@@ -90,6 +90,7 @@ async def generate_component_variations(
             - Fulfill the user's design request while maintaining good UX
             - Ensure accessibility (proper contrast, ARIA attributes if present)
             - Make each variation visually distinct from others
+            -Do not include any markdown fences
 
             Return ONLY a JSON array of {count} HTML strings, nothing else. No markdown, no explanation.
             Example format: ["<button class='...'>...</button>", "<button class='...'>...</button>", "<button class='...'>...</button>"]

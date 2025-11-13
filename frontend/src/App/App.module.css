@@ -526,3 +526,64 @@
   color: #6b7280;
   font-size: 14px;
 }
+
+/* ---- Variation Sidebar (right side) ---- */
+.variationSidebar {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid rgba(0,0,0,0.08);
+  background: #f7f7f9;
+  width: 320px;
+  min-width: 320px;
+  max-width: 360px;
+  position: relative;
+  transition: width 0.3s ease, min-width 0.3s ease, opacity 0.3s ease;
+  height: 100%;
+}
+
+.variationSidebarHeader {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.variationSidebarContent {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.variationCloseBtn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.variationCloseBtn:hover {
+  color: #111827;
+}
+
+/* Update mockup container to support 3-column layout */
+.mockupContainerWithVariations {
+  display: grid;
+  grid-template-columns: 260px 1fr 320px; /* pages sidebar | mockup | variations sidebar */
+  height: calc(100vh - 4.5rem);
+  position: relative;
+  transition: grid-template-columns 0.3s ease;
+}
+
+/* When left sidebar is collapsed */
+.mockupContainerWithVariations:has(.sidebarCollapsed) {
+  grid-template-columns: 0px 1fr 320px;
+}

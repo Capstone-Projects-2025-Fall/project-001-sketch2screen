@@ -33,31 +33,53 @@ export function useVariations(): UseVariationsResult {
    * Calls the backend API to generate variations
    */
   const callAPI = useCallback(async (
-    elementHtml: string,
-    elementType: string,
-    customPrompt?: string
-  ): Promise<string[]> => {
-    const response = await fetch(VARIATION_CONFIG.API_ENDPOINT, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        element_html: elementHtml,
-        element_type: elementType,
-        prompt: customPrompt || null,
-        count: VARIATION_CONFIG.COUNT,
-      }),
-    });
+  elementHtml: string,
+  elementType: string,
+  customPrompt?: string
+): Promise<string[]> => {
+  const response = await fetch(VARIATION_CONFIG.API_ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      element_html: elementHtml,
+      element_type: elementType,
+      prompt: customPrompt || null,
+      count: VARIATION_CONFIG.COUNT,
+    }),
+  });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Failed to generate variations');
-    }
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || 'Failed to generate variations');
+  }
 
-    const data = await response.json();
-    return data.variations || [];
-  }, []);
+  const data = await response.json();
+
+  console.log('📦 Raw API response:', {
+    variations: data.variations,
+    variationsCount: data.variations?.length,
+    fullData: data
+  });
+
+
+  // Clean markdown fences from variations
+  const cleanedVariations = (data.variations || []).map((html: string) => {
+    console.log('Original variation:', html.substring(0, 100));
+    
+    // Remove ```html and ``` fences
+    let cleaned = html
+      .replace(/```html\n?/gi, '')
+      .replace(/```\n?/g, '')
+      .trim();
+    
+    console.log('Cleaned variation:', cleaned.substring(0, 100));
+    return cleaned;
+  });
+
+  return cleanedVariations;
+}, []);
 
   /**
    * Generates automatic (default) variations
@@ -120,9 +142,28 @@ export function useVariations(): UseVariationsResult {
     setLoading(true);
     setError(null);
 
+    console.log('🔵 Starting custom generation:', {
+      elementHtml: elementHtml.substring(0, 100),
+      elementType,
+      prompt
+    });
+
     try {
       const cacheKey = generateCacheKey(elementHtml);
       const cached = cacheRef.current.custom[cacheKey]?.[prompt];
+
+      console.log('Custom cache lookup:', {
+        cacheKey,
+        prompt,
+        hasCached: !!cached,
+        customCache: cacheRef.current.custom[cacheKey]
+      });
+
+      // ADD THIS:
+      if (cached) {
+        console.log('Cached variations:', cached.variations);
+        console.log('Number of variations:', cached.variations?.length);
+      }
 
       // Check cache first
       if (cached && isCacheValid(cached.timestamp, VARIATION_CONFIG.CUSTOM_CACHE_DURATION)) {
@@ -135,6 +176,13 @@ export function useVariations(): UseVariationsResult {
       // Call API with prompt
       console.log('Generating new custom variations with prompt:', prompt);
       const newVariations = await callAPI(elementHtml, elementType, prompt);
+
+      // ADD THIS LOG RIGHT AFTER:
+      console.log('🟢 Received custom variations:', {
+        count: newVariations.length,
+        preview: newVariations.map(v => v.substring(0, 50))
+      });
+
 
       // Update cache
       if (!cacheRef.current.custom[cacheKey]) {

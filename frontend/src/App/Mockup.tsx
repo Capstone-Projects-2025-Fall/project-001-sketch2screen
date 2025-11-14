@@ -49,8 +49,18 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
   /** Currently active mockup */
   const activeMockup = mockups.find((m) => m.id === activePageId);
 
+
+  /** Clean HTML */
+  // Clean markdown fences from mockup HTML
+  const cleanedHtml = activeMockup 
+  ? activeMockup.html
+      .replace(/```html\n?/gi, '')
+      .replace(/```\n?/g, '')
+      .trim()
+  : "";
+
   /** Sanitized HTML for display */
-   const safeHtml = activeMockup ? DOMPurify.sanitize(activeMockup.html, {
+   const safeHtml = cleanedHtml ? DOMPurify.sanitize(cleanedHtml, {
     WHOLE_DOCUMENT: true,
     FORCE_BODY: false,
     ADD_TAGS: ['link','script'],
@@ -87,8 +97,18 @@ export default function Mockup ({ mockups = [], activePageId, onSelectPage }: Pr
 
   // Handle applying a variation
   const handleApplyVariation = (newHtml: string) => {
-    if (!iframeRef.current || !selectedElement) return;
-    
+    console.log('🔵 Mockup: Applying variation', {
+        elementId: selectedElement?.id,
+        newHtml: newHtml.substring(0, 30),
+        iframeExists: !!iframeRef.current,
+        iframeContentWindow: !!iframeRef.current?.contentWindow
+      });
+
+    if (!iframeRef.current || !selectedElement){
+          console.error('❌ Cannot apply: iframe or selectedElement missing');
+          return;
+    }
+
     // Send message to iframe to update the element
     iframeRef.current.contentWindow?.postMessage({
       type: 'APPLY_VARIATION',

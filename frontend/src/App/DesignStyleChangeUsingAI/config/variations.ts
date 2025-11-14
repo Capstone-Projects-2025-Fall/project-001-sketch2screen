@@ -13,5 +13,5 @@ export const VARIATION_CONFIG = {
     /** Width of preview design */
     PREVIEW_WIDTH: 280,
     /** Backend API endpoint for generating variations */
-    API_ENDPOINT: 'api/generate-variations/',
+    API_ENDPOINT: '/api/generate-variations/',
 }as const;

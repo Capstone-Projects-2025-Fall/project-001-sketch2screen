@@ -36,9 +36,6 @@ export default function VariationPreview({
             justify-content: center;
             background: #f5f5f5;
           }
-          * {
-            pointer-events: none;
-          }
         </style>
       </head>
       <body>
@@ -85,6 +82,7 @@ export default function VariationPreview({
           fontSize: '10px',
           fontWeight: 500,
           zIndex: 10,
+          pointerEvents: 'auto'
         }}
       >
         Option {index + 1}
@@ -98,6 +96,7 @@ export default function VariationPreview({
           height: `${VARIATION_CONFIG.PREVIEW_HEIGHT}px`,
           border: 'none',
           display: 'block',
+          pointerEvents: 'none'
         }}
         sandbox="allow-same-origin allow-scripts"
         title={`Variation ${index + 1}`}

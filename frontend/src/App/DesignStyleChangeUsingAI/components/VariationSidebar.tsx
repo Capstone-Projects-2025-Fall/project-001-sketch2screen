@@ -1,5 +1,5 @@
 // frontend/src/components/VariationSidebar.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useVariations } from '../hooks/useVariations';
 import PromptInput from './PromptInput';
 import VariationPreview from './VariationPreview';
@@ -36,11 +36,11 @@ export default function VariationSidebar({
   } = useVariations();
 
   // Generate auto variations when element is first selected
-  useState(() => {
-    if (elementHtml && elementType && !variations && !loading) {
+  useEffect(() => {
+    if (elementHtml && elementType && elementId) {
       generateAuto(elementHtml, elementType);
     }
-  });
+  },[elementId, elementHtml, elementType, generateAuto]);
 
   const handleCustomPromptSubmit = (prompt: string) => {
     if (elementHtml && elementType) {

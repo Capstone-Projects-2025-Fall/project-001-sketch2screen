@@ -99,79 +99,80 @@ async def generate_component_variations(
         #Auto Generation Mode
         user_instruction = f"""Generate {count} modern, visually distinct design variations for this {element_type}:
 
-        Component:
-        {element_html}
+            Component:
+            {element_html}
 
-        Focus on varying:
-        - Color schemes (while maintaining good contrast and accessibility)
-        - Border styles and border radius
-        - Shadow and depth (subtle to prominent)
-        - Size and spacing (padding, margin)
-        - Typography weight/style (if text is present)
-        - Background styles (solid, gradients, patterns)
-        - Hover/interaction states
+            Focus on varying:
+            - Color schemes (while maintaining good contrast and accessibility)
+            - Border styles and border radius
+            - Shadow and depth (subtle to prominent)
+            - Size and spacing (padding, margin)
+            - Typography weight/style (if text is present)
+            - Background styles (solid, gradients, patterns)
+            - Hover/interaction states
 
-        Requirements:
-        - Keep the same semantic HTML structure and tag names
-        - Maintain all functionality (don't remove event handlers or data attributes)
-        - Use Tailwind CSS classes exclusively
-        - Make each variation visually distinct
-        - Ensure accessibility (WCAG AA contrast ratios minimum)
-        - Modern, professional appearance
+            Requirements:
+            - Keep the same semantic HTML structure and tag names
+            - Maintain all functionality (don't remove event handlers or data attributes)
+            - Use Tailwind CSS classes exclusively
+            - Make each variation visually distinct
+            - Ensure accessibility (WCAG AA contrast ratios minimum)
+            - Modern, professional appearance
 
-        Return ONLY a JSON array of {count} HTML strings, nothing else. No markdown, no explanation.
-        Example format: ["<button class='...'>...</button>", "<button class='...'>...</button>", "<button class='...'>...</button>"]
-        """
+            Return ONLY a JSON array of {count} HTML strings, nothing else. No markdown, no explanation.
+            Example format: ["<button class='...'>...</button>", "<button class='...'>...</button>", "<button class='...'>...</button>"]
+            """
 
-        client = _variations_client()
-        model = getattr(settings, "CLAUDE_MODEL", "claude-sonnet-4-20250514")
-
-        try:
-            resp = await client.messages.create(
-                model=model,
-                max_tokens=4000,
-                system=system_msg,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": user_instruction,
-                    }
-                ],
-            )
-            
-            text = _extract_text(resp)
-            if not text:
-                raise RuntimeError("Claude returned no text content for variations.")
-            
-            # Clean up response - remove markdown code fences if present
-            text = text.strip()
-            if text.startswith("```json"):
-                text = text[7:]
-            if text.startswith("```"):
-                text = text[3:]
-            if text.endswith("```"):
-                text = text[:-3]
-            text = text.strip()
-
-            # Parse JSON array
-            variations = json.loads(text)
-            
-            if not isinstance(variations, list):
-                raise RuntimeError("Claude did not return a JSON array.")
-            
-            # Ensure we have the right count
-            if len(variations) < count:
-                # Pad with duplicates if needed
-                while len(variations) < count:
-                    variations.append(variations[0] if variations else element_html)
-            elif len(variations) > count:
-                variations = variations[:count]
-            
-            return variations
+    client = _variations_client()
+    model = getattr(settings, "CLAUDE_MODEL", "claude-sonnet-4-20250514")
+    try:
+        resp = await client.messages.create(
+            model=model,
+            max_tokens=4000,
+            system=system_msg,
+            messages=[
+                {
+                    "role": "user",
+                    "content": user_instruction,
+                }
+            ],
+        )
         
-        except json.JSONDecodeError as e:
-            raise RuntimeError(f"Failed to parse Claude's response as JSON: {e}")
-        except Exception as e:
-            raise RuntimeError(f"Error generating variations: {e}")
-
+        text = _extract_text(resp)
+        if not text:
+            raise RuntimeError("Claude returned no text content for variations.")
         
+        # Clean up response - remove markdown code fences if present
+        text = text.strip()
+        if text.startswith("```json"):
+            text = text[7:]
+        if text.startswith("```html"):
+            text = text[7:]
+        if text.startswith("```"):
+            text = text[3:]
+        if text.endswith("```"):
+            text = text[:-3]
+        text = text.strip()
+
+        # Parse JSON array
+        variations = json.loads(text)
+        
+        if not isinstance(variations, list):
+            raise RuntimeError("Claude did not return a JSON array.")
+        
+        # Ensure we have the right count
+        if len(variations) < count:
+            # Pad with duplicates if needed
+            while len(variations) < count:
+                variations.append(variations[0] if variations else element_html)
+        elif len(variations) > count:
+            variations = variations[:count]
+        
+        return variations
+    
+    except json.JSONDecodeError as e:
+        raise RuntimeError(f"Failed to parse Claude's response as JSON: {e}")
+    except Exception as e:
+        raise RuntimeError(f"Error generating variations: {e}")
+
+    

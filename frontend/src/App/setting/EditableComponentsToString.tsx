@@ -314,22 +314,35 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
         }
           // Listen for variation application from parent
         window.addEventListener('message', function(event) {
+          console.log('Iframe received message:', event.data.type);
+
           if (event.data.type === 'APPLY_VARIATION') {
             const elementId = event.data.elementId;
             const newHtml = event.data.newHtml;
             
+             console.log('🟢 Applying variation:', {
+              elementId: elementId,
+              newHtml: newHtml.substring(0, 100)
+            });
+
             const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            console.log('🟢 Found element:', !!element);
+
             if (element && newHtml) {
               // Parse new HTML
               const temp = document.createElement('div');
               temp.innerHTML = newHtml;
               const newElement = temp.firstElementChild;
-              
+
+              console.log('🟢 Parsed new element:', !!newElement);
+
               if (newElement) {
                 // Preserve the element ID
                 newElement.setAttribute('data-element-id', elementId);
                 newElement.classList.add('editable-element');
                 
+                console.log('🟢 About to replace element');
+
                 // Store the old click handler
                 const clickHandler = function(e) {
                   e.preventDefault();
@@ -375,6 +388,8 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
                 // Replace in DOM
                 element.replaceWith(newElement);
                 
+                console.log('✅ Element replaced successfully!');
+
                 // Attach click handler to new element
                 newElement.addEventListener('click', clickHandler);
                 

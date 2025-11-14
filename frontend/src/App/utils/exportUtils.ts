@@ -26,6 +26,20 @@ export const exportModifiedHTML = (iframeRef: React.MutableRefObject<HTMLIFrameE
       settingsPanel.remove();
     }
 
+    // Remove all script tags
+    const scripts = clonedDoc.querySelectorAll('script');
+    scripts.forEach((script) => script.remove());
+
+    // Remove style tags that were added for editor functionality
+    const styleTags = clonedDoc.querySelectorAll('style');
+    styleTags.forEach((style) => {
+      const content = style.textContent || '';
+      // Only remove style tags containing editor-specific selectors
+      if (content.includes('.editable-element') || content.includes('#settings-panel')) {
+        style.remove();
+      }
+    });
+
     // Get all elements with applied styles
     const editableElements = clonedDoc.querySelectorAll('.editable-element');
     
@@ -35,6 +49,9 @@ export const exportModifiedHTML = (iframeRef: React.MutableRefObject<HTMLIFrameE
       
       // Remove the selection outline class if present
       (element as HTMLElement).classList.remove('selected');
+      
+      // Remove editor-specific classes
+      (element as HTMLElement).classList.remove('editable-element');
       
       // Preserve all inline styles applied by the user
       if (styles.cssText) {
@@ -69,12 +86,25 @@ export const exportModifiedHTMLBody = (iframeRef: React.MutableRefObject<HTMLIFr
 
     // Clone the body
     const bodyClone = iframeDoc.body.cloneNode(true) as HTMLElement;
-    
+        
     // Remove the settings panel
     const settingsPanel = bodyClone.querySelector('#settings-panel');
     if (settingsPanel) {
       settingsPanel.remove();
     }
+
+    // Remove all script tags
+    const scripts = bodyClone.querySelectorAll('script');
+    scripts.forEach((script) => script.remove());
+
+    // Remove style tags used for editor
+    const styleTags = bodyClone.querySelectorAll('style');
+    styleTags.forEach((style) => {
+      const content = style.textContent || '';
+      if (content.includes('.editable-element') || content.includes('#settings-panel')) {
+        style.remove();
+      }
+    });
 
     // Remove editable-element class and selection styles
     const editableElements = bodyClone.querySelectorAll('.editable-element');
@@ -149,7 +179,7 @@ export const downloadModifiedHTML = (
 };
 
 /**
- * Get the modified HTML as a clean version without editor classes
+ * Get the modified HTML as a clean version without editor classes and scripts
  */
 export const getCleanModifiedHTML = (iframeRef: React.MutableRefObject<HTMLIFrameElement | null>): string | null => {
   const html = exportModifiedHTMLBody(iframeRef);
@@ -157,10 +187,16 @@ export const getCleanModifiedHTML = (iframeRef: React.MutableRefObject<HTMLIFram
   if (!html) return null;
 
   // Remove any data attributes used for editing
-  const cleanHTML = html
+  let cleanHTML = html
     .replace(/\sdata-element-id="[^"]*"/g, '')
     .replace(/\sdata-style="[^"]*"/g, '')
     .replace(/\sdata-applied-styles="[^"]*"/g, '');
+
+  // Remove any remaining script tags
+  cleanHTML = cleanHTML.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+
+  // Remove inline event handlers (onclick, onload, etc.)
+  cleanHTML = cleanHTML.replace(/\s*on\w+\s*=\s*["'][^"']*["']/gi, '');
 
   return cleanHTML;
 };

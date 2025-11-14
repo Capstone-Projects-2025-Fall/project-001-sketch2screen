@@ -32,14 +32,14 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
       id="settings-panel"
       style={{
         position: 'fixed',
-        padding: '12px',
+        padding: 'auto',
         background: 'white',
         border: '1px solid #ccc',
         borderRadius: '8px',
         boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        zIndex: 1000,
+        zIndex: 2,
         display: 'grid',
-        width: '15%',
+        maxWidth: '30%',
         maxHeight: '35%', // Prevent panel from exceeding viewport
         boxSizing:"border-box",
         overflowY: 'auto',

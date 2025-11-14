@@ -50,14 +50,51 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
     b64 = base64.b64encode(image_bytes).decode("utf-8")
 
     system_msg = (
-        "You are a frontend assistant that converts UI sketches into high-fidelity, clean, "
-        "production-ready HTML and CSS. Prefer semantic HTML, minimal wrappers, inline styles for each of the components of the image. Do not use body tag"
-        "Use modern CSS if possible. Use Bootstrap or Tailwind CSS only. Do not include markdown fences in the code."
+        "You are an expert frontend developer specializing in converting UI sketches into "
+        "modern, high-fidelity, pixel-perfect, production-ready HTML with Tailwind CSS. Your code is clean, semantic, "
+        "accessible, and follows modern web development best practices."
     )
     user_instruction = prompt or (
-        "Generate HTML and CSS that recreates the layout in the image. Only provide the code, no other text including markdown fences.If an element is labeled as an HTML tag it should "
-        "be that HTML tag. If there is text in the image, it should be included in the HTML. Any icons or images in the sketch should be represented by placeholders. All sketches generated should be "
-        "width 100 percent and height 100 percent."
+            """Convert the provided UI sketch into complete, functional HTML with Tailwind CSS styling.
+
+            CRITICAL OUTPUT REQUIREMENTS:
+            - Ignore the outer bounding box of sketch as it is for user to assume as a viewport.
+            - Return ONLY raw HTML code - no markdown fences, no explanations, no preamble
+            - This renders in an iframe, so include complete document structure with <!DOCTYPE html>
+            - Set body to full viewport dimensions: class="h-screen w-screen" (100vh height, 100vw width)
+            - Do not add padding to outside of the borders, only use spacing within the layout itself
+            - Ensure the color scheme matches the sketch.
+
+            CODE QUALITY STANDARDS:
+            - Design generated should be of extremely high fidelity.
+            - Use semantic HTML5 elements (<header>, <nav>, <main>, <section>, <article>, <footer>)
+            - Include all necessary JavaScript for interactivity (e.g., dropdowns, modals, tabs) 
+            - Minimize unnecessary wrapper divs - keep markup lean
+            - Ensure all elements have explicit dimensions or content to render properly
+            - Make layouts responsive using Tailwind's responsive prefixes (sm:, md:, lg:)
+            - The design should look production-ready, not like a prototype
+
+            DESIGN FIDELITY:
+            - Match the sketch's layout and color scheme but make it modern, clean, and visually appealing
+            - If elements are labeled with HTML tag names (e.g., "button", "input"), use those exact tags
+            - Preserve all text content visible in the sketch
+            - Implement smooth transitions and animations where appropriate
+            - For any images in the design:
+                - Use placeholder divs with gradients or SVG icons
+                - Make placeholder visually appealing (not just gray boxes)
+            - Represent icons
+            * Icons: Use emoji, Unicode symbols, or labeled boxes like <div class="w-6 h-6 bg-gray-300 rounded"></div>
+
+
+            STYLING APPROACH:
+            - Apply Tailwind classes directly to elements for colors, spacing, typography, shadows, borders, etc.
+            - Ensure proper visual hierarchy with appropriate font sizes, weights, and spacing
+            - Add hover states where interactive elements are present (buttons, links)
+
+            ADDITIONAL REQUIREMENTS:
+            - Make the background cyan blue.
+
+            Begin your response with <!DOCTYPE html> and nothing else."""
        )
 
     client = _client()
@@ -65,7 +102,7 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
 
     resp = await client.messages.create(
         model=model,
-        max_tokens=2000,
+        max_tokens=3000,
         system=system_msg,
         messages=[
             {

@@ -114,6 +114,12 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
   const generateHTML = (): string => {
     const styles = `
       <style>
+        html, body {
+          margin: 0;
+          padding: 0;
+          height: 100%;
+          width: 100%;
+        }
         .editable-element {
           transition: outline 0.2s ease;
         }
@@ -286,6 +292,8 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
       <html>
         <head>
           <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
           ${styles}
         </head>
         <body>

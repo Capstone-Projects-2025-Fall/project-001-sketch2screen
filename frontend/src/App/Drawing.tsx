@@ -150,7 +150,15 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
         }
         onChange={(elements, appState, files) => {
 
+            console.log("🟡 onChange fired", {
+              skipNext: skipNextOnChange.current,
+              elementsCount: elements?.length,
+              hasElements: !!elements
+            });
+
           if (skipNextOnChange.current) {
+            console.log("🔴 Skipping due to skipNextOnChange");
+
             skipNextOnChange.current = false;
             lastSceneRefs.current = { elements, appState, files };
             return;
@@ -158,10 +166,10 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
           
           if (excaliRef.current && appState.zoom.value < 1) 
           {
-          
+           console.log("🟠 Skipping due to zoom < 1");
+
           //important to update lastSceneRefs to maintain duplicate detection
           lastSceneRefs.current = { elements, appState, files };
-
           excaliRef.current.updateScene({
             appState: {
               ...appState,
@@ -178,23 +186,26 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
             lastSceneRefs.current.files === files
           ) {
             // Skip duplicate calls
+            console.log("🟤 Skipping duplicate onChange");
+
             return;
           }
 
           // Only trigger onSceneChange if elements or files changed (actual drawing content)
           // Ignore appState changes (zoom, pan, tool selection, etc.)
-          const elementsChanged = lastSceneRefs.current.elements !== elements;
-          const filesChanged = lastSceneRefs.current.files !== files;
           
           lastSceneRefs.current = { elements, appState, files };
 
-          if (elementsChanged || filesChanged) {
-            onSceneChange?.({
-              elements: elements ?? ([] as readonly any[]),
-              appState: appState ?? {},
-              files: files ?? {},
-            });
-          }
+          
+          console.log("✅ Calling onSceneChange with elements:", elements?.length);
+
+          onSceneChange?.({
+            elements: elements ?? ([] as readonly any[]),
+            appState: appState ?? {},
+            files: files ?? {},
+          });
+          
+
         }}
 
 

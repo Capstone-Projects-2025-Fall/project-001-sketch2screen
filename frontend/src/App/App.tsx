@@ -56,6 +56,17 @@ function getCollabId(): string {
   return params.get('collab') || Date.now().toString();
 }
 
+/**
+ * Serializes a scene for comparison purposes
+ * Only includes elements and files (the actual drawing content)
+ */
+function serializeScene(scene: SceneData): string {
+  return JSON.stringify({
+    elements: scene.elements,
+    files: scene.files
+  });
+}
+
 /** Main application component managing the sketch interface */
 export default function App() {
   // Compute a stable collab id up-front so we can also use it for the very first page id.
@@ -93,6 +104,9 @@ export default function App() {
 
   /** Generated mockup pages */
   const [mockups, setMockups] = useState<MockupPage[]>([]);
+  
+  /** Track the scene state at the time each page was last generated */
+  const [lastGeneratedScenes, setLastGeneratedScenes] = useState<Record<string, string>>({});
   
   /** Loading state during backend processing */
   const [loading, setLoading] = useState(false);
@@ -159,16 +173,32 @@ export default function App() {
    * @param scene - New scene data from Excalidraw
    */
   const handleSceneChange = (scene: SceneData) => {
+
+    console.log("🔵 App.handleSceneChange called", {
+    activePageId,
+    elementsCount: scene.elements?.length,
+    pagesCount: pages.length
+   });
+
     setPages(prev => {
       const i = prev.findIndex(p => p.id === activePageId);
+      console.log("🔵 Found page at index:", i, "ID:", activePageId);
+
       if (i < 0) return prev;
       
       const oldScene = prev[i]?.scene;
       const next = [...prev];
       next[i] = { ...next[i], scene };
 
+      console.log("🔵 Updated page scene", {
+      pageId: next[i].id,
+      newElementsCount: scene.elements?.length
+    });
+
       //handle collaboration scene change
+      
       handleCollabSceneChange(scene, oldScene);
+      
 
       return next;
     });
@@ -256,29 +286,66 @@ export default function App() {
       return next;
     });
 
+    // Clean up cached data for deleted page
+    setLastGeneratedScenes(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    
+    setMockups(prev => prev.filter(m => m.id !== id));
+
     // Notify collaboration of deletion
     notifyPageDeleted(id);
   };
 
   /** 
    * Generates HTML from current sketch via backend API
-   * Exports current drawing as PNG and sends to backend
+   * Only regenerates pages that have changed since last generation
    */
   const handleGenerate = async () => {
     setLoading(true);
     
     try {
+
       // Collect all page blobs
-      const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
+      // Identify pages that need regeneration
+      const pagesToGenerate: SketchPage[] = [];
+      const unchangedPages: SketchPage[] = [];
       
       for (const page of pages) {
-      // Skip pages with no elements
+        // Skip pages with no elements
         if (!page.scene.elements || page.scene.elements.length === 0) {
           console.log(`Skipping empty page: ${page.name}`);
           continue;
         }
         
-        // Export directly from scene data instead of using refs
+        // Serialize current scene
+        const currentSceneSerialized = serializeScene(page.scene);
+        const lastGeneratedScene = lastGeneratedScenes[page.id];
+        
+        // Check if page needs regeneration
+        if (!lastGeneratedScene || currentSceneSerialized !== lastGeneratedScene) {
+          // Page is new or has changed - needs regeneration
+          pagesToGenerate.push(page);
+          console.log(`Page "${page.name}" needs regeneration (${!lastGeneratedScene ? 'new' : 'changed'})`);
+        } else {
+          // Page unchanged - can reuse existing mockup
+          unchangedPages.push(page);
+          console.log(`Page "${page.name}" unchanged - reusing cached mockup`);
+        }
+      }
+      
+      if (pagesToGenerate.length === 0 && unchangedPages.length === 0) {
+        alert("No sketches to export. Please create at least one sketch.");
+        return;
+      }
+      
+      // Collect blobs for pages that need regeneration
+      const pageBlobs: Array<{ id: string; name: string; blob: Blob }> = [];
+      
+      for (const page of pagesToGenerate) {
+        // Export directly from scene data
         const blob = await exportToBlob({
           elements: page.scene.elements,
           appState: {
@@ -297,54 +364,104 @@ export default function App() {
         }
       }
 
-      if (pageBlobs.length === 0) {
-        alert("No sketches to export. Please create at least one sketch.");
-        return;
-      }
-
-      // Create form data with all images
-      const formData = new FormData();
-      pageBlobs.forEach((item, index) => {
-        formData.append(`file_${index}`, item.blob, `${item.name}.png`);
-        formData.append(`name_${index}`, item.name);
-        formData.append(`id_${index}`, item.id);
-      });
-      formData.append('count', pageBlobs.length.toString());
-
-      const res = await fetch("/api/generate-multi/", {
-        method: "POST",
-        body: formData,
-      });
-
-      if (!res.ok) {
-        alert("Failed to generate HTML from sketches");
-        return;
-      }
-
-      // Expect array of HTML strings
-      const data = (await res.json()) as { results: Array<{ id: string; html: string }> };
+      let newGeneratedMockups: MockupPage[] = [];
       
-      if (!data.results || data.results.length === 0) {
-        alert("No HTML received from server");
-        return;
+      // Only call backend if there are pages to regenerate
+      if (pageBlobs.length > 0) {
+        // Create form data with all images
+        const formData = new FormData();
+        pageBlobs.forEach((item, index) => {
+          formData.append(`file_${index}`, item.blob, `${item.name}.png`);
+          formData.append(`name_${index}`, item.name);
+          formData.append(`id_${index}`, item.id);
+        });
+        formData.append('count', pageBlobs.length.toString());
+
+        const res = await fetch("/api/generate-multi/", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) {
+          alert("Failed to generate HTML from sketches");
+          return;
+        }
+
+        // Expect array of HTML strings
+        const data = (await res.json()) as { results: Array<{ id: string; html: string }> };
+        
+        if (!data.results || data.results.length === 0) {
+          alert("No HTML received from server");
+          return;
+        }
+
+        // Build mockup pages for newly generated content
+        // Match by index since backend might not preserve our IDs
+        newGeneratedMockups = data.results.map((result, index) => {
+          // Try to match by backend's returned ID first
+          let page = pages.find((p) => p.id === result.id);
+          
+          // If not found, match by index (order in which we sent pages)
+          if (!page && index < pageBlobs.length) {
+            const sentPageId = pageBlobs[index].id;
+            page = pages.find((p) => p.id === sentPageId);
+          }
+          
+          // Use the page ID we sent, not the backend's ID
+          const pageId = page?.id || result.id;
+          
+          return {
+            id: pageId, // Use our page ID, not backend's
+            name: page?.name || `Sketch Generated ${index + 1}`,
+            html: result.html,
+          };
+        });
+        
+        // Update lastGeneratedScenes for newly generated pages
+        setLastGeneratedScenes(prev => {
+          const next = { ...prev };
+          for (const page of pagesToGenerate) {
+            next[page.id] = serializeScene(page.scene);
+          }
+          return next;
+        });
       }
-
-      // Build mockup pages
-      const newMockups: MockupPage[] = data.results.map((result) => {
-        const page = pages.find((p) => p.id === result.id);
-        return {
-          id: result.id,
-          name: page?.name || `Sketch Generated ${result.id}`,
-          html: result.html,
-        };
-      });
-
-      setMockups(newMockups);
+      
+      // Combine new mockups with reused mockups (maintaining order)
+      const finalMockups: MockupPage[] = pages
+        .filter(page => page.scene.elements && page.scene.elements.length > 0)
+        .map(page => {
+          // Check if this page was newly generated
+          const newMockup = newGeneratedMockups.find(m => m.id === page.id);
+          if (newMockup) {
+            return newMockup;
+          }
+          
+          // Otherwise, reuse existing mockup
+          const existingMockup = mockups.find(m => m.id === page.id);
+          if (existingMockup) {
+            return existingMockup;
+          }
+          
+          // This shouldn't happen, but return null to filter out
+          return null;
+        })
+        .filter((m): m is MockupPage => m !== null); // Filter out any null entries
+      
+      setMockups(finalMockups);
       setCurrentPage(Page.Mockup);
-    }catch (error) {
+      
+      // Show summary of what was done
+      if (pageBlobs.length > 0) {
+        console.log(`Generated ${pageBlobs.length} new mockup(s), reused ${unchangedPages.length} cached mockup(s)`);
+      } else {
+        console.log(`All ${unchangedPages.length} mockup(s) were cached - no regeneration needed`);
+      }
+      
+    } catch (error) {
       console.error("Generation error:", error);
       alert("An error occurred during generation");
-    }finally {
+    } finally {
       setLoading(false);
     }
   };
@@ -424,7 +541,7 @@ const handleExport = () => {
         {loading && (
           <div style={{position: "absolute", inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.6)', zIndex: 200}}>
             <LoadingSpinner />
-            <p style={{ marginLeft: '1rem' }}>Generating {pages.length} page{pages.length > 1 ? 's' : ''}...</p>
+            <p style={{ marginLeft: '1rem' }}>Generating {pages.filter(p => p.scene.elements?.length > 0).length} page{pages.filter(p => p.scene.elements?.length > 0).length > 1 ? 's' : ''}...</p>
           </div>
         )}
       </div>

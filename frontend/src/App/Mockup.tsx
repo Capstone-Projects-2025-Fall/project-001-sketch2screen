@@ -6,6 +6,8 @@ import {useState, useRef, forwardRef, useImperativeHandle} from "react";
 import PageSidebar from "./reusable_sidebar";
 import type { Mock } from "node:test";
 import { OutputPage } from "./setting/OutputPage";
+import { useEffect } from 'react';
+import VariationSidebar from "./DesignStyleChangeUsingAI/components/VariationSidebar";
 
 export type MockupPage = {
   /** Unique identifier */
@@ -38,6 +40,13 @@ export interface MockupHandle {
 const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, onSelectPage }: Props, ref) => {
   /** Sidebar expanded or not */
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  // Variation sidebar state
+  const [selectedElement, setSelectedElement] = useState<{
+    id: string;
+    html: string;
+    type: string;
+  } | null>(null);
+
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Expose iframe ref to parent component
@@ -48,9 +57,24 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
   /** Currently active mockup */
   const activeMockup = mockups.find((m) => m.id === activePageId);
 
-  /** Sanitized HTML for display */
-  const safeHtml = activeMockup ? DOMPurify.sanitize(activeMockup.html) : "";
 
+  /** Clean HTML */
+  // Clean markdown fences from mockup HTML
+  const cleanedHtml = activeMockup 
+  ? activeMockup.html
+      .replace(/```html\n?/gi, '')
+      .replace(/```\n?/g, '')
+      .trim()
+  : "";
+
+  /** Sanitized HTML for display */
+   const safeHtml = cleanedHtml ? DOMPurify.sanitize(cleanedHtml, {
+    WHOLE_DOCUMENT: true,
+    FORCE_BODY: false,
+    ADD_TAGS: ['link','script'],
+    ADD_ATTR: ['target']
+  }) : "";
+  
   /**Message if no mockups */
   if (mockups.length === 0) {
     return (
@@ -60,9 +84,55 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
     );
   }
 
+  /**  Listen for element selection messages from iframe*/
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'ELEMENT_SELECTED') {
+        setSelectedElement({
+          id: event.data.elementId,
+          html: event.data.elementHtml,
+          type: event.data.elementType,
+        });
+      } else if (event.data.type === 'APPLY_VARIATION') {
+        // Variation was applied - could add success notification here
+        console.log('Variation applied:', event.data.elementId);
+      }
+    };
+    
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Handle applying a variation
+  const handleApplyVariation = (newHtml: string) => {
+    console.log('🔵 Mockup: Applying variation', {
+        elementId: selectedElement?.id,
+        newHtml: newHtml.substring(0, 30),
+        iframeExists: !!iframeRef.current,
+        iframeContentWindow: !!iframeRef.current?.contentWindow
+      });
+
+    if (!iframeRef.current || !selectedElement){
+          console.error('❌ Cannot apply: iframe or selectedElement missing');
+          return;
+    }
+
+    // Send message to iframe to update the element
+    iframeRef.current.contentWindow?.postMessage({
+      type: 'APPLY_VARIATION',
+      elementId: selectedElement.id,
+      newHtml: newHtml,
+    }, '*');
+  };
+
+   // Close variation sidebar
+  const handleCloseSidebar = () => {
+    setSelectedElement(null);
+  };
+
 
   return (
-    <div className = {styles.mockupContainer}>
+    <div className = {selectedElement ? styles.mockupContainerWithVariations : styles.mockupContainer}>
         <PageSidebar<MockupPage>
           title="Generated Pages"
           items={mockups}
@@ -90,6 +160,16 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
             </div>
           )}
         </div>
+        {/* Variation sidebar */}
+        {selectedElement && (
+          <VariationSidebar
+            elementId={selectedElement.id}
+            elementHtml={selectedElement.html}
+            elementType={selectedElement.type}
+            onApplyVariation={handleApplyVariation}
+            onClose={handleCloseSidebar}
+          />
+        )}
     </div>
     );
 });

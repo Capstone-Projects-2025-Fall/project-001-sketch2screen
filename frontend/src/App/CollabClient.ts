@@ -21,7 +21,14 @@ export default class CollabClient {
    */
   constructor(collabID: number) {
     this.collabID = collabID
-    this.connection = new WebSocket("ws://"+window.location.hostname+":"+window.location.port+"/ws/collab/"+collabID+"/")
+
+    let proto = "ws://"
+
+    if(window.location.protocol == "https:") {
+      proto = "wss://"
+    }
+
+    this.connection = new WebSocket(proto+window.location.hostname+":"+window.location.port+"/ws/collab/"+collabID+"/")
    
     this.connection.onopen = () => {
       console.log("WebSocket connected for collaboration:", collabID)

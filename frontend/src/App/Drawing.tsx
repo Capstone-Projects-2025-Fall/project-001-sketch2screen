@@ -1,4 +1,4 @@
-import React, { forwardRef, useCallback, useImperativeHandle, useRef } from "react";
+import React, { forwardRef, useCallback, useImperativeHandle, useRef, useEffect} from "react";
 import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
 import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
@@ -63,6 +63,15 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
     appState: any | null;
     files: Record<string, any> | null;
   }>({ elements: null, appState: null, files: null });
+
+  //flag to skip onChange right after initial load
+  const skipNextOnChange = useRef(false);
+
+  useEffect(() => {
+    if (initialScene){
+      skipNextOnChange.current = true;
+    }
+  }, []);
 
   /**
    * Exports the current drawing as a PNG blob
@@ -140,9 +149,27 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
             : undefined
         }
         onChange={(elements, appState, files) => {
+
+            console.log("🟡 onChange fired", {
+              skipNext: skipNextOnChange.current,
+              elementsCount: elements?.length,
+              hasElements: !!elements
+            });
+
+          if (skipNextOnChange.current) {
+            console.log("🔴 Skipping due to skipNextOnChange");
+
+            skipNextOnChange.current = false;
+            lastSceneRefs.current = { elements, appState, files };
+            return;
+          }
           
           if (excaliRef.current && appState.zoom.value < 1) 
           {
+           console.log("🟠 Skipping due to zoom < 1");
+
+          //important to update lastSceneRefs to maintain duplicate detection
+          lastSceneRefs.current = { elements, appState, files };
           excaliRef.current.updateScene({
             appState: {
               ...appState,
@@ -158,23 +185,27 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
             lastSceneRefs.current.appState === appState &&
             lastSceneRefs.current.files === files
           ) {
+            // Skip duplicate calls
+            console.log("🟤 Skipping duplicate onChange");
+
             return;
           }
-          
+
           // Only trigger onSceneChange if elements or files changed (actual drawing content)
           // Ignore appState changes (zoom, pan, tool selection, etc.)
-          const elementsChanged = lastSceneRefs.current.elements !== elements;
-          const filesChanged = lastSceneRefs.current.files !== files;
           
           lastSceneRefs.current = { elements, appState, files };
 
-          if (elementsChanged || filesChanged) {
-            onSceneChange?.({
-              elements: elements ?? ([] as readonly any[]),
-              appState: appState ?? {},
-              files: files ?? {},
-            });
-          }
+          
+          console.log("✅ Calling onSceneChange with elements:", elements?.length);
+
+          onSceneChange?.({
+            elements: elements ?? ([] as readonly any[]),
+            appState: appState ?? {},
+            files: files ?? {},
+          });
+          
+
         }}
 
 

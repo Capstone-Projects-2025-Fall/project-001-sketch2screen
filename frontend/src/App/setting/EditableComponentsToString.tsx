@@ -115,6 +115,12 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
   const generateHTML = (): string => {
     const styles = `
       <style>
+        html, body {
+          margin: 0;
+          padding: 0;
+          height: 100%;
+          width: 100%;
+        }
         .editable-element {
           transition: outline 0.2s ease;
         }
@@ -165,6 +171,24 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
         let selectedElement = null;
         const panel = document.getElementById('settings-panel');
 
+        // Detect element type for variations
+        function detectElementType(element) {
+          const tag = element.tagName.toLowerCase();
+          const classes = element.className || '';
+          
+          if (tag === 'button' || classes.includes('btn')) return 'button';
+          if (tag === 'input' || tag === 'textarea' || tag === 'select') return 'input';
+          if (tag === 'form') return 'form';
+          if (classes.includes('card')) return 'card';
+          if (tag === 'nav' || classes.includes('nav')) return 'navigation';
+          if (tag === 'header') return 'header';
+          if (tag === 'footer') return 'footer';
+          if (tag === 'aside' || classes.includes('sidebar')) return 'sidebar';
+          if (tag === 'section') return 'section';
+          
+          return tag;
+        }
+
         // Add click handlers to all editable elements
         document.querySelectorAll('.editable-element').forEach(element => {
           element.addEventListener('click', (e) => {
@@ -178,6 +202,17 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
             
             selectedElement = element;
             element.classList.add('selected');
+
+            // Notify parent of element selection for variations
+            if (window.parent && window.parent.postMessage) {
+              window.parent.postMessage({
+                type: 'ELEMENT_SELECTED',
+                elementId: element.dataset.elementId,
+                elementHtml: element.outerHTML,
+                elementType: detectElementType(element),
+                styles: window.getComputedStyle(element).cssText
+              }, '*');
+            }
             
             // Position and show panel
             const rect = element.getBoundingClientRect();
@@ -278,8 +313,100 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
             window.parent.postMessage({ type: 'STYLES_UPDATED', styles }, '*');
           }
         }
+          // Listen for variation application from parent
+        window.addEventListener('message', function(event) {
+          console.log('Iframe received message:', event.data.type);
+
+          if (event.data.type === 'APPLY_VARIATION') {
+            const elementId = event.data.elementId;
+            const newHtml = event.data.newHtml;
+            
+             console.log('🟢 Applying variation:', {
+              elementId: elementId,
+              newHtml: newHtml.substring(0, 100)
+            });
+
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            console.log('🟢 Found element:', !!element);
+
+            if (element && newHtml) {
+              // Parse new HTML
+              const temp = document.createElement('div');
+              temp.innerHTML = newHtml;
+              const newElement = temp.firstElementChild;
+
+              console.log('🟢 Parsed new element:', !!newElement);
+
+              if (newElement) {
+                // Preserve the element ID
+                newElement.setAttribute('data-element-id', elementId);
+                newElement.classList.add('editable-element');
+                
+                console.log('🟢 About to replace element');
+
+                // Store the old click handler
+                const clickHandler = function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  // Deselect previous element
+                  if (selectedElement) {
+                    selectedElement.classList.remove('selected');
+                  }
+                  
+                  selectedElement = newElement;
+                  newElement.classList.add('selected');
+                  
+                  // Position and show panel
+                  const rect = newElement.getBoundingClientRect();
+                  panel.style.display = 'block';
+                  panel.style.top = (rect.bottom + 10) + 'px';
+                  panel.style.left = rect.left + 'px';
+
+                  // Update input values
+                  const style = window.getComputedStyle(newElement);
+                  panel.querySelectorAll('input').forEach(function(input) {
+                    const property = input.dataset.style;
+                    if (input.type === 'color') {
+                      input.value = rgbToHex(style[property]);
+                    } else {
+                      input.value = style[property];
+                    }
+                  });
+                  
+                  // Notify parent of element selection for variations
+                  if (window.parent && window.parent.postMessage) {
+                    window.parent.postMessage({
+                      type: 'ELEMENT_SELECTED',
+                      elementId: newElement.dataset.elementId,
+                      elementHtml: newElement.outerHTML,
+                      elementType: detectElementType(newElement),
+                      styles: window.getComputedStyle(newElement).cssText
+                    }, '*');
+                  }
+                };
+                
+                // Replace in DOM
+                element.replaceWith(newElement);
+                
+                console.log('✅ Element replaced successfully!');
+
+                // Attach click handler to new element
+                newElement.addEventListener('click', clickHandler);
+                
+                // Notify parent of successful application
+                if (window.parent && window.parent.postMessage) {
+                  window.parent.postMessage({
+                    type: 'VARIATION_APPLIED',
+                    elementId: elementId
+                  }, '*');
+                }
+              }
+            }
+          }
+        });
       </script>
-    `;
+      `;
 
     // Combine everything into a complete HTML document
     return `
@@ -287,6 +414,8 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
       <html>
         <head>
           <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
           ${styles}
         </head>
         <body>

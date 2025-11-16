@@ -32,15 +32,16 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
       id="settings-panel"
       style={{
         position: 'fixed',
-        padding: '12px',
+        padding: 'auto',
         background: 'white',
         border: '1px solid #ccc',
         borderRadius: '8px',
         boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        zIndex: 1000,
-        display: 'none',
-        width: '250px',
-        maxHeight: 'calc(100vh - 100px)', // Prevent panel from exceeding viewport
+        zIndex: 2,
+        display: 'grid',
+        maxWidth: '30%',
+        maxHeight: '35%', // Prevent panel from exceeding viewport
+        boxSizing:"border-box",
         overflowY: 'auto',
         fontFamily: 'Arial, sans-serif'
       }}
@@ -216,7 +217,7 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
             // Position and show panel
             const rect = element.getBoundingClientRect();
             panel.style.display = 'block';
-            panel.style.top = (rect.bottom + 10) + 'px';
+            panel.style.top = (rect.top - 10) + 'px';
             panel.style.left = rect.left + 'px';
 
             // Update input values

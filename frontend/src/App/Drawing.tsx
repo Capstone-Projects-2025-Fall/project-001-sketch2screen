@@ -182,7 +182,6 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
           //Guard against duplicate calls
           if (
             lastSceneRefs.current.elements === elements &&
-            lastSceneRefs.current.appState === appState &&
             lastSceneRefs.current.files === files
           ) {
             // Skip duplicate calls

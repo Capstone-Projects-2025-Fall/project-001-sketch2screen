@@ -109,18 +109,6 @@ export function useCollaboration({
           console.log("Stroke complete - sending scene update:", pageId);
           collabClientRef.current.sendSceneUpdate(pageId, scene);
           pendingSceneRef.current = null;
-        } else {
-          setPages(prev => {
-            const i = prev.findIndex(p => p.id === activePageId);
-            if (i >= 0) {
-              const currentScene = prev[i].scene;
-              collabClientRef.current?.sendSceneUpdate(activePageId, {
-                ...currentScene,
-                appState: null
-              });
-            }
-            return prev;
-          });
         }
       } else if (wasDrawing) {
         console.log("Stroke complete - collaboration not enabled or client not ready");
@@ -268,6 +256,7 @@ export function useCollaboration({
    * Should be called from the main handleSceneChange function
    */
   const handleCollabSceneChange = (scene: SceneData, oldScene?: SceneData) => {
+    if (scene.appState?.editingTextElement) { return; }
     if (collabEnabled && collabClientRef.current) 
     {
       const elementsChanged = oldScene?.elements !== scene.elements;

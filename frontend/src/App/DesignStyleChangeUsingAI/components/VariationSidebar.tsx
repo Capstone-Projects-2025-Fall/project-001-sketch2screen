@@ -61,16 +61,7 @@ export default function VariationSidebar({
   return (
     <aside className={styles.variationSidebar}>
       {/* Header */}
-      <div className={styles.variationSidebarHeader}>
-        <span>Design Options</span>
-        <button
-          onClick={onClose}
-          className={styles.variationCloseBtn}
-          title="Close sidebar"
-        >
-          ×
-        </button>
-      </div>
+      
 
       {/* Scrollable content */}
       <div className={styles.variationSidebarContent}>

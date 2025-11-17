@@ -8,6 +8,7 @@ import type { Mock } from "node:test";
 import { OutputPage } from "./setting/OutputPage";
 import { useEffect } from 'react';
 import VariationSidebar from "./DesignStyleChangeUsingAI/components/VariationSidebar";
+import SettingsPanel from "./sidebar/SettingsPanel";
 
 export type MockupPage = {
   /** Unique identifier */
@@ -40,6 +41,8 @@ export interface MockupHandle {
 const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, onSelectPage }: Props, ref) => {
   /** Sidebar expanded or not */
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  //State for active tab
+  const [activeTab, setActiveTab] = useState<'pages' | 'settings' | 'variations'>('pages');
   // Variation sidebar state
   const [selectedElement, setSelectedElement] = useState<{
     id: string;
@@ -85,6 +88,7 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
   }
 
   /**  Listen for element selection messages from iframe*/
+  /**  Listen for element selection messages from iframe*/
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'ELEMENT_SELECTED') {
@@ -93,6 +97,11 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
           html: event.data.elementHtml,
           type: event.data.elementType,
         });
+        
+        // Auto-switch to Settings tab only if currently on Pages tab
+        if (activeTab === 'pages') {
+          setActiveTab('settings');
+        }
       } else if (event.data.type === 'APPLY_VARIATION') {
         // Variation was applied - could add success notification here
         console.log('Variation applied:', event.data.elementId);
@@ -101,8 +110,13 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
     
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, []);
+  }, [activeTab]);
 
+  // Reset to Pages tab when switching mockup pages
+    useEffect(() => {
+      setActiveTab('pages');
+    }, [activePageId]);
+    
   // Handle applying a variation
   const handleApplyVariation = (newHtml: string) => {
     console.log('🔵 Mockup: Applying variation', {
@@ -132,22 +146,99 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
 
 
   return (
-    <div className = {selectedElement ? styles.mockupContainerWithVariations : styles.mockupContainer}>
-        <PageSidebar<MockupPage>
-          title="Generated Pages"
-          items={mockups}
-          activeItemId={activePageId || mockups[0].id}
-          onSelectItem={onSelectPage || (() => {})}
-          editingId={null}
-          onSetEditingId={() => {}} // No editing in mockup view
-          expanded={sidebarExpanded}
-          onToggleExpanded={() => setSidebarExpanded(!sidebarExpanded)}
-          showActions={false} // No add/duplicate in mockup view
-          allowDelete={false} // No delete in mockup view
-        />
+    <div className={styles.mockupContainer}>
+      {/* Tabbed Sidebar */}
+      <>
+        <button
+          className={styles.sidebarToggle}
+          onClick={() => setSidebarExpanded(!sidebarExpanded)}
+          aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+          title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
+          style={{ left: sidebarExpanded ? '260px' : '0px' }}
+        >
+          {sidebarExpanded ? '«' : '»'}
+        </button>
 
-        <div className={styles.mockup}>
-          {activeMockup && (
+        <aside className={`${styles.sidebar} ${!sidebarExpanded ? styles.sidebarCollapsed : ""}`}>
+          {/* Tab Bar */}
+          <div className={styles.tabBar}>
+            <button
+              className={`${styles.tab} ${activeTab === 'pages' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('pages')}
+            >
+              Pages
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'settings' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('settings')}
+            >
+              Settings
+            </button>
+            <button
+              className={`${styles.tab} ${activeTab === 'variations' ? styles.tabActive : ''}`}
+              onClick={() => setActiveTab('variations')}
+            >
+              Variations
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          <div className={styles.tabContent}>
+            {/* Pages Tab */}
+            {activeTab === 'pages' && (
+              <div className={styles.pageList}>
+                {mockups.map((mockup) => (
+                  <div
+                    key={mockup.id}
+                    className={`${styles.pageItem} ${mockup.id === activePageId ? styles.pageItemSelected : ''}`}
+                    onClick={() => onSelectPage(mockup.id)}
+                    title={mockup.name}
+                  >
+                    <div className={styles.pageItemLabel}>
+                      <span className={styles.pageIcon} aria-hidden />
+                      <span className={styles.pageNameText}>{mockup.name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Settings Tab */}
+            {activeTab === 'settings' && (
+              <SettingsPanel 
+                selectedElement={selectedElement} 
+                iframeRef={iframeRef}
+              />
+            )}
+
+            {/* Variations Tab */}
+            {activeTab === 'variations' && (
+              <div className={styles.variationsTabWrapper}>
+                {!selectedElement ? (
+                  <div className={styles.emptyState}>
+                    <p>Select an element to see design variations</p>
+                  </div>
+                ) : (
+                  <VariationSidebar
+                    elementId={selectedElement.id}
+                    elementHtml={selectedElement.html}
+                    elementType={selectedElement.type}
+                    onApplyVariation={handleApplyVariation}
+                    onClose={() => setSelectedElement(null)}
+                  />
+                )}
+              </div>
+            )}
+          </div>
+        </aside>
+      </>
+
+      {/* Mockup Preview */}
+      <div className={styles.mockup}>
+        {mockups.length === 0 ? (
+          <em>No mockup yet. Draw your sketch and press "Generate".</em>
+        ) : (
+          activeMockup && (
             <div className={styles.previewContainer}>
               <iframe
                 srcDoc={OutputPage(safeHtml)}
@@ -158,18 +249,9 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
                 ref={iframeRef}
               />
             </div>
-          )}
-        </div>
-        {/* Variation sidebar */}
-        {selectedElement && (
-          <VariationSidebar
-            elementId={selectedElement.id}
-            elementHtml={selectedElement.html}
-            elementType={selectedElement.type}
-            onApplyVariation={handleApplyVariation}
-            onClose={handleCloseSidebar}
-          />
+          )
         )}
+      </div>
     </div>
     );
 });

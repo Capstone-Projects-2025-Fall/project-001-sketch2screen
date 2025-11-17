@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react';
-import styles from './App.module.css';
+import styles from '../App.module.css';
 
 type SettingsPanelProps = {
   selectedElement: {
@@ -7,7 +7,7 @@ type SettingsPanelProps = {
     html: string;
     type: string;
   } | null;
-  iframeRef: React.RefObject<HTMLIFrameElement>;
+  iframeRef: React.RefObject<HTMLIFrameElement | null>;
 };
 
 type StyleValues = {

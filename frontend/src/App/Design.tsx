@@ -3,7 +3,6 @@
 import DOMPurify from "dompurify";
 import styles from "./App.module.css";
 import {useState, useRef, forwardRef, useImperativeHandle} from "react";
-import PageSidebar from "./reusable_sidebar";
 import type { Mock } from "node:test";
 import { OutputPage } from "./setting/OutputPage";
 import { useEffect } from 'react';
@@ -154,7 +153,7 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
           onClick={() => setSidebarExpanded(!sidebarExpanded)}
           aria-label={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
           title={sidebarExpanded ? "Collapse sidebar" : "Expand sidebar"}
-          style={{ left: sidebarExpanded ? '260px' : '0px' }}
+          style={{ left: sidebarExpanded ? '310px' : '0px' }}
         >
           {sidebarExpanded ? '«' : '»'}
         </button>

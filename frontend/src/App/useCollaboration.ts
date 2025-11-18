@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import CollabClient from "./CollabClient";
-import type { SceneData } from "./Drawing";
+import type { SceneData } from "./Sketch";
 import type { SketchPage } from "./sketchPage";
 
 export interface UseCollaborationParams {

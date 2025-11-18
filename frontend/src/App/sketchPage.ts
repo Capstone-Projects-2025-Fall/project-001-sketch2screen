@@ -1,4 +1,4 @@
-import type { SceneData } from "./Drawing";
+import type { SceneData } from "./Sketch";
 
 /** Represents a single sketch page with its metadata and content */
 export type SketchPage = {

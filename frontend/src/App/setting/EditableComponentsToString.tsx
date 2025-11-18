@@ -98,6 +98,19 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
           });
         });
 
+        // Store original HTML for each element (for undo/redo restoration)
+        const originalElements = new Map();
+        document.querySelectorAll('.editable-element').forEach(element => {
+          originalElements.set(element.dataset.elementId, element.outerHTML);
+        });
+
+        // Notify parent that iframe has loaded
+        if (window.parent && window.parent.postMessage) {
+          window.parent.postMessage({
+            type: 'IFRAME_LOADED'
+          }, '*');
+        }
+
         // Listen for messages from parent
         window.addEventListener('message', function(event) {
           // Get element styles request
@@ -188,6 +201,75 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
               }
             }
           }
+          // Restore original element and apply styles
+          if (event.data.type === 'RESTORE_ORIGINAL') {
+            const elementId = event.data.elementId;
+            const styles = event.data.styles;
+            
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            const originalHtml = originalElements.get(elementId);
+            
+            if (element && originalHtml) {
+              // Parse original HTML
+              const temp = document.createElement('div');
+              temp.innerHTML = originalHtml;
+              const originalElement = temp.firstElementChild;
+              
+              if (originalElement) {
+                // Replace current element with original
+                element.replaceWith(originalElement);
+                
+                // Apply saved styles
+                if (styles) {
+                  Object.keys(styles).forEach(function(property) {
+                    originalElement.style[property] = styles[property];
+                  });
+                }
+                
+                // Reattach click handler
+                originalElement.addEventListener('click', (e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  
+                  if (selectedElement) {
+                    selectedElement.classList.remove('selected');
+                  }
+                  
+                  selectedElement = originalElement;
+                  originalElement.classList.add('selected');
+                  
+                  if (window.parent && window.parent.postMessage) {
+                    window.parent.postMessage({
+                      type: 'ELEMENT_SELECTED',
+                      elementId: originalElement.dataset.elementId,
+                      elementHtml: originalElement.outerHTML,
+                      elementType: detectElementType(originalElement),
+                    }, '*');
+                  }
+                });
+              }
+            }
+          }
+
+          // Inject multiple styles at once (used on page load)
+          if (event.data.type === 'INJECT_STYLES') {
+            const stylesToInject = event.data.styles;
+            
+            if (stylesToInject) {
+              Object.keys(stylesToInject).forEach(function(elementId) {
+                const styleData = stylesToInject[elementId];
+                const element = document.querySelector('[data-element-id="' + elementId + '"]');
+                
+                if (element && styleData) {
+                  // Apply each style property
+                  Object.keys(styleData).forEach(function(property) {
+                    element.style[property] = styleData[property];
+                  });
+                }
+              });
+            }
+          }
+
         });
   </script>
       `;

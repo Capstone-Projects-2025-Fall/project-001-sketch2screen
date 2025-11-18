@@ -8,6 +8,7 @@ type SettingsPanelProps = {
     type: string;
   } | null;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
+  onStyleChange?: (elementId: string, property: string, value: string) => void;
 };
 
 type StyleValues = {
@@ -21,7 +22,7 @@ type StyleValues = {
   borderRadius: string;
 };
 
-export default function SettingsPanel({ selectedElement, iframeRef }: SettingsPanelProps) {
+export default function SettingsPanel({ selectedElement, iframeRef, onStyleChange }: SettingsPanelProps) {
   const [styleValues, setStyleValues] = useState<StyleValues>({
     width: '',
     height: '',
@@ -87,13 +88,8 @@ export default function SettingsPanel({ selectedElement, iframeRef }: SettingsPa
     }
 
     debounceTimers.current[property] = setTimeout(() => {
-      if (selectedElement && iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage({
-          type: 'UPDATE_ELEMENT_STYLE',
-          elementId: selectedElement.id,
-          property,
-          value,
-        }, '*');
+      if (selectedElement){
+        onStyleChange?.(selectedElement.id, property, value);
       }
     }, 300);
   };

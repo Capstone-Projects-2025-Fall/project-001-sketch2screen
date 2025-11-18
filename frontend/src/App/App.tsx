@@ -129,6 +129,27 @@ export default function App() {
 
   // ref for pointer event
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
+
+
+  /** Store Style and Variations changes per mockup page  */
+  const [mockupStyles, setMockupStyles] = useState<{
+    [mockupPageId: string]: {
+      [elementId: string]: {
+        current: {
+          styles: { [property: string]: string };
+          html: string | null;
+        };
+        history: Array<{
+          styles: { [property: string]: string };
+          html: string | null;
+        }>;
+        future: Array<{
+          styles: { [property: string]: string };
+          html: string | null;
+        }>;
+      };
+    };
+  }>({});
   
   // collaboration hook
   const {
@@ -301,6 +322,13 @@ export default function App() {
     });
     
     setMockups(prev => prev.filter(m => m.id !== id));
+
+    // Clean up style history for deleted page
+    setMockupStyles(prev => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
 
     // Notify collaboration of deletion
     notifyPageDeleted(id);
@@ -546,7 +574,7 @@ export default function App() {
 
       
         {/*Mockup view*/}
-        {currentPage === Page.Mockup && <Mockup ref={mockupRef} mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} />}
+        {currentPage === Page.Mockup && <Mockup ref={mockupRef} mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} mockupStyles = {mockupStyles} setMockupStyles = {setMockupStyles}/>}
 
         {/* Loading overlay */}
         {loading && (

@@ -123,6 +123,12 @@ export default function App() {
   // ref for pointer event
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
   
+  /** Index of the active page in the pages array */
+  const activeIndex = useMemo(
+    () => pages.findIndex((p) => p.id === activePageId),
+    [pages, activePageId]
+  );
+
   // collaboration hook
   const {
     collabEnabled,
@@ -148,17 +154,19 @@ export default function App() {
     canvasHostRef,
   });
 
-  /** Index of the active page in the pages array */
-  const activeIndex = useMemo(
-    () => pages.findIndex((p) => p.id === activePageId),
-    [pages, activePageId]
-  );
+  if(window.location.search.includes("collab=") && !collabEnabled) handleShowCollaboration();
+
 
   /** Currently active sketch page */
   const activeSketch = pages[activeIndex] ?? pages[0];
   
   /** Refs to page DOM elements for scrolling */
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  //use excalidraw api instead of keying for remounts
+  useEffect(() => {
+    setTimeout(() => drawingRefs.current?.[activePageId]?.updateScene(activeSketch.scene), 0)
+  }, [sceneVersion, activeSketch, activePageId])
 
   /** Scroll active page into view when it changes */
   useEffect(() => {
@@ -175,10 +183,10 @@ export default function App() {
   const handleSceneChange = (scene: SceneData) => {
 
     console.log("🔵 App.handleSceneChange called", {
-    activePageId,
-    elementsCount: scene.elements?.length,
-    pagesCount: pages.length
-   });
+      activePageId,
+      elementsCount: scene.elements?.length,
+      pagesCount: pages.length
+    });
 
     setPages(prev => {
       const i = prev.findIndex(p => p.id === activePageId);
@@ -186,22 +194,20 @@ export default function App() {
 
       if (i < 0) return prev;
       
-      const oldScene = prev[i]?.scene;
+      const oldScene = prev[i].scene
       const next = [...prev];
       next[i] = { ...next[i], scene };
 
       console.log("🔵 Updated page scene", {
-      pageId: next[i].id,
-      newElementsCount: scene.elements?.length
-    });
+        pageId: next[i].id,
+        newElementsCount: scene.elements?.length
+      });
 
-      //handle collaboration scene change
-      
-      handleCollabSceneChange(scene, oldScene);
-      
+      handleCollabSceneChange(scene);
 
       return next;
     });
+
   };
 
   // === PAGE MANAGEMENT ===
@@ -523,7 +529,7 @@ const handleExport = () => {
         {/* Only render the ACTIVE Drawing component */}
         {currentPage === Page.Drawing && activeSketch && (
           <Drawing 
-            key={`${activeSketch?.id}-v${sceneVersion}`}
+            key={`${activeSketch?.id}`}//-v${sceneVersion}`}
             ref={(ref) => { drawingRefs.current[activePageId] = ref; }} 
             className={styles.canvas} 
             visible={true}

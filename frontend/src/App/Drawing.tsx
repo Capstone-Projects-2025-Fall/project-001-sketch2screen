@@ -2,6 +2,7 @@ import React, { forwardRef, useCallback, useImperativeHandle, useRef, useEffect}
 import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
 import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
+import {generateDiff} from "./util.ts";
 
 
 /** Represents a complete Excalidraw scene with all its components */
@@ -18,6 +19,7 @@ export type SceneData = {
 export type DrawingHandle = {
   /** Exports the current drawing as a PNG blob */
   getPNGBlob: () => Promise<Blob | null>;
+  updateScene: (scene: SceneData) => void;
 };
 
 //Props that can be passed into <Drawing />
@@ -36,6 +38,8 @@ export interface DrawingProps {
   onSceneChange?: (scene: SceneData) => void;
   /** Callback to receive Excalidraw API */
   onExcalidrawAPI?: (api: any) => void;
+
+  ref: (ref: any) => void;
 }
 
 /** Type representing Excalidraw's API methods */
@@ -50,22 +54,20 @@ type ExcalidrawAPI = NonNullable<
  * @param props - Component properties
  * @param ref - Forwarded ref for accessing component methods
  */
-const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
-  { className, visible, initialScene, onSceneChange, onExcalidrawAPI },
-  ref
+function Drawing(
+  { className, visible, initialScene, onSceneChange, onExcalidrawAPI, ref }: DrawingProps
 ) {
   /** Reference to Excalidraw's API methods */
   const excaliRef = useRef<ExcalidrawAPI | null>(null);
 
-  /** Cache of last scene state to prevent duplicate updates */
-  const lastSceneRefs = useRef<{
-    elements: readonly any[] | null;
-    appState: any | null;
-    files: Record<string, any> | null;
-  }>({ elements: null, appState: null, files: null });
-
   //flag to skip onChange right after initial load
   const skipNextOnChange = useRef(false);
+
+  const initialSceneCopy = initialScene ?? structuredClone(initialScene)
+
+  const lastChangeRef = useRef({elements: initialSceneCopy?.elements, files: initialSceneCopy?.files});
+
+  const pendingChangeHandlerRef =  useRef(false);
 
   useEffect(() => {
     if (initialScene){
@@ -108,12 +110,18 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
     });
   }, []);
 
+  function updateScene(scene: SceneData) {
+    skipNextOnChange.current = true;
+    excaliRef.current?.updateScene(scene);
+  }
+
 
   // Expose methods to parent via ref
   useImperativeHandle(ref, () => ({
     getPNGBlob,
+    updateScene,
   }));
- 
+
   return (
     <div
       className={className}
@@ -140,71 +148,59 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
 
         // Load the page scene on mount
         initialData={
-          initialScene
-            ? {
-                elements: initialScene.elements ?? [],
-                appState: initialScene.appState ?? {},
-                files: initialScene.files ?? {},
-              }
-            : undefined
+          initialSceneCopy
         }
         onChange={(elements, appState, files) => {
-
+          if(pendingChangeHandlerRef.current) return;
+          else pendingChangeHandlerRef.current = true;
+          setTimeout(() => {
+            let elements = excaliRef.current?.getSceneElements()
+            pendingChangeHandlerRef.current = false;
             console.log("🟡 onChange fired", {
               skipNext: skipNextOnChange.current,
               elementsCount: elements?.length,
               hasElements: !!elements
             });
 
-          if (skipNextOnChange.current) {
-            console.log("🔴 Skipping due to skipNextOnChange");
+            if (skipNextOnChange.current) {
+              console.log("🔴 Skipping due to skipNextOnChange");
 
-            skipNextOnChange.current = false;
-            lastSceneRefs.current = { elements, appState, files };
-            return;
-          }
-          
-          if (excaliRef.current && appState.zoom.value < 1) 
-          {
-           console.log("🟠 Skipping due to zoom < 1");
+              skipNextOnChange.current = false;
+              return;
+            }
+            
+            if (excaliRef.current && appState.zoom.value < 1) 
+            {
+             console.log("🟠 Skipping due to zoom < 1");
 
-          //important to update lastSceneRefs to maintain duplicate detection
-          lastSceneRefs.current = { elements, appState, files };
-          excaliRef.current.updateScene({
-            appState: {
-              ...appState,
-              zoom: { value: 1 as NormalizedZoomValue },
-            },
-          });
-          return; // Don't process this change
-          }
+              excaliRef.current.updateScene({
+                appState: {
+                  ...appState,
+                  zoom: { value: 1 as NormalizedZoomValue },
+                },
+              });
+            return; // Don't process this change
+            }
 
-          //Guard against duplicate calls
-          if (
-            lastSceneRefs.current.elements === elements &&
-            lastSceneRefs.current.files === files
-          ) {
-            // Skip duplicate calls
-            console.log("🟤 Skipping duplicate onChange");
+            //Guard against duplicate calls
+            
+            if (
+              generateDiff({elements, files}, lastChangeRef.current) === undefined
+            ) {
+              // Skip duplicate calls
+              console.log("🟤 Skipping duplicate onChange");
 
-            return;
-          }
+              return;
+            }
 
-          // Only trigger onSceneChange if elements or files changed (actual drawing content)
-          // Ignore appState changes (zoom, pan, tool selection, etc.)
-          
-          lastSceneRefs.current = { elements, appState, files };
-
-          
-          console.log("✅ Calling onSceneChange with elements:", elements?.length);
-
-          onSceneChange?.({
-            elements: elements ?? ([] as readonly any[]),
-            appState: appState ?? {},
-            files: files ?? {},
-          });
-          
-
+            lastChangeRef.current = structuredClone({elements, files});
+            
+            onSceneChange?.({
+              elements: elements ?? ([] as readonly any[]),
+              appState: appState ?? {},
+              files: files ?? {},
+            })
+          }, 50);
         }}
 
 
@@ -220,7 +216,7 @@ const Drawing = forwardRef<DrawingHandle, DrawingProps>(function Drawing(
       />
     </div>
   );
-});
+};
 
 export default Drawing;
 

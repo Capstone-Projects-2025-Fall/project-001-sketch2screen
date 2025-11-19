@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo } from "react";
 import CollabClient from "./CollabClient";
-import type { SceneData } from "./Drawing";
+import type { DrawingHandle, SceneData } from "./Drawing";
 import type { SketchPage } from "./sketchPage";
+import {generateDiff, applyDiff} from "./util";
 
 export interface UseCollaborationParams {
   /** Initial collaboration ID from URL or generated */
@@ -83,6 +84,12 @@ export function useCollaboration({
   const pendingSceneRef = useRef<{ pageId: string; scene: SceneData } | null>(null);
   const [sceneVersion, setSceneVersion] = useState<number>(0);
 
+  //Hold reference to last sent scene
+  const lastSentScene = useRef(pages.find((p) => p.id === activePageId)?.scene)
+  useEffect(() => {
+    lastSentScene.current = pages.find((p) => p.id === activePageId)?.scene
+  }, [activePageId])
+
   // === POINTER EVENT HANDLING ===
   // Avoid remounts during a local stroke: detect pointer activity on the canvas host
   useEffect(() => {
@@ -106,8 +113,10 @@ export function useCollaboration({
       if (wasDrawing && collabEnabled && collabClientRef.current) {
         if (pendingSceneRef.current) {
           const { pageId, scene } = pendingSceneRef.current;
+          const sceneToSend = generateDiff(lastSentScene.current, scene)
           console.log("Stroke complete - sending scene update:", pageId);
-          collabClientRef.current.sendSceneUpdate(pageId, scene);
+          collabClientRef.current.sendSceneUpdate(pageId, sceneToSend);
+          lastSentScene.current = structuredClone(scene)
           pendingSceneRef.current = null;
         }
       } else if (wasDrawing) {
@@ -126,7 +135,7 @@ export function useCollaboration({
       host.removeEventListener('pointercancel', end as any, true);
       host.removeEventListener('pointerleave', end as any, true);
     };
-  }, [activePageId, collabEnabled, canvasHostRef, setPages]);
+  }, [activePageId, collabEnabled, canvasHostRef]);
 
   // === COLLABORATION WEBSOCKET SETUP ===
   useEffect(() => {
@@ -176,8 +185,8 @@ export function useCollaboration({
     });
 
     // Handle incoming scene updates
-    client.setSceneUpdateHandler((sketchID: string, sceneData: SceneData) => {
-      const currentActivePageId = activePageIdRef.current;
+    client.setSceneUpdateHandler((sketchID: string, sceneDiff: SceneData) => {
+      let currentActivePageId = activePageIdRef.current;
       console.log("Received scene update for:", sketchID, "Current active:", currentActivePageId);
 
       setPages(prev => {
@@ -187,7 +196,10 @@ export function useCollaboration({
           return prev;
         }
         const next = [...prev];
-        
+
+        let sceneData = applyDiff(next[index].scene, sceneDiff)
+        lastSentScene.current = sceneData;
+
         next[index] = {
           ...next[index],
           scene: {
@@ -255,24 +267,22 @@ export function useCollaboration({
    * Handle scene changes with collaboration support
    * Should be called from the main handleSceneChange function
    */
-  const handleCollabSceneChange = (scene: SceneData, oldScene?: SceneData) => {
-    if (scene.appState?.editingTextElement) { return; }
+  const handleCollabSceneChange = (scene: SceneData) => {
+    //if (scene.appState?.editingTextElement) { return; }
     if (collabEnabled && collabClientRef.current) 
     {
-      const elementsChanged = oldScene?.elements !== scene.elements;
-      const filesChanged = oldScene?.files !== scene.files;
+      const sceneToSend = generateDiff(lastSentScene.current, scene);
+      if(sceneToSend === undefined) return;
+      sceneToSend.appState = null
 
-      if (elementsChanged || filesChanged) {
-        const sceneToSend = { ...scene, appState: null };
-
-        if (isDrawingRef.current) {
-          pendingSceneRef.current = { pageId: activePageId, scene: sceneToSend };
-        } else {
-          collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
-        }
+      if (isDrawingRef.current && false) {
+        pendingSceneRef.current = { pageId: activePageId, scene: scene };
+      } else {
+        collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
+        lastSentScene.current = structuredClone(scene)
+        console.log("sending ", sceneToSend)
       }
     }
-
   };
 
   /**

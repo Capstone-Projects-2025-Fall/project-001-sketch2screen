@@ -106,9 +106,9 @@
   font-size: clamp(0.75rem, 1.5vw, 1rem);
   white-space: nowrap;
 
-  height: 2em;
+  height: 2rem;
   min-width: 5rem;
-  width: clamp(5rem, 12vw, 10rem);
+  width: clamp(6rem, 12vw, 10rem);
   padding: 0.25em 0.75em;
 
   background-color: white;

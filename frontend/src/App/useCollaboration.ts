@@ -3,6 +3,7 @@ import CollabClient from "./CollabClient";
 import type { DrawingHandle, SceneData } from "./Drawing";
 import type { SketchPage } from "./sketchPage";
 import {generateDiff, applyDiff} from "./util";
+import {restoreElements} from "@excalidraw/excalidraw";
 
 export interface UseCollaborationParams {
   /** Initial collaboration ID from URL or generated */
@@ -214,7 +215,7 @@ export function useCollaboration({
       // If this update is for the currently active page, force remount
       console.log("Checking remount:", sketchID, "===", currentActivePageId, "?", sketchID === currentActivePageId);
       if (sketchID === currentActivePageId) {
-        if (isDrawingRef.current) {
+        if (isDrawingRef.current && false) {
           console.log("Deferring remount until stroke end");
           needsRemountRef.current = true;
         } else {
@@ -271,6 +272,7 @@ export function useCollaboration({
     //if (scene.appState?.editingTextElement) { return; }
     if (collabEnabled && collabClientRef.current) 
     {
+      //scene.elements = restoreElements(scene.elements, lastSentScene.current?.elements)
       const sceneToSend = generateDiff(lastSentScene.current, scene);
       if(sceneToSend === undefined) return;
       sceneToSend.appState = null

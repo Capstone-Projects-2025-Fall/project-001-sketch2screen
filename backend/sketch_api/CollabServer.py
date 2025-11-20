@@ -25,8 +25,7 @@ def applyDiff(base, diff):
             wasList = True
         if key in diff:
             applied = applyDiff(value, diff[key])
-            if applied != None:
-                retval[key] = applied
+            retval[key] = applied
         else:
             retval[key] = value
 

@@ -1,5 +1,5 @@
 import React, { forwardRef, useCallback, useImperativeHandle, useRef, useEffect} from "react";
-import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
+import { Excalidraw, exportToBlob, restoreElements } from "@excalidraw/excalidraw";
 import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
 import {generateDiff} from "./util.ts";
@@ -61,7 +61,7 @@ function Drawing(
   const excaliRef = useRef<ExcalidrawAPI | null>(null);
 
   //flag to skip onChange right after initial load
-  const skipNextOnChange = useRef(false);
+  const skipNextOnChange = useRef(0);
 
   const initialSceneCopy = initialScene ?? structuredClone(initialScene)
 
@@ -71,7 +71,7 @@ function Drawing(
 
   useEffect(() => {
     if (initialScene){
-      skipNextOnChange.current = true;
+      skipNextOnChange.current = 1;
     }
   }, []);
 
@@ -111,7 +111,8 @@ function Drawing(
   }, []);
 
   function updateScene(scene: SceneData) {
-    skipNextOnChange.current = true;
+    skipNextOnChange.current = 1;
+    //scene = {elements: restoreElements(scene.elements, excaliRef.current?.getSceneElements()), appState: scene.appState, files: scene.files}
     excaliRef.current?.updateScene(scene);
   }
 
@@ -165,7 +166,7 @@ function Drawing(
             if (skipNextOnChange.current) {
               console.log("🔴 Skipping due to skipNextOnChange");
 
-              skipNextOnChange.current = false;
+              skipNextOnChange.current--;
               return;
             }
             

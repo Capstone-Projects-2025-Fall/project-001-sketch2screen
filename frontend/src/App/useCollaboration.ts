@@ -275,7 +275,8 @@ export function useCollaboration({
       //scene.elements = restoreElements(scene.elements, lastSentScene.current?.elements)
       const sceneToSend = generateDiff(lastSentScene.current, scene);
       if(sceneToSend === undefined) return;
-      sceneToSend.appState = null
+      if(sceneToSend.elements === undefined && sceneToSend.files === undefined) return;
+      sceneToSend.appState = undefined
 
       if (isDrawingRef.current && false) {
         pendingSceneRef.current = { pageId: activePageId, scene: scene };

@@ -9,10 +9,10 @@ def applyDiff(base, diff):
     wasList = False
 
     if type(diff) == list:
-        diff = {key: value for key, value in enumerate(diff)}
+        diff = {str(key): value for key, value in enumerate(diff)}
         wasList = True
     if type(base) == list:
-        base = {key: value for key, value in enumerate(base)}
+        base = {str(key): value for key, value in enumerate(base)}
         wasList = True
 
     if not base:
@@ -21,7 +21,7 @@ def applyDiff(base, diff):
     retval = {}
 
     for (key, value) in base.items():
-        if type(key) == int:
+        if key.isdigit():
             wasList = True
         if key in diff:
             applied = applyDiff(value, diff[key])
@@ -30,7 +30,7 @@ def applyDiff(base, diff):
             retval[key] = value
 
     for (key, value) in diff.items():
-        if type(key) == int:
+        if key.isdigit():
             wasList = True
         if key not in base:
             retval[key] = value
@@ -114,7 +114,7 @@ class CollabServer(metaclass=SingletonMeta):
             return
         else: match = match[0]
 
-        
+
         match.sceneData = applyDiff(match.sceneData, sceneData)
 
 

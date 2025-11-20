@@ -234,7 +234,7 @@ export function useCollaboration({
         const active = pages.find(p => p.id === activePageIdRef.current) ?? pages[0];
         client.sendPageUpdate(active.id, active.name);
         if ((active.scene?.elements?.length ?? 0) > 0) {
-          client.sendSceneUpdate(active.id, active.scene);
+          //client.sendSceneUpdate(active.id, active.scene);
         }
       }, 300);
     };

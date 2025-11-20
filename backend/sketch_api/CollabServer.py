@@ -2,6 +2,44 @@ from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
 
+def applyDiff(base, diff):
+    if type(diff) != dict and type(diff) != list:
+        return diff
+
+    wasList = False
+
+    if type(diff) == list:
+        diff = {key: value for key, value in enumerate(diff)}
+        wasList = True
+    if type(base) == list:
+        base = {key: value for key, value in enumerate(base)}
+        wasList = True
+
+    if not base:
+        return diff
+
+    retval = {}
+
+    for (key, value) in base.items():
+        if type(key) == int:
+            wasList = True
+        if key in diff:
+            applied = applyDiff(value, diff[key])
+            if applied != None:
+                retval[key] = applied
+        else:
+            retval[key] = value
+
+    for (key, value) in diff.items():
+        if type(key) == int:
+            wasList = True
+        if key not in base:
+            retval[key] = value
+
+    if wasList:
+        retval = [retval[x] for x, _ in retval.items()]
+    return retval
+
 class SingletonMeta(type):
     _instance = None
     def __call__(cls, *args, **kwargs):
@@ -77,8 +115,8 @@ class CollabServer(metaclass=SingletonMeta):
             return
         else: match = match[0]
 
-
-        match.sceneData = sceneData
+        
+        match.sceneData = applyDiff(match.sceneData, sceneData)
 
 
         for member in session.members:

@@ -52,7 +52,7 @@ function applyDiff(a: any, diff: any) {
       isArray = true
     }
     if(!Object.hasOwn(a, key)) {
-      retval[key] = value
+      if(value !== null) retval[key] = value
     }
   }
   if(isArray) return [...retval]

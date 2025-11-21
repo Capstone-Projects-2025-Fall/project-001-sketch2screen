@@ -40,7 +40,7 @@ export interface UseCollaborationReturn {
   /** Ref tracking if user is currently drawing */
   isDrawingRef: React.MutableRefObject<boolean>;
   /** Ref for pending scene data to send after stroke completes */
-  pendingSceneRef: React.MutableRefObject<{ pageId: string; scene: SceneData } | null>;
+  pendingSceneDiffRef: React.MutableRefObject<{ pageId: string; sceneDiff: SceneData } | null>;
   /** Function to show collaboration dialog */
   handleShowCollaboration: () => void;
   /** Function to close collaboration dialog */
@@ -79,10 +79,9 @@ export function useCollaboration({
   
   // Track if the local user is currently drawing to avoid mid-stroke remounts
   const isDrawingRef = useRef(false);
-  const needsRemountRef = useRef(false);
   
-  // Track pending scene data to send after stroke completes
-  const pendingSceneRef = useRef<{ pageId: string; scene: SceneData } | null>(null);
+  // Track pending scene data to apply after stroke completes
+  const pendingSceneDiffRef = useRef<{ pageId: string; sceneDiff: SceneData } | null>(null);
   const [sceneVersion, setSceneVersion] = useState<number>(0);
 
   //Hold reference to last sent scene
@@ -90,6 +89,31 @@ export function useCollaboration({
   useEffect(() => {
     lastSentScene.current = pages.find((p) => p.id === activePageId)?.scene
   }, [activePageId])
+
+  function updatePageFromDiff(page: string, sceneDiff: SceneData) {
+    setPages(prev => {
+      const index = prev.findIndex(p => p.id === page);
+      if (index === -1) {
+        console.warn("Page not found:", page);
+        return prev;
+      }
+      const next = [...prev];
+
+      let sceneData = applyDiff(next[index].scene, sceneDiff)
+
+      lastSentScene.current = sceneData;
+
+      next[index] = {
+        ...next[index],
+        scene: {
+          elements: sceneData.elements,
+          appState: prev[index].scene.appState,
+          files: sceneData.files,
+        },
+      };
+      return next;
+    });
+  }
 
   // === POINTER EVENT HANDLING ===
   // Avoid remounts during a local stroke: detect pointer activity on the canvas host
@@ -104,21 +128,12 @@ export function useCollaboration({
       const wasDrawing = isDrawingRef.current;
       isDrawingRef.current = false;
       
-      // Apply deferred remount if needed
-      if (wasDrawing && needsRemountRef.current) {
-        setSceneVersion((v: number) => v + 1);
-        needsRemountRef.current = false;
-      }
-      
-      // Send pending scene data after stroke completes
+      // Apply pending scene data after stroke completes
       if (wasDrawing && collabEnabled && collabClientRef.current) {
-        if (pendingSceneRef.current) {
-          const { pageId, scene } = pendingSceneRef.current;
-          const sceneToSend = generateDiff(lastSentScene.current, scene)
-          console.log("Stroke complete - sending scene update:", pageId);
-          collabClientRef.current.sendSceneUpdate(pageId, sceneToSend);
-          lastSentScene.current = structuredClone(scene)
-          pendingSceneRef.current = null;
+        if (pendingSceneDiffRef.current) {
+          updatePageFromDiff(pendingSceneDiffRef.current.pageId, pendingSceneDiffRef.current.sceneDiff)
+          console.log("Stroke complete - applying scene update:");
+          pendingSceneDiffRef.current = null;
         }
       } else if (wasDrawing) {
         console.log("Stroke complete - collaboration not enabled or client not ready");
@@ -190,39 +205,26 @@ export function useCollaboration({
       let currentActivePageId = activePageIdRef.current;
       console.log("Received scene update for:", sketchID, "Current active:", currentActivePageId);
 
-      setPages(prev => {
-        const index = prev.findIndex(p => p.id === sketchID);
-        if (index === -1) {
-          console.warn("Page not found:", sketchID);
-          return prev;
-        }
-        const next = [...prev];
-
-        let sceneData = applyDiff(next[index].scene, sceneDiff)
-        lastSentScene.current = sceneData;
-
-        next[index] = {
-          ...next[index],
-          scene: {
-            elements: sceneData.elements,
-            appState: prev[index].scene.appState,
-            files: sceneData.files,
-          },
-        };
-        return next;
-      });
-
       // If this update is for the currently active page, force remount
       console.log("Checking remount:", sketchID, "===", currentActivePageId, "?", sketchID === currentActivePageId);
       if (sketchID === currentActivePageId) {
-        if (isDrawingRef.current && false) {
-          console.log("Deferring remount until stroke end");
-          needsRemountRef.current = true;
+        if (isDrawingRef.current) {
+          console.log("stacking diff")
+          let currentPendingDiff = pendingSceneDiffRef.current;
+
+          if(currentPendingDiff) {
+            currentPendingDiff.sceneDiff = applyDiff(currentPendingDiff.sceneDiff, sceneDiff);
+          } else {
+            pendingSceneDiffRef.current = {pageId: sketchID, sceneDiff}
+          }
+
         } else {
           console.log("Forcing remount for active page");
+          updatePageFromDiff(sketchID, sceneDiff)
           setSceneVersion((v: number) => v + 1);
         }
       } else {
+        updatePageFromDiff(sketchID, sceneDiff)
         console.log("Update for different page - will show when switched");
       }
     });
@@ -278,13 +280,9 @@ export function useCollaboration({
       if(sceneToSend.elements === undefined && sceneToSend.files === undefined) return;
       sceneToSend.appState = undefined
 
-      if (isDrawingRef.current && false) {
-        pendingSceneRef.current = { pageId: activePageId, scene: scene };
-      } else {
-        collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
-        lastSentScene.current = structuredClone(scene)
-        console.log("sending ", sceneToSend)
-      }
+      collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
+      lastSentScene.current = structuredClone(scene)
+      console.log("sending ", sceneToSend)
     }
   };
 
@@ -334,7 +332,7 @@ export function useCollaboration({
     sceneVersion,
     collabClientRef,
     isDrawingRef,
-    pendingSceneRef,
+    pendingSceneDiffRef,
     handleShowCollaboration,
     handleCloseCollabDialog,
     handleCollabSceneChange,

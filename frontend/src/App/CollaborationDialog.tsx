@@ -173,25 +173,6 @@ export default function CollaborationDialog({
               )}
             </button>
           </div>
-
-          {/* Info */}
-          <div style={{ 
-            display: 'flex', 
-            alignItems: 'start', 
-            gap: '8px', 
-            padding: '12px', 
-            backgroundColor: '#eff6ff', 
-            borderRadius: '8px',
-          }}>
-            <div style={{ 
-              width: '4px', 
-              height: '4px', 
-              borderRadius: '50%', 
-              backgroundColor: '#2563eb', 
-              marginTop: '6px',
-              flexShrink: 0,
-            }}></div>
-          </div>
         </div>
 
         {/* Footer */}

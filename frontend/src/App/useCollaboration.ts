@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import CollabClient from "./CollabClient";
 import type { DrawingHandle, SceneData } from "./Drawing";
 import type { SketchPage } from "./sketchPage";
-import {generateDiff, applyDiff} from "./util";
+import {generateDiff, applyDiff, clone} from "./util";
 import {restoreElements} from "@excalidraw/excalidraw";
 
 export interface UseCollaborationParams {
@@ -101,7 +101,7 @@ export function useCollaboration({
 
       let sceneData = applyDiff(next[index].scene, sceneDiff)
 
-      lastSentScene.current = sceneData;
+      lastSentScene.current = clone(sceneData);
 
       next[index] = {
         ...next[index],
@@ -274,14 +274,13 @@ export function useCollaboration({
     //if (scene.appState?.editingTextElement) { return; }
     if (collabEnabled && collabClientRef.current) 
     {
-      //scene.elements = restoreElements(scene.elements, lastSentScene.current?.elements)
       const sceneToSend = generateDiff(lastSentScene.current, scene);
       if(sceneToSend === undefined) return;
       if(sceneToSend.elements === undefined && sceneToSend.files === undefined) return;
       sceneToSend.appState = undefined
 
       collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
-      lastSentScene.current = structuredClone(scene)
+      lastSentScene.current = clone(scene);
       console.log("sending ", sceneToSend)
     }
   };

@@ -59,4 +59,8 @@ function applyDiff(a: any, diff: any) {
   return retval
 }
 
-export {generateDiff, applyDiff}
+function clone(a: any): any {
+  return JSON.parse(JSON.stringify(a));
+}
+
+export {generateDiff, applyDiff, clone}

@@ -2,7 +2,7 @@ import React, { forwardRef, useCallback, useImperativeHandle, useRef, useEffect}
 import { Excalidraw, exportToBlob, restoreElements } from "@excalidraw/excalidraw";
 import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
-import {generateDiff} from "./util.ts";
+import {generateDiff, clone} from "./util.ts";
 
 
 /** Represents a complete Excalidraw scene with all its components */
@@ -63,7 +63,7 @@ function Drawing(
   //flag to skip onChange right after initial load
   const skipNextOnChange = useRef(0);
 
-  const initialSceneCopy = initialScene ?? structuredClone(initialScene)
+  const initialSceneCopy = clone(initialScene)
 
   const lastChangeRef = useRef({elements: initialSceneCopy?.elements, files: initialSceneCopy?.files});
 
@@ -199,7 +199,7 @@ function Drawing(
               return;
             }
 
-            lastChangeRef.current = structuredClone({elements, appState, files});
+            lastChangeRef.current = clone({elements, appState, files});
             
             onSceneChange?.({
               elements: elements ?? ([] as readonly any[]),

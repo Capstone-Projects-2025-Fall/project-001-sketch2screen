@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import CollabClient from "./CollabClient";
+import type { CollaboratorInfo } from "./CollabClient";
 import type { DrawingHandle, SceneData } from "./Drawing";
 import type { SketchPage } from "./sketchPage";
 import {generateDiff, applyDiff, clone} from "./util";
@@ -24,6 +25,8 @@ export interface UseCollaborationParams {
   makeEmptyScene: () => SceneData;
   /** Optional ref to the canvas host element for pointer event handling */
   canvasHostRef?: React.RefObject<HTMLDivElement | null>;
+  /** Ref to the drawing components (one per page) for updating scenes */
+  drawingRef?: React.MutableRefObject<Record<string, DrawingHandle | null>>;
 }
 
 export interface UseCollaborationReturn {
@@ -31,6 +34,8 @@ export interface UseCollaborationReturn {
   collabEnabled: boolean;
   /** Whether to show the collaboration dialog */
   showCollabDialog: boolean;
+  /** Whether we're waiting for username input */
+  needsUsername: boolean;
   /** The collaboration ID */
   collabId: string;
   /** Current scene version (increments on remount) */
@@ -41,10 +46,14 @@ export interface UseCollaborationReturn {
   isDrawingRef: React.MutableRefObject<boolean>;
   /** Ref for pending scene data to send after stroke completes */
   pendingSceneDiffRef: React.MutableRefObject<{ pageId: string; sceneDiff: SceneData } | null>;
+  /** Map of collaborators for Excalidraw */
+  collaborators: Map<string, any>;
   /** Function to show collaboration dialog */
   handleShowCollaboration: () => void;
   /** Function to close collaboration dialog */
   handleCloseCollabDialog: () => void;
+  /** Function to confirm username and start collaboration */
+  handleConfirmUsername: (username: string) => void;
   /** Callback to handle scene changes with collaboration */
   handleCollabSceneChange: (scene: SceneData, oldScene?: SceneData) => void;
   /** Callback to notify collaboration of new page */
@@ -71,10 +80,13 @@ export function useCollaboration({
   setEditingId,
   makeEmptyScene,
   canvasHostRef,
+  drawingRef,
 }: UseCollaborationParams): UseCollaborationReturn {
   // Collaboration state
   const [showCollabDialog, setShowCollabDialog] = useState(false);
+  const [needsUsername, setNeedsUsername] = useState(true);
   const [collabEnabled, setCollabEnabled] = useState(false);
+  const [username, setUsername] = useState<string>("");
   const collabClientRef = useRef<CollabClient | null>(null);
   
   // Track if the local user is currently drawing to avoid mid-stroke remounts
@@ -83,6 +95,13 @@ export function useCollaboration({
   // Track pending scene data to apply after stroke completes
   const pendingSceneDiffRef = useRef<{ pageId: string; sceneDiff: SceneData } | null>(null);
   const [sceneVersion, setSceneVersion] = useState<number>(0);
+
+  // Collaborators map for Excalidraw
+  const [collaborators, setCollaborators] = useState<Map<string, any>>(new Map());
+
+  // Throttle pointer updates to avoid flooding the WebSocket
+  const lastPointerSendTime = useRef<number>(0);
+  const POINTER_THROTTLE_MS = 50; // Send at most every 50ms
 
   //Hold reference to last sent scene
   const lastSentScene = useRef(pages.find((p) => p.id === activePageId)?.scene)
@@ -124,6 +143,24 @@ export function useCollaboration({
       isDrawingRef.current = true; 
     };
     
+    const onMove = (e: PointerEvent) => {
+      // Send pointer updates to other collaborators
+      if (collabEnabled && collabClientRef.current) {
+        const now = Date.now();
+        if (now - lastPointerSendTime.current > POINTER_THROTTLE_MS) {
+          // Get canvas element to calculate relative coordinates
+          const canvas = canvasHostRef?.current?.querySelector('canvas');
+          if (canvas) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            collabClientRef.current.sendPointerUpdate({ x, y });
+            lastPointerSendTime.current = now;
+          }
+        }
+      }
+    };
+    
     const end = () => {
       const wasDrawing = isDrawingRef.current;
       isDrawingRef.current = false;
@@ -141,12 +178,14 @@ export function useCollaboration({
     };
 
     host.addEventListener('pointerdown', onDown as any, { passive: true, capture: true } as any);
+    host.addEventListener('pointermove', onMove as any, { passive: true, capture: true } as any);
     host.addEventListener('pointerup', end as any, { passive: true, capture: true } as any);
     host.addEventListener('pointercancel', end as any, { passive: true, capture: true } as any);
     host.addEventListener('pointerleave', end as any, { passive: true, capture: true } as any);
 
     return () => {
       host.removeEventListener('pointerdown', onDown as any, true);
+      host.removeEventListener('pointermove', onMove as any, true);
       host.removeEventListener('pointerup', end as any, true);
       host.removeEventListener('pointercancel', end as any, true);
       host.removeEventListener('pointerleave', end as any, true);
@@ -155,10 +194,14 @@ export function useCollaboration({
 
   // === COLLABORATION WEBSOCKET SETUP ===
   useEffect(() => {
-    if (!collabEnabled) return;
+    // Only connect to WebSocket if both collabEnabled AND username are set
+    if (!collabEnabled || !username) {
+      console.log("Waiting for collaboration enable and username", { collabEnabled, hasUsername: !!username });
+      return;
+    }
 
-    console.log("Starting collaboration with ID:", collabId);
-    const client = new CollabClient(Number(collabId));
+    console.log("Starting collaboration with ID:", collabId, "Username:", username);
+    const client = new CollabClient(Number(collabId), username);
     collabClientRef.current = client;
 
     // Handle incoming page updates
@@ -229,9 +272,66 @@ export function useCollaboration({
       }
     });
 
-    // When WebSocket opens, send ONLY the active page once
+    // Handle collaborator join
+    client.setCollaboratorJoinHandler((collaborator: CollaboratorInfo) => {
+      console.log("COLLABORATOR: Collaborator joined:", collaborator.username, "ID:", collaborator.id);
+      setCollaborators(prev => {
+        const next = new Map(prev);
+        const color = getCollaboratorColor(collaborator.id);
+        next.set(collaborator.id, {
+          pointer: collaborator.pointer ?? { x: 0, y: 0 },
+          button: "up",
+          selectedElementIds: {},
+          username: collaborator.username,
+          userState: "active",
+          color: {
+            background: color,
+            stroke: color,
+          },
+        });
+        console.log("COLLABORATOR: Collaborators Map now has", next.size, "members");
+        return next;
+      });
+    });
+
+    // Handle collaborator leave
+    client.setCollaboratorLeaveHandler((userID: string) => {
+      console.log("COLLABORATOR: Collaborator left:", userID);
+      setCollaborators(prev => {
+        const next = new Map(prev);
+        next.delete(userID);
+        console.log("COLLABORATOR: Collaborators Map now has", next.size, "members");
+        return next;
+      });
+    });
+
+    // Handle collaborator pointer updates
+    client.setCollaboratorPointerHandler((userID: string, pointer: { x: number; y: number } | null) => {
+      console.log("COLLABORATOR: Pointer update from:", userID, pointer);
+      setCollaborators(prev => {
+        const collaborator = prev.get(userID);
+        if (!collaborator) {
+          console.warn("WARN COLLABORATOR: Received pointer update for unknown collaborator:", userID);
+          return prev;
+        }
+
+        const next = new Map(prev);
+        next.set(userID, {
+          ...collaborator,
+          pointer: pointer ?? { x: 0, y: 0 },
+        });
+        return next;
+      });
+    });
+
+    // When WebSocket opens, send collaborator join and active page
     client.connection.onopen = () => {
       console.log("WebSocket connected");
+      
+      // Send collaborator join immediately
+      client.sendCollaboratorJoin();
+      console.log("COLLABORATOR: Sent collaborator_join message");
+      
       setTimeout(() => {
         const active = pages.find(p => p.id === activePageIdRef.current) ?? pages[0];
         client.sendPageUpdate(active.id, active.name);
@@ -253,17 +353,82 @@ export function useCollaboration({
     };
   // We intentionally avoid depending on pages/activePageId to keep handlers stable
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [collabEnabled, collabId]);
+  }, [collabEnabled, collabId, username]);
+
+  // Update Excalidraw scene with collaborators whenever they change
+  const updateSceneCollaborators = useCallback(() => {
+    if (!drawingRef?.current) {
+      console.log("WARN COLLABORATOR: updateSceneCollaborators: drawingRef not available");
+      return;
+    }
+    
+    // Get the active page's drawing ref
+    const activeDrawingRef = drawingRef.current[activePageId];
+    if (!activeDrawingRef) {
+      console.log("WARN COLLABORATOR: updateSceneCollaborators: activeDrawingRef not available for", activePageId);
+      return;
+    }
+    
+    // Get current scene and update with collaborators
+    const currentPage = pages.find(p => p.id === activePageId);
+    if (currentPage) {
+      console.log("COLLABORATOR: Updating scene with collaborators:", {
+        count: collaborators.size,
+        collaborators: Array.from(collaborators.entries()).map(([id, collab]) => ({
+          id,
+          username: collab.username,
+          pointer: collab.pointer
+        }))
+      });
+      
+      activeDrawingRef.updateScene({
+        ...currentPage.scene,
+        appState: {
+          ...currentPage.scene.appState,
+          collaborators: collaborators,
+        },
+      });
+    }
+  }, [collaborators, activePageId, pages, drawingRef]);
+
+  // Trigger scene update whenever collaborators change
+  useEffect(() => {
+    console.log("COLLABORATOR: Collaborators effect triggered. Size:", collaborators.size, "Collab enabled:", collabEnabled);
+    console.log("COLLABORATOR: Collaborators content:", Array.from(collaborators.entries()).map(([id, data]) => ({
+      id,
+      username: data.username,
+      hasPointer: !!data.pointer,
+      hasColor: !!data.color
+    })));
+    
+    if (collaborators.size > 0) {
+      console.log("COLLABORATOR: Collaborators changed, updating scene");
+      updateSceneCollaborators();
+    } else {
+      console.log("WARN COLLABORATOR: Collaborators Map is empty, skipping update");
+    }
+  }, [collaborators, updateSceneCollaborators]);
 
   // === PUBLIC API ===
   
   const handleShowCollaboration = () => {
-    setCollabEnabled(true);
+    setNeedsUsername(true);
     setShowCollabDialog(true);
   };
 
   const handleCloseCollabDialog = () => {
     setShowCollabDialog(false);
+    // Reset username state if they closed without confirming
+    if (needsUsername && !collabEnabled) {
+      setNeedsUsername(true);
+    }
+  };
+
+  const handleConfirmUsername = (newUsername: string) => {
+    setUsername(newUsername);
+    setNeedsUsername(false);
+    setCollabEnabled(true);
+    // Keep dialog open to show the collaboration link
   };
 
   /**
@@ -327,17 +492,46 @@ export function useCollaboration({
   return {
     collabEnabled,
     showCollabDialog,
+    needsUsername,
     collabId,
     sceneVersion,
     collabClientRef,
     isDrawingRef,
     pendingSceneDiffRef,
+    collaborators,
     handleShowCollaboration,
     handleCloseCollabDialog,
+    handleConfirmUsername,
     handleCollabSceneChange,
     notifyPageAdded,
     notifyPageDuplicated,
     notifyPageRenamed,
     notifyPageDeleted,
   };
+}
+
+/**
+ * Generate a consistent color for a collaborator based on their ID
+ */
+function getCollaboratorColor(userId: string): string {
+  const colors = [
+    '#e91e63', // pink
+    '#9c27b0', // purple
+    '#673ab7', // blue purple
+    '#3f51b5', // indigo
+    '#2196f3', // blue
+    '#00bcd4', // cyan
+    '#009688', // teal
+    '#4caf50', // green
+    '#ff9800', // orange
+    '#ff5722', // Red orange
+  ];
+  
+  // Generate a hash from the userId
+  let hash = 0;
+  for (let i = 0; i < userId.length; i++) {
+    hash = userId.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  
+  return colors[Math.abs(hash) % colors.length];
 }

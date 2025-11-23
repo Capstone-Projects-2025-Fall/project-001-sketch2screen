@@ -32,6 +32,7 @@ export function makeEmptyScene(): SceneData {
       currentItemFillColor: "transparent",
       exportBackground: true,
       exportWithDarkMode: false,
+      collaborators: [],
     } as any,
     files: {},
   };

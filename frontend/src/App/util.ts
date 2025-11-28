@@ -52,11 +52,15 @@ function applyDiff(a: any, diff: any) {
       isArray = true
     }
     if(!Object.hasOwn(a, key)) {
-      retval[key] = value
+      if(value !== null) retval[key] = value
     }
   }
   if(isArray) return [...retval]
   return retval
 }
 
-export {generateDiff, applyDiff}
+function clone(a: any): any {
+  return JSON.parse(JSON.stringify(a));
+}
+
+export {generateDiff, applyDiff, clone}

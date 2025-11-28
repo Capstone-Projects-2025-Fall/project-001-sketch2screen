@@ -2,7 +2,7 @@ import React, { forwardRef, useCallback, useImperativeHandle, useRef, useEffect}
 import { Excalidraw, exportToBlob, restoreElements } from "@excalidraw/excalidraw";
 import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
-import {generateDiff} from "./util.ts";
+import {generateDiff, clone} from "./util.ts";
 
 
 /** Represents a complete Excalidraw scene with all its components */
@@ -63,7 +63,7 @@ function Drawing(
   //flag to skip onChange right after initial load
   const skipNextOnChange = useRef(0);
 
-  const initialSceneCopy = initialScene ?? structuredClone(initialScene)
+  const initialSceneCopy = clone(initialScene)
 
   const lastChangeRef = useRef({elements: initialSceneCopy?.elements, files: initialSceneCopy?.files});
 
@@ -155,7 +155,12 @@ function Drawing(
           if(pendingChangeHandlerRef.current) return;
           else pendingChangeHandlerRef.current = true;
           setTimeout(() => {
-            let elements = excaliRef.current?.getSceneElements()
+            if(!excaliRef.current) return;
+
+            let elements = excaliRef.current.getSceneElements()
+            let appState = excaliRef.current.getAppState()
+            let files = excaliRef.current.getFiles()
+
             pendingChangeHandlerRef.current = false;
             console.log("🟡 onChange fired", {
               skipNext: skipNextOnChange.current,
@@ -186,7 +191,7 @@ function Drawing(
             //Guard against duplicate calls
             
             if (
-              generateDiff({elements, files}, lastChangeRef.current) === undefined
+              generateDiff({elements, appState, files}, lastChangeRef.current) === undefined
             ) {
               // Skip duplicate calls
               console.log("🟤 Skipping duplicate onChange");
@@ -194,7 +199,7 @@ function Drawing(
               return;
             }
 
-            lastChangeRef.current = structuredClone({elements, files});
+            lastChangeRef.current = clone({elements, appState, files});
             
             onSceneChange?.({
               elements: elements ?? ([] as readonly any[]),

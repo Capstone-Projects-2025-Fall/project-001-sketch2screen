@@ -4,7 +4,7 @@
 type MockupPage = object;
 ```
 
-Defined in: [Mockup.tsx:10](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/Mockup.tsx#L10)
+Defined in: [Mockup.tsx:10](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/Mockup.tsx#L10)
 
 ## Properties
 
@@ -14,7 +14,7 @@ Defined in: [Mockup.tsx:10](https://github.com/Capstone-Projects-2025-Fall/proje
 html: string;
 ```
 
-Defined in: [Mockup.tsx:16](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/Mockup.tsx#L16)
+Defined in: [Mockup.tsx:16](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/Mockup.tsx#L16)
 
 HTML content of the mockup
 
@@ -26,7 +26,7 @@ HTML content of the mockup
 id: string;
 ```
 
-Defined in: [Mockup.tsx:12](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/Mockup.tsx#L12)
+Defined in: [Mockup.tsx:12](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/Mockup.tsx#L12)
 
 Unique identifier
 
@@ -38,6 +38,6 @@ Unique identifier
 name: string;
 ```
 
-Defined in: [Mockup.tsx:14](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/Mockup.tsx#L14)
+Defined in: [Mockup.tsx:14](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/Mockup.tsx#L14)
 
 Name of sketch page

@@ -1,6 +1,6 @@
 # Interface: UseCollaborationReturn
 
-Defined in: [useCollaboration.ts:27](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L27)
+Defined in: [useCollaboration.ts:27](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L27)
 
 ## Properties
 
@@ -10,7 +10,7 @@ Defined in: [useCollaboration.ts:27](https://github.com/Capstone-Projects-2025-F
 collabClientRef: MutableRefObject<default | null>;
 ```
 
-Defined in: [useCollaboration.ts:37](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L37)
+Defined in: [useCollaboration.ts:37](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L37)
 
 Ref to the CollabClient instance
 
@@ -22,7 +22,7 @@ Ref to the CollabClient instance
 collabEnabled: boolean;
 ```
 
-Defined in: [useCollaboration.ts:29](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L29)
+Defined in: [useCollaboration.ts:29](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L29)
 
 Whether collaboration is currently enabled
 
@@ -34,7 +34,7 @@ Whether collaboration is currently enabled
 collabId: string;
 ```
 
-Defined in: [useCollaboration.ts:33](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L33)
+Defined in: [useCollaboration.ts:33](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L33)
 
 The collaboration ID
 
@@ -46,7 +46,7 @@ The collaboration ID
 handleCloseCollabDialog: () => void;
 ```
 
-Defined in: [useCollaboration.ts:45](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L45)
+Defined in: [useCollaboration.ts:45](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L45)
 
 Function to close collaboration dialog
 
@@ -62,7 +62,7 @@ Function to close collaboration dialog
 handleCollabSceneChange: (scene, oldScene?) => void;
 ```
 
-Defined in: [useCollaboration.ts:47](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L47)
+Defined in: [useCollaboration.ts:47](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L47)
 
 Callback to handle scene changes with collaboration
 
@@ -88,7 +88,7 @@ Callback to handle scene changes with collaboration
 handleShowCollaboration: () => void;
 ```
 
-Defined in: [useCollaboration.ts:43](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L43)
+Defined in: [useCollaboration.ts:43](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L43)
 
 Function to show collaboration dialog
 
@@ -104,7 +104,7 @@ Function to show collaboration dialog
 isDrawingRef: MutableRefObject<boolean>;
 ```
 
-Defined in: [useCollaboration.ts:39](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L39)
+Defined in: [useCollaboration.ts:39](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L39)
 
 Ref tracking if user is currently drawing
 
@@ -116,7 +116,7 @@ Ref tracking if user is currently drawing
 notifyPageAdded: (pageId, pageName) => void;
 ```
 
-Defined in: [useCollaboration.ts:49](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L49)
+Defined in: [useCollaboration.ts:49](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L49)
 
 Callback to notify collaboration of new page
 
@@ -142,7 +142,7 @@ Callback to notify collaboration of new page
 notifyPageDeleted: (pageId) => void;
 ```
 
-Defined in: [useCollaboration.ts:55](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L55)
+Defined in: [useCollaboration.ts:55](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L55)
 
 Callback to notify collaboration of page deletion
 
@@ -164,7 +164,7 @@ Callback to notify collaboration of page deletion
 notifyPageDuplicated: (pageId, pageName, scene) => void;
 ```
 
-Defined in: [useCollaboration.ts:51](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L51)
+Defined in: [useCollaboration.ts:51](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L51)
 
 Callback to notify collaboration of page duplicate
 
@@ -194,7 +194,7 @@ Callback to notify collaboration of page duplicate
 notifyPageRenamed: (pageId, pageName) => void;
 ```
 
-Defined in: [useCollaboration.ts:53](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L53)
+Defined in: [useCollaboration.ts:53](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L53)
 
 Callback to notify collaboration of page rename
 
@@ -225,7 +225,7 @@ pendingSceneRef: MutableRefObject<
 | null>;
 ```
 
-Defined in: [useCollaboration.ts:41](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L41)
+Defined in: [useCollaboration.ts:41](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L41)
 
 Ref for pending scene data to send after stroke completes
 
@@ -237,7 +237,7 @@ Ref for pending scene data to send after stroke completes
 sceneVersion: number;
 ```
 
-Defined in: [useCollaboration.ts:35](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L35)
+Defined in: [useCollaboration.ts:35](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L35)
 
 Current scene version (increments on remount)
 
@@ -249,6 +249,6 @@ Current scene version (increments on remount)
 showCollabDialog: boolean;
 ```
 
-Defined in: [useCollaboration.ts:31](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L31)
+Defined in: [useCollaboration.ts:31](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L31)
 
 Whether to show the collaboration dialog

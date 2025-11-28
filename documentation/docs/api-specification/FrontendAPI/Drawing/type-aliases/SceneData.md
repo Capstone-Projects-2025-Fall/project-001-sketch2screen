@@ -4,7 +4,7 @@
 type SceneData = object;
 ```
 
-Defined in: [Drawing.tsx:8](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/Drawing.tsx#L8)
+Defined in: [Drawing.tsx:8](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/Drawing.tsx#L8)
 
 Represents a complete Excalidraw scene with all its components
 
@@ -16,7 +16,7 @@ Represents a complete Excalidraw scene with all its components
 appState: any;
 ```
 
-Defined in: [Drawing.tsx:12](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/Drawing.tsx#L12)
+Defined in: [Drawing.tsx:12](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/Drawing.tsx#L12)
 
 Application state including view settings
 
@@ -28,7 +28,7 @@ Application state including view settings
 elements: readonly any[];
 ```
 
-Defined in: [Drawing.tsx:10](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/Drawing.tsx#L10)
+Defined in: [Drawing.tsx:10](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/Drawing.tsx#L10)
 
 Array of drawing elements
 
@@ -40,6 +40,6 @@ Array of drawing elements
 files: Record<string, any>;
 ```
 
-Defined in: [Drawing.tsx:14](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/Drawing.tsx#L14)
+Defined in: [Drawing.tsx:14](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/Drawing.tsx#L14)
 
 Map of binary files (like images) used in the scene

@@ -1,6 +1,6 @@
 # Class: default
 
-Defined in: [CollabClient.ts:5](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L5)
+Defined in: [CollabClient.ts:5](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L5)
 
 Client for handling real-time collaboration features
 
@@ -12,7 +12,7 @@ Client for handling real-time collaboration features
 new default(collabID): CollabClient;
 ```
 
-Defined in: [CollabClient.ts:22](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L22)
+Defined in: [CollabClient.ts:22](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L22)
 
 Creates a new collaboration client
 
@@ -36,7 +36,7 @@ Unique identifier for this collaboration session
 collabID: number;
 ```
 
-Defined in: [CollabClient.ts:7](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L7)
+Defined in: [CollabClient.ts:7](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L7)
 
 Unique identifier for this collaboration session
 
@@ -48,7 +48,7 @@ Unique identifier for this collaboration session
 connection: WebSocket;
 ```
 
-Defined in: [CollabClient.ts:11](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L11)
+Defined in: [CollabClient.ts:11](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L11)
 
 Connection to server
 
@@ -60,7 +60,7 @@ Connection to server
 pageUpdateHandler: (sketchID, name) => void | null = null;
 ```
 
-Defined in: [CollabClient.ts:15](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L15)
+Defined in: [CollabClient.ts:15](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L15)
 
 ***
 
@@ -70,7 +70,7 @@ Defined in: [CollabClient.ts:15](https://github.com/Capstone-Projects-2025-Fall/
 sceneUpdateHandler: (sketchID, sceneData) => void | null = null;
 ```
 
-Defined in: [CollabClient.ts:14](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L14)
+Defined in: [CollabClient.ts:14](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L14)
 
 ## Methods
 
@@ -80,7 +80,7 @@ Defined in: [CollabClient.ts:14](https://github.com/Capstone-Projects-2025-Fall/
 sendPageUpdate(sketchID, pageName): void;
 ```
 
-Defined in: [CollabClient.ts:133](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L133)
+Defined in: [CollabClient.ts:133](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L133)
 
 Sends page updates to other clients
 
@@ -110,7 +110,7 @@ New name for the page, or null if page is being deleted
 sendSceneUpdate(sketchID, sceneData): void;
 ```
 
-Defined in: [CollabClient.ts:89](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L89)
+Defined in: [CollabClient.ts:89](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L89)
 
 Sends scene updates to other clients
 
@@ -140,7 +140,7 @@ New scene data to send to collaborators
 setPageUpdateHandler(handler): void;
 ```
 
-Defined in: [CollabClient.ts:123](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L123)
+Defined in: [CollabClient.ts:123](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L123)
 
 Sets up handler for receiving page updates from other clients
 
@@ -164,7 +164,7 @@ Callback function that processes received page updates
 setSceneUpdateHandler(handler): void;
 ```
 
-Defined in: [CollabClient.ts:79](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/CollabClient.ts#L79)
+Defined in: [CollabClient.ts:79](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/CollabClient.ts#L79)
 
 Sets up handler for receiving scene updates from other clients
 

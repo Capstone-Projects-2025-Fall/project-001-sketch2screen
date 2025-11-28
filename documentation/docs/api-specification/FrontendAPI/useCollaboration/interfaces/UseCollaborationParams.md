@@ -1,6 +1,6 @@
 # Interface: UseCollaborationParams
 
-Defined in: [useCollaboration.ts:6](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L6)
+Defined in: [useCollaboration.ts:6](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L6)
 
 ## Properties
 
@@ -10,7 +10,7 @@ Defined in: [useCollaboration.ts:6](https://github.com/Capstone-Projects-2025-Fa
 activePageId: string;
 ```
 
-Defined in: [useCollaboration.ts:12](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L12)
+Defined in: [useCollaboration.ts:12](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L12)
 
 ID of the currently active page
 
@@ -22,7 +22,7 @@ ID of the currently active page
 activePageIdRef: MutableRefObject<string>;
 ```
 
-Defined in: [useCollaboration.ts:14](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L14)
+Defined in: [useCollaboration.ts:14](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L14)
 
 Ref that tracks the current active page ID
 
@@ -34,7 +34,7 @@ Ref that tracks the current active page ID
 optional canvasHostRef: RefObject<HTMLDivElement | null>;
 ```
 
-Defined in: [useCollaboration.ts:24](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L24)
+Defined in: [useCollaboration.ts:24](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L24)
 
 Optional ref to the canvas host element for pointer event handling
 
@@ -46,7 +46,7 @@ Optional ref to the canvas host element for pointer event handling
 collabId: string;
 ```
 
-Defined in: [useCollaboration.ts:8](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L8)
+Defined in: [useCollaboration.ts:8](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L8)
 
 Initial collaboration ID from URL or generated
 
@@ -58,7 +58,7 @@ Initial collaboration ID from URL or generated
 makeEmptyScene: () => SceneData;
 ```
 
-Defined in: [useCollaboration.ts:22](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L22)
+Defined in: [useCollaboration.ts:22](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L22)
 
 Function to create an empty scene
 
@@ -74,7 +74,7 @@ Function to create an empty scene
 pages: SketchPage[];
 ```
 
-Defined in: [useCollaboration.ts:10](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L10)
+Defined in: [useCollaboration.ts:10](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L10)
 
 Current pages in the application
 
@@ -86,7 +86,7 @@ Current pages in the application
 setActivePageId: Dispatch<SetStateAction<string>>;
 ```
 
-Defined in: [useCollaboration.ts:18](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L18)
+Defined in: [useCollaboration.ts:18](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L18)
 
 Setter for active page ID
 
@@ -98,7 +98,7 @@ Setter for active page ID
 setEditingId: Dispatch<SetStateAction<string | null>>;
 ```
 
-Defined in: [useCollaboration.ts:20](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L20)
+Defined in: [useCollaboration.ts:20](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L20)
 
 Setter for editing ID
 
@@ -110,6 +110,6 @@ Setter for editing ID
 setPages: Dispatch<SetStateAction<SketchPage[]>>;
 ```
 
-Defined in: [useCollaboration.ts:16](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/929dae097d12dcbdde838a32563a914feada263a/frontend/src/App/useCollaboration.ts#L16)
+Defined in: [useCollaboration.ts:16](https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/blob/f0486efd46c54f7252aea12b6834a9740f6f9ac7/frontend/src/App/useCollaboration.ts#L16)
 
 Setter for pages state

@@ -134,6 +134,15 @@ export function useCollaboration({
     });
   }
 
+  // === UPDATE CURRENT PAGE IN CLIENT ===
+  // Notify CollabClient whenever the active page changes
+  useEffect(() => {
+    if (collabEnabled && collabClientRef.current && activePageId) {
+      console.log("CURSOR FILTER: Setting current page to", activePageId);
+      collabClientRef.current.setCurrentPage(activePageId);
+    }
+  }, [activePageId, collabEnabled]);
+
   // === POINTER EVENT HANDLING ===
   // Avoid remounts during a local stroke: detect pointer activity on the canvas host
   useEffect(() => {
@@ -154,6 +163,7 @@ export function useCollaboration({
             const rect = canvas.getBoundingClientRect();
             const x = e.clientX - rect.left;
             const y = e.clientY - rect.top;
+            // sendPointerUpdate now automatically includes currentPage
             collabClientRef.current.sendPointerUpdate({ x, y });
             lastPointerSendTime.current = now;
           }
@@ -204,6 +214,11 @@ export function useCollaboration({
     const client = new CollabClient(Number(collabId), username);
     collabClientRef.current = client;
 
+    // Set the initial page
+    if (activePageId) {
+      client.setCurrentPage(activePageId);
+    }
+
     // Handle incoming page updates
     client.setPageUpdateHandler((sketchID: string, name: string | null) => {
       console.log("Received page update:", sketchID, name);
@@ -218,78 +233,74 @@ export function useCollaboration({
       }
 
       setPages(prev => {
-        const existingIndex = prev.findIndex(p => p.id === sketchID);
-        if (existingIndex >= 0) {
-          // rename/update
-          const next = [...prev];
-          next[existingIndex] = { ...next[existingIndex], name };
-          return next;
+        // Check if page already exists
+        const existing = prev.find(p => p.id === sketchID);
+        if (existing) {
+          // Update existing page
+          return prev.map(p =>
+            p.id === sketchID
+              ? { ...p, name }
+              : p
+          );
         }
 
-        // If we only have one *empty default* page with a different id, REPLACE it.
-        const onlyOne = prev.length === 1;
-        const emptyDefault = onlyOne && ((prev[0].scene?.elements?.length ?? 0) === 0);
-        const differentId = onlyOne && prev[0].id !== sketchID;
-        if (emptyDefault && differentId) {
-          console.log("🔄 Replacing empty default page with collaborator page:", sketchID);
-          // Only switch to received page on initial replacement
-          setActivePageId(sketchID);
-          return [{ id: sketchID, name: name ?? "Page 1", scene: prev[0].scene ?? makeEmptyScene() }];
-        }
-
-        console.log("Adding page from collaborator:", sketchID, "- NOT switching to it");
-        // Add new page but DON'T switch to it
-        return [...prev, { id: sketchID, name: name ?? "Page 1", scene: makeEmptyScene() }];
+        // Add new page
+        return [
+          ...prev,
+          {
+            id: sketchID,
+            name,
+            scene: makeEmptyScene(),
+          },
+        ];
       });
     });
 
     // Handle incoming scene updates
-    client.setSceneUpdateHandler((sketchID: string, sceneDiff: SceneData) => {
-      let currentActivePageId = activePageIdRef.current;
-      console.log("Received scene update for:", sketchID, "Current active:", currentActivePageId);
+    client.setSceneUpdateHandler((sketchID: string, sceneData: SceneData) => {
+      console.log("Received scene update for page:", sketchID);
 
-      // If this update is for the currently active page, force remount
-      console.log("Checking remount:", sketchID, "===", currentActivePageId, "?", sketchID === currentActivePageId);
-      if (sketchID === currentActivePageId) {
-        if (isDrawingRef.current) {
-          console.log("stacking diff")
-          let currentPendingDiff = pendingSceneDiffRef.current;
+      // If we're actively drawing, store the update for later
+      if (isDrawingRef.current && sketchID === activePageIdRef.current) {
+        console.log("User is drawing - deferring scene update");
+        pendingSceneDiffRef.current = { pageId: sketchID, sceneDiff: sceneData };
+        return;
+      }
 
-          if(currentPendingDiff) {
-            currentPendingDiff.sceneDiff = applyDiff(currentPendingDiff.sceneDiff, sceneDiff);
-          } else {
-            pendingSceneDiffRef.current = {pageId: sketchID, sceneDiff}
-          }
+      updatePageFromDiff(sketchID, sceneData)
 
-        } else {
-          console.log("Forcing remount for active page");
-          updatePageFromDiff(sketchID, sceneDiff)
-          setSceneVersion((v: number) => v + 1);
-        }
-      } else {
-        updatePageFromDiff(sketchID, sceneDiff)
-        console.log("Update for different page - will show when switched");
+      // If the update is for the currently active page, increment scene version to trigger remount
+      if (sketchID === activePageIdRef.current) {
+        setSceneVersion(v => v + 1);
       }
     });
 
     // Handle collaborator join
     client.setCollaboratorJoinHandler((collaborator: CollaboratorInfo) => {
-      console.log("COLLABORATOR: Collaborator joined:", collaborator.username, "ID:", collaborator.id);
+      console.log("COLLABORATOR: Received collaborator_join:", collaborator);
+      
       setCollaborators(prev => {
+        // Don't add ourselves
+        if (collaborator.id === client.userID) {
+          console.log("COLLABORATOR: Skipping self-add");
+          return prev;
+        }
+
         const next = new Map(prev);
-        const color = getCollaboratorColor(collaborator.id);
         next.set(collaborator.id, {
-          pointer: collaborator.pointer ?? { x: 0, y: 0 },
-          button: "up",
-          selectedElementIds: {},
           username: collaborator.username,
-          userState: "active",
-          color: {
-            background: color,
-            stroke: color,
-          },
+          pointer: collaborator.pointer ?? null,
+          color: getCollaboratorColor(collaborator.id),
         });
-        console.log("COLLABORATOR: Collaborators Map now has", next.size, "members");
+        
+        console.log("COLLABORATOR: Updated collaborators Map size:", next.size);
+        console.log("COLLABORATOR: Collaborators Map content:", Array.from(next.entries()).map(([id, data]) => ({
+          id,
+          username: data.username,
+          hasPointer: !!data.pointer,
+          color: data.color
+        })));
+        
         return next;
       });
     });
@@ -297,24 +308,45 @@ export function useCollaboration({
     // Handle collaborator leave
     client.setCollaboratorLeaveHandler((userID: string) => {
       console.log("COLLABORATOR: Collaborator left:", userID);
+      
       setCollaborators(prev => {
         const next = new Map(prev);
         next.delete(userID);
-        console.log("COLLABORATOR: Collaborators Map now has", next.size, "members");
         return next;
       });
     });
 
-    // Handle collaborator pointer updates
-    client.setCollaboratorPointerHandler((userID: string, pointer: { x: number; y: number } | null) => {
-      console.log("COLLABORATOR: Pointer update from:", userID, pointer);
+    // Handle collaborator pointer updates with page filtering
+    client.setCollaboratorPointerHandler((userID: string, pointer: { x: number; y: number } | null, pageID: string | null) => {
+      console.log("CURSOR FILTER: Received pointer update", {
+        userID,
+        hasPointer: !!pointer,
+        pageID,
+        currentPage: activePageIdRef.current,
+        match: pageID === activePageIdRef.current
+      });
+
       setCollaborators(prev => {
         const collaborator = prev.get(userID);
         if (!collaborator) {
-          console.warn("WARN COLLABORATOR: Received pointer update for unknown collaborator:", userID);
+          console.log("CURSOR FILTER: Unknown collaborator, ignoring pointer update");
           return prev;
         }
 
+        // FILTER: Only show cursor if user is on the same page
+        if (pageID !== activePageIdRef.current) {
+          console.log("CURSOR FILTER: User on different page, hiding cursor");
+          // User is on a different page - hide their cursor
+          const next = new Map(prev);
+          next.set(userID, {
+            ...collaborator,
+            pointer: null,  // Hide cursor
+          });
+          return next;
+        }
+
+        // User is on the same page - show/update their cursor
+        console.log("CURSOR FILTER: User on same page, showing cursor");
         const next = new Map(prev);
         next.set(userID, {
           ...collaborator,
@@ -331,6 +363,11 @@ export function useCollaboration({
       // Send collaborator join immediately
       client.sendCollaboratorJoin();
       console.log("COLLABORATOR: Sent collaborator_join message");
+      
+      // Set current page
+      if (activePageIdRef.current) {
+        client.setCurrentPage(activePageIdRef.current);
+      }
       
       setTimeout(() => {
         const active = pages.find(p => p.id === activePageIdRef.current) ?? pages[0];

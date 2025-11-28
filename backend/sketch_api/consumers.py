@@ -41,7 +41,8 @@ class SketchConsumer(WebsocketConsumer):
                 self.channel_name,
                 self.collabID,
                 message["userID"],
-                message.get("pointer")
+                message.get("pointer"),
+                message.get("pageID")  # Pass pageID from client
             )
 
     def scene_update(self, event):
@@ -67,17 +68,18 @@ class SketchConsumer(WebsocketConsumer):
             "pointer": event.get("pointer")
         }))
 
-    # NEW: Send collaborator leave to WebSocket
+    # Send collaborator leave to WebSocket
     def collaborator_leave(self, event):
         self.send(text_data=json.dumps({
             "action": "collaborator_leave",
             "userID": event["userID"]
         }))
 
-    # NEW: Send collaborator pointer update to WebSocket
+    # Send collaborator pointer update to WebSocket - now includes pageID
     def collaborator_pointer(self, event):
         self.send(text_data=json.dumps({
             "action": "collaborator_pointer",
             "userID": event["userID"],
-            "pointer": event["pointer"]
+            "pointer": event["pointer"],
+            "pageID": event.get("pageID")  # Include pageID in response
         }))

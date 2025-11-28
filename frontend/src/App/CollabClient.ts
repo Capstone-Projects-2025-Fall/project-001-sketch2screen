@@ -21,11 +21,14 @@ export default class CollabClient {
   /** Connection to server */
   connection: WebSocket;
 
+  /** Current page this user is viewing */
+  currentPage: string | null = null;
+
   sceneUpdateHandler: ((sketchID: string, sceneData: SceneData) => void) | null = null
   pageUpdateHandler: ((sketchID: string, name: string | null) => void) | null = null
   collaboratorJoinHandler: ((collaborator: CollaboratorInfo) => void) | null = null
   collaboratorLeaveHandler: ((userID: string) => void) | null = null
-  collaboratorPointerHandler: ((userID: string, pointer: { x: number; y: number } | null) => void) | null = null
+  collaboratorPointerHandler: ((userID: string, pointer: { x: number; y: number } | null, pageID: string | null) => void) | null = null
 
   /**
    * Creates a new collaboration client
@@ -98,7 +101,8 @@ export default class CollabClient {
       }
       else if(action === "collaborator_pointer") {
         if(this.collaboratorPointerHandler) {
-          this.collaboratorPointerHandler(message.userID, message.pointer)
+          // Pass pageID along with pointer update
+          this.collaboratorPointerHandler(message.userID, message.pointer, message.pageID)
         }
       }
     }
@@ -190,8 +194,9 @@ export default class CollabClient {
 
   /**
    * Sets up handler for collaborator pointer updates
+   * Handler now receives pageID to filter cursors by page
    */
-  setCollaboratorPointerHandler(handler: (userID: string, pointer: { x: number; y: number } | null) => void) {
+  setCollaboratorPointerHandler(handler: (userID: string, pointer: { x: number; y: number } | null, pageID: string | null) => void) {
     this.collaboratorPointerHandler = handler
   }
 
@@ -209,7 +214,16 @@ export default class CollabClient {
   }
 
   /**
+   * Sets the current page this user is viewing
+   * @param pageID - ID of the page user is currently on
+   */
+  setCurrentPage(pageID: string | null) {
+    this.currentPage = pageID;
+  }
+
+  /**
    * Sends pointer position update to other clients
+   * Now includes the current page ID
    * @param pointer - Current pointer coordinates, or null to hide pointer
    */
   sendPointerUpdate(pointer: { x: number; y: number } | null) {
@@ -217,7 +231,8 @@ export default class CollabClient {
       this.connection.send(JSON.stringify({
         action: "collaborator_pointer",
         userID: this.userID,
-        pointer: pointer
+        pointer: pointer,
+        pageID: this.currentPage  // Include current page
       }))
     }
   }

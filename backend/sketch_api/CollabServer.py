@@ -53,6 +53,7 @@ class Collaborator():
         self.username = username
         self.channelName = channelName  # WebSocket channel name for this user
         self.pointer = None  # {x, y} or None
+        self.currentPage = None  # Track which page this user is currently on
 
 
 class CollabSession():
@@ -98,11 +99,12 @@ class CollabServer(metaclass=SingletonMeta):
             "userID": userID
             })
 
-    def sendCollaboratorPointer(self, channelName, userID, pointer):
+    def sendCollaboratorPointer(self, channelName, userID, pointer, pageID=None):
         async_to_sync(get_channel_layer().send)(channelName, {
             "type": "collaborator.pointer",
             "userID": userID,
-            "pointer": pointer
+            "pointer": pointer,
+            "pageID": pageID
             })
 
     #handler methods - define in STS-26
@@ -146,17 +148,19 @@ class CollabServer(metaclass=SingletonMeta):
             if member != channelName:
                 self.sendCollaboratorJoin(member, userID, username, None)
 
-    def onCollaboratorPointer(self, channelName, collabID, userID, pointer):
+    def onCollaboratorPointer(self, channelName, collabID, userID, pointer, pageID=None):
         session = self.collabSessions[collabID]
 
-        # Update stored pointer position
+        # Update stored pointer position and current page
         if userID in session.collaborators:
             session.collaborators[userID].pointer = pointer
+            session.collaborators[userID].currentPage = pageID
 
         # Broadcast pointer update to all OTHER members
+        # Include the pageID so clients can filter
         for member in session.members:
             if member != channelName:
-                self.sendCollaboratorPointer(member, userID, pointer)
+                self.sendCollaboratorPointer(member, userID, pointer, pageID)
 
     def onSceneUpdate(self, channelName, collabID, sketchID, sceneData):
         print(f"Scene update from {channelName} in collab {collabID}")

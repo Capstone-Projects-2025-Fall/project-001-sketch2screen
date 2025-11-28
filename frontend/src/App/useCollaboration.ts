@@ -382,11 +382,7 @@ export function useCollaboration({
       });
       
       activeDrawingRef.updateScene({
-        ...currentPage.scene,
-        appState: {
-          ...currentPage.scene.appState,
-          collaborators: collaborators,
-        },
+        collaborators: collaborators,
       });
     }
   }, [collaborators, activePageId, pages, drawingRef]);

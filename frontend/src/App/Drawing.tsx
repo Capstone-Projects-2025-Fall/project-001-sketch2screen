@@ -63,9 +63,7 @@ function Drawing(
   //flag to skip onChange right after initial load
   const skipNextOnChange = useRef(0);
 
-  const initialSceneCopy = clone(initialScene)
-
-  const lastChangeRef = useRef({elements: initialSceneCopy?.elements, files: initialSceneCopy?.files});
+  const lastChangeRef = useRef(clone({elements: initialScene?.elements, files: initialScene?.files}));
 
   const pendingChangeHandlerRef =  useRef(false);
 
@@ -149,7 +147,7 @@ function Drawing(
 
         // Load the page scene on mount
         initialData={
-          initialSceneCopy
+          initialScene
         }
         onChange={(elements, appState, files) => {
           if(pendingChangeHandlerRef.current) return;

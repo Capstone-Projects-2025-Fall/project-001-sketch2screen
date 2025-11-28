@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import CollabClient from "./CollabClient";
 import type { CollaboratorInfo } from "./CollabClient";
-import type { DrawingHandle, SceneData } from "./Drawing";
+import type { DrawingHandle, SceneData, SceneUpdate } from "./Drawing";
 import type { SketchPage } from "./sketchPage";
 import {generateDiff, applyDiff, clone} from "./util";
 import {restoreElements} from "@excalidraw/excalidraw";

@@ -15,11 +15,18 @@ export type SceneData = {
   files: Record<string, any>; // BinaryFiles
 };
 
+export type SceneUpdate = {
+  elements?: readonly any[] | undefined;
+  appState?: any | undefined;
+  files?: Record<string, any> | undefined;
+  collaborators?: Map<any, any> | undefined;
+}
+
 /** Interface for methods exposed to parent components via ref */
 export type DrawingHandle = {
   /** Exports the current drawing as a PNG blob */
   getPNGBlob: () => Promise<Blob | null>;
-  updateScene: (scene: SceneData) => void;
+  updateScene: (scene: SceneUpdate) => void;
 };
 
 //Props that can be passed into <Drawing />
@@ -108,7 +115,7 @@ function Drawing(
     });
   }, []);
 
-  function updateScene(scene: SceneData) {
+  function updateScene(scene: SceneUpdate) {
     skipNextOnChange.current = 1;
     //scene = {elements: restoreElements(scene.elements, excaliRef.current?.getSceneElements()), appState: scene.appState, files: scene.files}
     excaliRef.current?.updateScene(scene);

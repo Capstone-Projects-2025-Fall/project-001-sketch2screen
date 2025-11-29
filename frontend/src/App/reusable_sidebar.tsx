@@ -80,7 +80,7 @@ export default function PageSidebar<T extends SidebarItem>({
         onClick={onToggleExpanded}
         aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
         title={expanded ? "Collapse sidebar" : "Expand sidebar"}
-        style={{ left: expanded ? '260px' : '0px' }}
+        style={{ left: expanded ? '300px' : '0px' }}
       >
         {expanded ? '«' : '»'}
       </button>

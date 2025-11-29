@@ -1,0 +1,207 @@
+import { useEffect, useState, useRef } from 'react';
+import styles from '../App.module.css';
+
+type SettingsPanelProps = {
+  selectedElement: {
+    id: string;
+    html: string;
+    type: string;
+  } | null;
+  iframeRef: React.RefObject<HTMLIFrameElement | null>;
+  onStyleChange?: (elementId: string, property: string, value: string) => void;
+};
+
+type StyleValues = {
+  width: string;
+  height: string;
+  backgroundColor: string;
+  color: string;
+  fontSize: string;
+  padding: string;
+  margin: string;
+  borderRadius: string;
+};
+
+export default function SettingsPanel({ selectedElement, iframeRef, onStyleChange }: SettingsPanelProps) {
+  const [styleValues, setStyleValues] = useState<StyleValues>({
+    width: '',
+    height: '',
+    backgroundColor: '',
+    color: '',
+    fontSize: '',
+    padding: '',
+    margin: '',
+    borderRadius: '',
+  });
+
+  const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
+
+  // Convert RGB to HEX
+  const rgbToHex = (rgb: string): string => {
+    if (!rgb || rgb.startsWith('#')) return rgb || '#000000';
+    const matches = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+    if (!matches) return '#000000';
+    const r = parseInt(matches[1]).toString(16).padStart(2, '0');
+    const g = parseInt(matches[2]).toString(16).padStart(2, '0');
+    const b = parseInt(matches[3]).toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
+  };
+
+  // Request styles from iframe when element changes
+  useEffect(() => {
+    if (selectedElement && iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'GET_ELEMENT_STYLES',
+        elementId: selectedElement.id,
+      }, '*');
+    }
+  }, [selectedElement, iframeRef]);
+
+  // Listen for style updates from iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'ELEMENT_STYLES') {
+        const computedStyles = event.data.styles;
+        setStyleValues({
+          width: computedStyles.width || '',
+          height: computedStyles.height || '',
+          backgroundColor: rgbToHex(computedStyles.backgroundColor) || '',
+          color: rgbToHex(computedStyles.color) || '',
+          fontSize: computedStyles.fontSize || '',
+          padding: computedStyles.padding || '',
+          margin: computedStyles.margin || '',
+          borderRadius: computedStyles.borderRadius || '',
+        });
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  // Handle style changes with debouncing
+  const handleStyleChange = (property: keyof StyleValues, value: string) => {
+    setStyleValues(prev => ({ ...prev, [property]: value }));
+
+    if (debounceTimers.current[property]) {
+      clearTimeout(debounceTimers.current[property]);
+    }
+
+    debounceTimers.current[property] = setTimeout(() => {
+      if (selectedElement){
+        onStyleChange?.(selectedElement.id, property, value);
+      }
+    }, 300);
+  };
+
+  if (!selectedElement) {
+    return (
+      <div className={styles.emptyState}>
+        <p>Select an element to edit its styles</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.settingsTabContent}>
+      <div className={styles.settingsGroup}>
+        <label>Element ID:</label>
+        <code className={styles.elementIdDisplay}>{selectedElement.id}</code>
+      </div>
+
+      <div className={styles.settingsGroup}>
+        <label>Width:</label>
+        <input
+          type="text"
+          value={styleValues.width}
+          onChange={(e) => handleStyleChange('width', e.target.value)}
+          placeholder="e.g., 100px, 50%"
+        />
+      </div>
+
+      <div className={styles.settingsGroup}>
+        <label>Height:</label>
+        <input
+          type="text"
+          value={styleValues.height}
+          onChange={(e) => handleStyleChange('height', e.target.value)}
+          placeholder="e.g., 100px"
+        />
+      </div>
+
+      <div className={styles.settingsGroup}>
+        <label>Background Color:</label>
+        <div className={styles.colorInputGroup}>
+          <input
+            type="color"
+            value={styleValues.backgroundColor}
+            onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+          />
+          <input
+            type="text"
+            value={styleValues.backgroundColor}
+            onChange={(e) => handleStyleChange('backgroundColor', e.target.value)}
+            placeholder="#ffffff"
+          />
+        </div>
+      </div>
+
+      <div className={styles.settingsGroup}>
+        <label>Text Color:</label>
+        <div className={styles.colorInputGroup}>
+          <input
+            type="color"
+            value={styleValues.color}
+            onChange={(e) => handleStyleChange('color', e.target.value)}
+          />
+          <input
+            type="text"
+            value={styleValues.color}
+            onChange={(e) => handleStyleChange('color', e.target.value)}
+            placeholder="#000000"
+          />
+        </div>
+      </div>
+
+      <div className={styles.settingsGroup}>
+        <label>Font Size:</label>
+        <input
+          type="text"
+          value={styleValues.fontSize}
+          onChange={(e) => handleStyleChange('fontSize', e.target.value)}
+          placeholder="e.g., 16px"
+        />
+      </div>
+
+      <div className={styles.settingsGroup}>
+        <label>Padding:</label>
+        <input
+          type="text"
+          value={styleValues.padding}
+          onChange={(e) => handleStyleChange('padding', e.target.value)}
+          placeholder="e.g., 10px"
+        />
+      </div>
+
+      <div className={styles.settingsGroup}>
+        <label>Margin:</label>
+        <input
+          type="text"
+          value={styleValues.margin}
+          onChange={(e) => handleStyleChange('margin', e.target.value)}
+          placeholder="e.g., 10px"
+        />
+      </div>
+
+      <div className={styles.settingsGroup}>
+        <label>Border Radius:</label>
+        <input
+          type="text"
+          value={styleValues.borderRadius}
+          onChange={(e) => handleStyleChange('borderRadius', e.target.value)}
+          placeholder="e.g., 4px"
+        />
+      </div>
+    </div>
+  );
+}

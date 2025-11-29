@@ -4,10 +4,11 @@ from django.shortcuts import render
 from django.utils.decorators import method_decorator
 import json
 from rest_framework.views import APIView
-from rest_framework.parsers import MultiPartParser
+from rest_framework.parsers import MultiPartParser, JSONParser
 from rest_framework.response import Response
 from rest_framework import status
 from .services.claudeClient import image_to_html_css
+from .services.claudeClientVariations import generate_component_variations
 import asyncio
 
 MAX_BYTES = 10 * 1024 * 1024  # 10MB max upload
@@ -145,3 +146,76 @@ class GenerateMultiView(APIView):
             return Response({"detail": "No valid files provided."}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response({"results": results}, status=status.HTTP_200_OK)
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class GenerateVariationsView(APIView):
+    """API endpoint to generate design variations for a selected component
+       POST /api/generate-variations/"""
+    
+    parser_classes = [JSONParser]  # accept multipart/form-data (file upload)
+
+    def post(self, request):
+
+        try:
+            data = request.data if hasattr(request, 'data') else json.loads(request.body)
+        except json.JSONDecodeError:
+            return Response(
+                {"detail": "Invalid JSON body."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        # Get parameters from request
+        element_html = data.get("element_html")
+        element_type = data.get("element_type", "component")
+        custom_prompt = data.get("prompt")  # None if not provided
+        count_str = data.get("count", 3)
+
+        #Validation
+        if not element_html:
+            return Response(
+                {"detail": "Missing required field 'element_html'."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            count = int(count_str)
+            if count < 1 or count > 10:
+                return Response(
+                    {"detail": "Count must be between 1 and 10."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+        
+        except ValueError:
+            return Response(
+                {"detail": "Invalid count value."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        #Generate Variations
+        try:
+
+            # Run async function
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            variations = loop.run_until_complete(
+                generate_component_variations(
+                    element_html=element_html,
+                    element_type=element_type,
+                    custom_prompt=custom_prompt,
+                    count=count
+                )
+            )
+            loop.close()
+            
+            return Response(
+                {"variations": variations},
+                status=status.HTTP_200_OK
+            )
+
+        except Exception as e:
+            # Log the error in production
+            print(f"Error generating variations: {e}")
+            return Response(
+                {"detail": f"Failed to generate variations: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        

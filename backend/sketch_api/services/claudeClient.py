@@ -5,14 +5,14 @@ from typing import Optional, Sequence
 
 from django.conf import settings
 from anthropic import AsyncAnthropic
-
+import json
 import os
 
-def _load_anthropic_key_from_file() -> str:
+def _load_anthropic_key_from_file(key_name: str) -> str:
     """Read API key from plaintext file defined in settings."""
-    key_path = getattr(settings, "CLAUDE_API_KEY", None)
+    key_path = getattr(settings, key_name, None)
     if not key_path:
-        raise RuntimeError("CLAUDE_API_KEY not configured.")
+        raise RuntimeError(f"{key_name} not configured.")
     with open(key_path, "r", encoding="utf-8") as f:
         key = f.read().strip()
     if not key:
@@ -23,7 +23,7 @@ def _load_anthropic_key_from_file() -> str:
 def _client() -> AsyncAnthropic:
     key = ""
     try:
-        key = _load_anthropic_key_from_file()
+        key = _load_anthropic_key_from_file("CLAUDE_API_KEY")
     except Exception:
         key = os.environ.get("ANTHROPIC_API_KEY")
     
@@ -98,11 +98,11 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
        )
 
     client = _client()
-    model = getattr(settings, "CLAUDE_MODEL", "claude-sonnet-4-20250514")
+    model = getattr(settings, "CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 
     resp = await client.messages.create(
         model=model,
-        max_tokens=3000,
+        max_tokens=5000,
         system=system_msg,
         messages=[
             {
@@ -125,3 +125,5 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
     if not html:
         raise RuntimeError("Claude returned no text content.")
     return html
+
+

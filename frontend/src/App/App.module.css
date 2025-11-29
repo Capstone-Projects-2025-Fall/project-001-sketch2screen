@@ -218,7 +218,7 @@
 /* ---- Workspace split ---- */
 .workRow {
   display: grid;
-  grid-template-columns: 260px 1fr; /* sidebar | main */
+  grid-template-columns: 300px 1fr; /* sidebar | main */
   height: calc(100vh - 5em); /* match your navbar height (5em) */
   position: relative;
   transition: grid-template-columns 0.3s ease;
@@ -418,7 +418,7 @@
 /* Mockup Container Styling */
 .mockupContainer {
   display: grid;
-  grid-template-columns: 260px 1fr;
+  grid-template-columns: 310px 1fr;
   height: calc(100vh - 4.5rem);
   position: relative;
   transition: grid-template-columns 0.3s ease;
@@ -552,18 +552,193 @@
   font-size: 14px;
 }
 
-@media (max-width: 768px) {
-  .filename {
-    display: none;
-  }
+/* ---- Variation Sidebar (right side) ---- */
+.variationSidebar {
+  display: flex;
+  flex-direction: column;
+  border-left: 1px solid rgba(0,0,0,0.08);
+  background: #f7f7f9;
+  width: 310px;
+  min-width: 300px;
+  max-width: 360px;
+  position: relative;
+  transition: width 0.3s ease, min-width 0.3s ease, opacity 0.3s ease;
+  height: 100%;
 }
 
-@media (max-width: 480px) {
-  .collabButton {
-    display: none;
-  }
+.variationSidebarHeader {
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6b7280;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  .logo {
-    font-size: clamp(0.875rem, 4vw, 1.25rem);
-  }
+.variationSidebarContent {
+  flex: 1;
+  overflow: auto;
+  padding: 16px;
+}
+
+.variationCloseBtn {
+  background: transparent;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 4px 8px;
+  color: #6b7280;
+  line-height: 1;
+}
+
+.variationCloseBtn:hover {
+  color: #111827;
+}
+
+/* Update mockup container to support 3-column layout */
+.mockupContainerWithVariations {
+  display: grid;
+  grid-template-columns: 260px 1fr 320px; /* pages sidebar | mockup | variations sidebar */
+  height: calc(100vh - 4.5rem);
+  position: relative;
+  transition: grid-template-columns 0.3s ease;
+}
+
+/* When left sidebar is collapsed */
+.mockupContainerWithVariations:has(.sidebarCollapsed) {
+  grid-template-columns: 0px 1fr 320px;
+}
+
+/* === Tab Bar Styles === */
+.tabBar {
+  display: flex;
+  border-bottom: 2px solid rgba(0,0,0,0.08);
+  background: #f7f7f9;
+}
+
+.tab {
+  flex: 1;
+  padding: 12px 8px;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.tab:hover {
+  color: #111827;
+  background: rgba(0,0,0,0.02);
+}
+
+.tabActive {
+  color: #6366f1;
+  border-bottom-color: #6366f1;
+  background: white;
+}
+
+/* === Tab Content === */
+.tabContent {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+/* === Settings Tab Styles === */
+.settingsTabContent {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settingsGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.settingsGroup label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.settingsGroup input,
+.settingsGroup select {
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #111827;
+  background: white;
+}
+
+.settingsGroup input:focus,
+.settingsGroup select:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: -1px;
+  border-color: #6366f1;
+}
+
+.colorInputGroup {
+  display: flex;
+  gap: 8px;
+}
+
+.colorInputGroup input[type="color"] {
+  width: 50px;
+  height: 36px;
+  padding: 2px;
+  cursor: pointer;
+}
+
+.colorInputGroup input[type="text"] {
+  flex: 1;
+}
+
+.elementIdDisplay {
+  padding: 8px;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  color: #6366f1;
+  word-break: break-all;
+}
+
+/* === Variations Tab Styles === */
+.variationsTabContent {
+  padding: 12px;
+}
+
+.variationsTabWrapper {
+  height: 100%;
+  overflow-y: auto;
+}
+
+/* === Empty State === */
+.emptyState {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: #9ca3af;
+  font-size: 14px;
+}
+
+.emptyState p {
+  margin: 0;
 }

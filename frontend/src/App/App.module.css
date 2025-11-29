@@ -24,19 +24,19 @@
   overflow: hidden;         /* keep interactions from scrolling the page */
 }
 
-/* === Your existing styles, with navbar made sticky === */
 .navbar {
   width: 100%;
-  height: 4.5rem;
+  min-height: 4.5rem;
   background-color: rgb(15, 10, 103);
 
-  padding: 1em;
+  padding: clamp(0.5em, 2vw, 1em);
   box-sizing: border-box;
 
   display: flex;
   align-items: center;
+  gap: clamp(0.5em, 2vw, 1.5em);
 
-  position: sticky;  /* keep navbar visible */
+  position: sticky;
   top: 0;
   z-index: 100;
   font-family: "Chalkduster", sans-serif;
@@ -45,30 +45,43 @@
 .logo {
   font-family: "Chalkduster", sans-serif;
   color: white;
-  font-size: xx-large;
-  margin-right: 2em;
+  font-size: clamp(1rem, 3vw, 2rem);
+  white-space: nowrap;
+  flex-shrink: 2;
 }
 
 .filename {
-  font-size: large;
+  font-size: clamp(0.875rem, 1.5vw, 1.125rem);
   color: white;
+  flex-shrink: 3;
+  min-width: 0;
+}
+
+.filename input {
+  min-width: 0;
+  width: 100%;
 }
 
 .pageSwitcher {
   flex-grow: 1;
   display: flex;
   justify-content: center;
+  gap: clamp(0.5em, 1.5vw, 1.5em);
+  min-width: 0;
 }
 
 .pageSwitchButton {
   border: none;
   height: 2em;
   border-radius: 1em;
-  width: 8rem;
-  margin-right: 2em;
+  min-width: 4rem;
+  width: clamp(4rem, 10vw, 8rem);
+  padding: 0.25em 0.75em;
   background-color: mediumpurple;
   color: white;
-  font-size: medium;
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
+  white-space: nowrap;
+  flex-shrink: 1;
 }
 
 .pageSwitchButton:hover, .pageSwitchSelected {
@@ -77,35 +90,47 @@
 }
 
 
+.collabButtonPair {
+  display: flex;
+  align-items: center;
+  gap: clamp(0.5em, 1.5vw, 1em);
+  flex-shrink: 0;
+}
+
 .collabButton{background-image: linear-gradient(to right, #ECE9E6 0%, #FFFFFF  51%, #ECE9E6  100%)}
 .collabButton {
   border: none;
   border-radius: 2em;
   box-sizing: border-box;
   color: rgb(15, 10, 103);
-  font-size: medium;
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
+  white-space: nowrap;
 
-  height: 2em;
-  width: 10em;
-
-  margin-right: 2em;
+  height: 2rem;
+  min-width: 5rem;
+  width: clamp(6rem, 12vw, 10rem);
+  padding: 0.25em 0.75em;
 
   background-color: white;
+  flex-shrink: 1;
 }
 
 
 
 .generateButton {background-image: linear-gradient(to right, #ECE9E6 0%, #FFFFFF  51%, #ECE9E6  100%)}
 .generateButton {
-  margin-right:2rem;
-  font-size: medium;
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
   text-align: center;
   transition: 0.5s;
   background-size: 200% auto;
-  color: rgb(15, 10, 103);            
+  color: rgb(15, 10, 103);
   border-radius: 2rem;
   height: 2rem;
-  width:10rem;
+  min-width: 5rem;
+  width: clamp(5rem, 12vw, 10rem);
+  padding: 0.25em 0.75em;
+  white-space: nowrap;
+  flex-shrink: 1;
 }
 
 .generateButton:hover {

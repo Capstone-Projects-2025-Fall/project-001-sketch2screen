@@ -65,30 +65,70 @@ Sketch2Screen fills this gap by combining the collaborative design strengths of 
 - Cloud hosting platform for deployment (AWS, Heroku, or similar)
 - Database hosting service
 
-**Instructions**
+## Setup & Installation
 
-### To Run Project
+### Prerequisites
+- Python 3.10+
+- Node.js 22.x LTS or later (minimum: 22.12+)
+- npm
 
-Terminal 1  
-source .venv/bin/activate (different for windows)  
-python manage.py runserver  
+### Initial Setup
 
-Terminal 2  
-cd frontend  
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen
+   cd project-001-sketch2screen
+   ```
 
-1.  
-npm run build  
+2. **Set up Python virtual environment**
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+   pip install -r requirements.txt
+   ```
 
-2.  
-npm run serve  
-or  
-npm run start  
+3. **Install frontend dependencies**
+   ```bash
+   cd frontend
+   npm install
+   cd ..
+   ```
 
-### To run Docusaurus locally
-cd documentation  
-yarn install (if doing first time)  
-yarn start  
+4. **Configure Anthropic API Key**
 
+   Create a file named `APIkey.txt` in the project root and add your Anthropic API key:
+   ```bash
+   echo "your-api-key-here" > APIkey.txt
+   ```
+
+   **Or** set as an environment variable:
+   ```bash
+   export ANTHROPIC_API_KEY="your-api-key-here"
+   ```
+
+### Running the Application
+
+Terminal 1 - Backend:
+```bash
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+python manage.py runserver
+```
+
+Terminal 2 - Frontend:
+```bash
+cd frontend
+npm run dev
+```
+
+Then open http://localhost:8000 in your browser.
+
+### Running Docusaurus Site
+
+```bash
+cd documentation
+yarn install
+yarn start
+```
 
 ## Collaborators
 

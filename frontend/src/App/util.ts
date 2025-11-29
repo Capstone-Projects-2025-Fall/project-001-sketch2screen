@@ -30,7 +30,11 @@ function generateDiff(oldObject: any, newObject: any) {
 }
 
 function applyDiff(a: any, diff: any) {
-  if(typeof diff !== 'object' || typeof a !== 'object' || a === null || diff === null) return diff
+  if(typeof diff !== 'object' || typeof a !== 'object' || a === null || diff === null) return diff;
+  if(diff instanceof Map) {
+    if(a instanceof Map) return new Map([...a, ...diff]);
+    return diff;
+  }
   let retval: any = {}
   if(Array.isArray(a)) {
     retval = []

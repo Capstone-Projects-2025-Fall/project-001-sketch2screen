@@ -45,7 +45,7 @@ export interface UseCollaborationReturn {
   /** Ref tracking if user is currently drawing */
   isDrawingRef: React.MutableRefObject<boolean>;
   /** Ref for pending scene data to send after stroke completes */
-  pendingSceneDiffRef: React.MutableRefObject<{ pageId: string; sceneDiff: SceneData } | null>;
+  pendingSceneDiffRef: React.MutableRefObject<{ pageId: string; sceneDiff: SceneUpdate } | null>;
   /** Map of collaborators for Excalidraw */
   collaborators: Map<string, any>;
   /** Function to show collaboration dialog */
@@ -93,7 +93,7 @@ export function useCollaboration({
   const isDrawingRef = useRef(false);
   
   // Track pending scene data to apply after stroke completes
-  const pendingSceneDiffRef = useRef<{ pageId: string; sceneDiff: SceneData } | null>(null);
+  const pendingSceneDiffRef = useRef<{ pageId: string; sceneDiff: SceneUpdate } | null>(null);
   const [sceneVersion, setSceneVersion] = useState<number>(0);
 
   // Collaborators map for Excalidraw
@@ -109,7 +109,7 @@ export function useCollaboration({
     lastSentScene.current = pages.find((p) => p.id === activePageId)?.scene
   }, [activePageId])
 
-  function updatePageFromDiff(page: string, sceneDiff: SceneData) {
+  function updatePageFromDiff(page: string, sceneDiff: SceneUpdate) {
     setPages(prev => {
       const index = prev.findIndex(p => p.id === page);
       if (index === -1) {
@@ -124,11 +124,7 @@ export function useCollaboration({
 
       next[index] = {
         ...next[index],
-        scene: {
-          elements: sceneData.elements,
-          appState: prev[index].scene.appState,
-          files: sceneData.files,
-        },
+        scene: sceneData,
       };
       return next;
     });
@@ -142,6 +138,29 @@ export function useCollaboration({
       collabClientRef.current.setCurrentPage(activePageId);
     }
   }, [activePageId, collabEnabled]);
+
+  function stackOrApplyDiff(sketchID: string, sceneDiff: SceneUpdate) {
+      let currentActivePageId = activePageIdRef.current;
+      let currentPendingDiff = pendingSceneDiffRef.current;
+
+      if (sketchID === currentActivePageId) {
+        if(currentPendingDiff !== null) {
+          currentPendingDiff.sceneDiff = applyDiff(currentPendingDiff.sceneDiff, sceneDiff);
+        } else {
+          pendingSceneDiffRef.current = {pageId: sketchID, sceneDiff}
+        }
+
+
+        if (!isDrawingRef.current) {
+          console.log("Forcing remount for active page");
+          updatePageFromDiff(sketchID, pendingSceneDiffRef.current!.sceneDiff)
+          setSceneVersion((v: number) => v + 1);
+        }
+      } else {
+        updatePageFromDiff(sketchID, sceneDiff)
+        console.log("Update for different page - will show when switched");
+      }
+  }
 
   // === POINTER EVENT HANDLING ===
   // Avoid remounts during a local stroke: detect pointer activity on the canvas host
@@ -257,22 +276,10 @@ export function useCollaboration({
     });
 
     // Handle incoming scene updates
-    client.setSceneUpdateHandler((sketchID: string, sceneData: SceneData) => {
+    client.setSceneUpdateHandler((sketchID: string, sceneDiff: SceneUpdate) => {
       console.log("Received scene update for page:", sketchID);
 
-      // If we're actively drawing, store the update for later
-      if (isDrawingRef.current && sketchID === activePageIdRef.current) {
-        console.log("User is drawing - deferring scene update");
-        pendingSceneDiffRef.current = { pageId: sketchID, sceneDiff: sceneData };
-        return;
-      }
-
-      updatePageFromDiff(sketchID, sceneData)
-
-      // If the update is for the currently active page, increment scene version to trigger remount
-      if (sketchID === activePageIdRef.current) {
-        setSceneVersion(v => v + 1);
-      }
+      stackOrApplyDiff(sketchID, sceneDiff);
     });
 
     // Handle collaborator join
@@ -372,9 +379,6 @@ export function useCollaboration({
       setTimeout(() => {
         const active = pages.find(p => p.id === activePageIdRef.current) ?? pages[0];
         client.sendPageUpdate(active.id, active.name);
-        if ((active.scene?.elements?.length ?? 0) > 0) {
-          //client.sendSceneUpdate(active.id, active.scene);
-        }
       }, 300);
     };
 
@@ -407,22 +411,20 @@ export function useCollaboration({
     }
     
     // Get current scene and update with collaborators
-    const currentPage = pages.find(p => p.id === activePageId);
-    if (currentPage) {
-      console.log("COLLABORATOR: Updating scene with collaborators:", {
-        count: collaborators.size,
-        collaborators: Array.from(collaborators.entries()).map(([id, collab]) => ({
-          id,
-          username: collab.username,
-          pointer: collab.pointer
-        }))
-      });
-      
-      activeDrawingRef.updateScene({
-        collaborators: collaborators,
-      });
+    console.log("COLLABORATOR: Updating scene with collaborators:", {
+      count: collaborators.size,
+      collaborators: Array.from(collaborators.entries()).map(([id, collab]) => ({
+        id,
+        username: collab.username,
+        pointer: collab.pointer
+      }))
+    });
+     
+    if(!isDrawingRef.current) {
+      activeDrawingRef?.updateScene({collaborators});
     }
-  }, [collaborators, activePageId, pages, drawingRef]);
+     //stackOrApplyDiff(activePageId, {appState: {collaborators}});
+  }, [collaborators, activePageId, drawingRef]);
 
   // Trigger scene update whenever collaborators change
   useEffect(() => {

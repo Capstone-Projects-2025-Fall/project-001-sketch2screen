@@ -118,7 +118,7 @@ function Drawing(
   function updateScene(scene: SceneUpdate) {
     skipNextOnChange.current = 1;
     //scene = {elements: restoreElements(scene.elements, excaliRef.current?.getSceneElements()), appState: scene.appState, files: scene.files}
-    excaliRef.current?.updateScene(scene);
+    excaliRef.current?.updateScene({...scene, appState: undefined});
   }
 
 

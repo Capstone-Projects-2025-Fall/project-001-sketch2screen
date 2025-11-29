@@ -290,7 +290,6 @@ export default function App() {
     setPages((prev) =>
       prev.map((p) => (p.id === id ? { ...p, name: newName } : p))
     );
-    setEditingId(null);
     
     // Notify collaboration
     notifyPageRenamed(id, newName);

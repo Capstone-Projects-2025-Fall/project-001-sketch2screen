@@ -32,6 +32,7 @@ export function makeEmptyScene(): SceneData {
       currentItemFillColor: "transparent",
       exportBackground: true,
       exportWithDarkMode: false,
+      collaborators: [],
     } as any,
     files: {},
   };
@@ -123,14 +124,23 @@ export default function App() {
   // ref for pointer event
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
   
+  /** Index of the active page in the pages array */
+  const activeIndex = useMemo(
+    () => pages.findIndex((p) => p.id === activePageId),
+    [pages, activePageId]
+  );
+
   // collaboration hook
   const {
     collabEnabled,
     showCollabDialog,
+    needsUsername,  // NEW
     collabId,
     sceneVersion,
+    collaborators,  // NEW
     handleShowCollaboration,
     handleCloseCollabDialog,
+    handleConfirmUsername,  // NEW
     handleCollabSceneChange,
     notifyPageAdded,
     notifyPageDuplicated,
@@ -146,19 +156,31 @@ export default function App() {
     setEditingId,
     makeEmptyScene,
     canvasHostRef,
+    drawingRef: drawingRefs,  // Pass the refs object
   });
 
-  /** Index of the active page in the pages array */
-  const activeIndex = useMemo(
-    () => pages.findIndex((p) => p.id === activePageId),
-    [pages, activePageId]
-  );
+  // Check for collab URL parameter on mount - show dialog but do not auto-enable
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const collabParam = params.get('collab');
+    
+    if (collabParam && !collabEnabled) {
+      // Just show the dialog - username entry will enable collaboration
+      handleShowCollaboration();
+    }
+  }, []); // Only run once on mount
+
 
   /** Currently active sketch page */
   const activeSketch = pages[activeIndex] ?? pages[0];
   
   /** Refs to page DOM elements for scrolling */
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
+
+  //use excalidraw api instead of keying for remounts
+  useEffect(() => {
+    setTimeout(() => drawingRefs.current?.[activePageId]?.updateScene(activeSketch.scene), 0)
+  }, [sceneVersion, activeSketch, activePageId])
 
   /** Scroll active page into view when it changes */
   useEffect(() => {
@@ -175,10 +197,10 @@ export default function App() {
   const handleSceneChange = (scene: SceneData) => {
 
     console.log("🔵 App.handleSceneChange called", {
-    activePageId,
-    elementsCount: scene.elements?.length,
-    pagesCount: pages.length
-   });
+      activePageId,
+      elementsCount: scene.elements?.length,
+      pagesCount: pages.length
+    });
 
     setPages(prev => {
       const i = prev.findIndex(p => p.id === activePageId);
@@ -186,22 +208,20 @@ export default function App() {
 
       if (i < 0) return prev;
       
-      const oldScene = prev[i]?.scene;
+      const oldScene = prev[i].scene
       const next = [...prev];
       next[i] = { ...next[i], scene };
 
       console.log("🔵 Updated page scene", {
-      pageId: next[i].id,
-      newElementsCount: scene.elements?.length
-    });
+        pageId: next[i].id,
+        newElementsCount: scene.elements?.length
+      });
 
-      //handle collaboration scene change
-      
-      handleCollabSceneChange(scene, oldScene);
-      
+      handleCollabSceneChange(scene);
 
       return next;
     });
+
   };
 
   // === PAGE MANAGEMENT ===
@@ -226,49 +246,53 @@ export default function App() {
   };
 
   /** 
-   * Creates a copy of the current page and activates it
+   * Creates a duplicate of the specified page
+   * @param id - ID of the page to duplicate
    */
-  const handleDuplicatePage = () => {
-    if (!activeSketch) return;
+  const handleDuplicatePage = (id: string) => {
+    const pageIndex = pages.findIndex((p) => p.id === id);
+    if (pageIndex < 0) return;
+
+    const pageToDuplicate = pages[pageIndex];
     
-    const dupeScene: SceneData = {
-      elements: JSON.parse(JSON.stringify(activeSketch.scene.elements || [])),
-      appState: makeEmptyScene().appState, // Use fresh appState instead of cloning
-      files: JSON.parse(JSON.stringify(activeSketch.scene.files || {})),
-    };
+    // Generate new ID for duplicated page
+    const newPageId = collabEnabled ? `${collabId}-p${Date.now()}` : crypto.randomUUID();
     
-    const dupeID = collabEnabled
-      ? `${collabId}-p${Date.now()}`
-      : crypto.randomUUID();
-      
-    const dupe: SketchPage = {
-      id: dupeID,
-      name: `${activeSketch.name} (copy)`,
-      scene: dupeScene,
+    const newPage: SketchPage = {
+      id: newPageId,
+      name: `${pageToDuplicate.name} Copy`,
+      scene: structuredClone(pageToDuplicate.scene),
     };
 
-    setPages(prev => {
+    setPages((prev) => {
       const next = [...prev];
-      const i = next.findIndex(p => p.id === activePageId);
-      next.splice(Math.max(0, i) + 1, 0, dupe);
+      next.splice(pageIndex + 1, 0, newPage);
       return next;
     });
-    setActivePageId(dupe.id);
 
-    // Notify collaboration of duplication
-    notifyPageDuplicated(dupe.id, dupe.name, dupe.scene);
+    setActivePageId(newPage.id);
+    
+    // Notify collaboration
+    notifyPageDuplicated(newPage.id, newPage.name, newPage.scene);
+  };
+
+  /** Wrapper for duplicate handler that works with PageSidebar's signature */
+  const handleDuplicateActivePage = () => {
+    handleDuplicatePage(activePageId);
   };
 
   /** 
-   * Updates the name of a specific page
+   * Renames a page
    * @param id - ID of the page to rename
-   * @param name - New name for the page
+   * @param newName - New name for the page
    */
-  const handleRenamePage = (id: string, name: string) => {
-    setPages(prev => prev.map(p => p.id === id ? { ...p, name } : p));
-
-    // Notify collaboration name change
-    notifyPageRenamed(id, name);
+  const handleRenamePage = (id: string, newName: string) => {
+    setPages((prev) =>
+      prev.map((p) => (p.id === id ? { ...p, name: newName } : p))
+    );
+    
+    // Notify collaboration
+    notifyPageRenamed(id, newName);
   };
 
   /** 
@@ -276,25 +300,18 @@ export default function App() {
    * @param id - ID of the page to delete
    */
   const handleDeletePage = (id: string) => {
-    setPages(prev => {
-      if (prev.length <= 1) return prev;
-      const i = prev.findIndex(p => p.id === id);
-      const next = prev.filter(p => p.id !== id);
-      const newActive = next[Math.max(0, i - 1)];
-      setActivePageId(newActive.id);
-      if (editingId === id) setEditingId(null);
-      return next;
-    });
+    if (pages.length === 1) return;
 
-    // Clean up cached data for deleted page
-    setLastGeneratedScenes(prev => {
-      const next = { ...prev };
-      delete next[id];
-      return next;
-    });
+    const pageIndex = pages.findIndex((p) => p.id === id);
+    if (pageIndex < 0) return;
+
+    setPages((prev) => prev.filter((p) => p.id !== id));
+
+    if (activePageId === id) {
+      const nextIndex = Math.min(pageIndex, pages.length - 2);
+      setActivePageId(pages[nextIndex].id);
+    }
     
-    setMockups(prev => prev.filter(m => m.id !== id));
-
     // Notify collaboration of deletion
     notifyPageDeleted(id);
   };
@@ -304,9 +321,8 @@ export default function App() {
    * Only regenerates pages that have changed since last generation
    */
   const handleGenerate = async () => {
-    setLoading(true);
-    
     try {
+      setLoading(true);
 
       // Collect all page blobs
       // Identify pages that need regeneration
@@ -316,7 +332,7 @@ export default function App() {
       for (const page of pages) {
         // Skip pages with no elements
         if (!page.scene.elements || page.scene.elements.length === 0) {
-          console.log(`Skipping empty page: ${page.name}`);
+          console.log(`Skipping empty page "${page.name}"`);
           continue;
         }
         
@@ -347,7 +363,7 @@ export default function App() {
       for (const page of pagesToGenerate) {
         // Export directly from scene data
         const blob = await exportToBlob({
-          elements: page.scene.elements,
+          elements: page.scene.elements.filter(element => !element.isDeleted),
           appState: {
             ...page.scene.appState,
             exportBackground: true,
@@ -510,7 +526,7 @@ const handleExport = () => {
             onRenameItem={handleRenamePage}
             onDeleteItem={handleDeletePage}
             onAddItem={handleAddPage}
-            onDuplicateItem={handleDuplicatePage}
+            onDuplicateItem={handleDuplicateActivePage}
             editingId={editingId}
             onSetEditingId={setEditingId}
             expanded={sidebarExpanded}
@@ -523,11 +539,17 @@ const handleExport = () => {
         {/* Only render the ACTIVE Drawing component */}
         {currentPage === Page.Drawing && activeSketch && (
           <Drawing 
-            key={`${activeSketch?.id}-v${sceneVersion}`}
+            key={`${activeSketch?.id}`}
             ref={(ref) => { drawingRefs.current[activePageId] = ref; }} 
             className={styles.canvas} 
             visible={true}
-            initialScene={activeSketch.scene}
+            initialScene={{
+              ...activeSketch.scene,
+              appState: {
+                ...activeSketch.scene.appState,
+                collaborators: collaborators,  // Pass collaborators to Excalidraw
+              },
+            }}
             onSceneChange={handleSceneChange}
           />
         )}
@@ -550,6 +572,8 @@ const handleExport = () => {
         isOpen={showCollabDialog}
         onClose={handleCloseCollabDialog}
         collabId={collabId}
+        onConfirm={handleConfirmUsername}  // Pass username confirmation handler
+        needsUsername={needsUsername}      // Indicate if username is needed
       />
     </div>
   );

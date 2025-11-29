@@ -23,8 +23,27 @@ class SketchConsumer(WebsocketConsumer):
         if action == "scene_update":
             self.server.onSceneUpdate(self.channel_name, self.collabID, message["sketchID"], message["sketchData"])
 
-        if action == "page_update":
+        elif action == "page_update":
             self.server.onPageUpdate(self.channel_name, self.collabID, message["sketchID"], message["pageName"])
+
+        # Handle collaborator join
+        elif action == "collaborator_join":
+            self.server.onCollaboratorJoin(
+                self.channel_name,
+                self.collabID,
+                message["userID"],
+                message["username"]
+            )
+
+        # Handle collaborator pointer updates
+        elif action == "collaborator_pointer":
+            self.server.onCollaboratorPointer(
+                self.channel_name,
+                self.collabID,
+                message["userID"],
+                message.get("pointer"),
+                message.get("pageID")  # Pass pageID from client
+            )
 
     def scene_update(self, event):
         self.send(text_data=json.dumps({
@@ -38,4 +57,29 @@ class SketchConsumer(WebsocketConsumer):
             "action": "page_update",
             "sketchID": event["sketchID"],
             "pageName": event["pageName"]
+        }))
+
+    # Send collaborator join to WebSocket
+    def collaborator_join(self, event):
+        self.send(text_data=json.dumps({
+            "action": "collaborator_join",
+            "userID": event["userID"],
+            "username": event["username"],
+            "pointer": event.get("pointer")
+        }))
+
+    # Send collaborator leave to WebSocket
+    def collaborator_leave(self, event):
+        self.send(text_data=json.dumps({
+            "action": "collaborator_leave",
+            "userID": event["userID"]
+        }))
+
+    # Send collaborator pointer update to WebSocket - now includes pageID
+    def collaborator_pointer(self, event):
+        self.send(text_data=json.dumps({
+            "action": "collaborator_pointer",
+            "userID": event["userID"],
+            "pointer": event["pointer"],
+            "pageID": event.get("pageID")  # Include pageID in response
         }))

@@ -18,7 +18,8 @@ import App from "./App/App.tsx"
  * - Mounts at element with id 'root'
  */
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+//i swear this is necessary i hate excalidraw
+//  <StrictMode>
     <App/>
-  </StrictMode>,
+//  </StrictMode>,
 )

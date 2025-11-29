@@ -192,7 +192,7 @@ export function useCollaboration({
     
     const end = () => {
       const wasDrawing = isDrawingRef.current;
-      isDrawingRef.current = false;
+      setTimeout(() => isDrawingRef.current = false, 10)
       
       // Apply pending scene data after stroke completes
       if (wasDrawing && collabEnabled && collabClientRef.current) {

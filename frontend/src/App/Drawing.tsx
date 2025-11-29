@@ -162,7 +162,7 @@ function Drawing(
           setTimeout(() => {
             if(!excaliRef.current) return;
 
-            let elements = excaliRef.current.getSceneElements()
+            let elements = excaliRef.current.getSceneElementsIncludingDeleted()
             let appState = excaliRef.current.getAppState()
             let files = excaliRef.current.getFiles()
 

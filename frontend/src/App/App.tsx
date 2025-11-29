@@ -363,7 +363,7 @@ export default function App() {
       for (const page of pagesToGenerate) {
         // Export directly from scene data
         const blob = await exportToBlob({
-          elements: page.scene.elements,
+          elements: page.scene.elements.filter(element => !element.isDeleted),
           appState: {
             ...page.scene.appState,
             exportBackground: true,

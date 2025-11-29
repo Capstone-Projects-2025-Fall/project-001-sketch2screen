@@ -1,10 +1,10 @@
 import styles from "./App.module.css";
 import { useMemo, useRef, useState, useEffect } from "react";
 import Navbar from "./Navbar";
-import type { DrawingHandle, SceneData } from "./Sketch";
-import Mockup from "./Design";
-import type { MockupPage, MockupHandle } from "./Design";
-import Drawing from "./Sketch";
+import type { DrawingHandle, SceneData } from "./Drawing";
+import Mockup from "./Mockup";
+import type { MockupPage, MockupHandle } from "./Mockup";
+import Drawing from "./Drawing";
 import PageSidebar from "./reusable_sidebar";
 import { LoadingSpinner } from "./LoadingScreen";
 import CollaborationDialog from "./CollaborationDialog";

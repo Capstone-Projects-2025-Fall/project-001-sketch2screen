@@ -1,4 +1,4 @@
-import type { SceneData } from "./Sketch"
+import type { SceneData } from "./Drawing"
 
 
 /** Client for handling real-time collaboration features */

@@ -159,6 +159,34 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
               }, '*');
             }
           }
+
+          //Get Element attribute for img src
+          if (event.data.type === 'GET_ELEMENT_ATTRIBUTE') {
+            const elementId = event.data.elementId;
+            const attribute = event.data.attribute;
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            
+            if (element) {
+              window.parent.postMessage({
+                type: 'ELEMENT_ATTRIBUTE',
+                elementId: elementId,
+                attribute: attribute,
+                value: element.getAttribute(attribute)
+              }, '*');
+            }
+          }
+
+          //Update element attribute
+          if (event.data.type === 'UPDATE_ELEMENT_ATTRIBUTE') {
+            const elementId = event.data.elementId;
+            const attribute = event.data.attribute; // e.g., 'src'
+            const value = event.data.value;
+            
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            if (element) {
+              element.setAttribute(attribute, value);
+            }
+          }
           
           // Update element style
           if (event.data.type === 'UPDATE_ELEMENT_STYLE') {

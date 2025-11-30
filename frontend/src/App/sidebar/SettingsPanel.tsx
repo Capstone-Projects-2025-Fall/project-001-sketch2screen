@@ -37,6 +37,9 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
   const [textContent, setTextContent] = useState('');
   const textDebounceTimer = useRef<NodeJS.Timeout | null>(null);
 
+  const [imageSrc, setImageSrc] = useState('');
+  const imageSrcDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+
   const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
   // Convert RGB to HEX
@@ -64,6 +67,15 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
           elementId: selectedElement.id,
         }, '*');
       }
+
+      if (selectedElement.type === 'img') {
+        iframeRef.current.contentWindow.postMessage({
+          type: 'GET_ELEMENT_ATTRIBUTE',
+          elementId: selectedElement.id,
+          attribute: 'src'
+        }, '*');
+      }
+
     }
   }, [selectedElement, iframeRef]);
 
@@ -85,6 +97,11 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
       }
       if (event.data.type === 'ELEMENT_CONTENT') {
         setTextContent(event.data.content || '');
+      }
+
+      if (event.data.type === 'ELEMENT_ATTRIBUTE' && event.data.attribute === 'src') 
+      {
+        setImageSrc(event.data.value || '');
       }
     };
 
@@ -124,6 +141,26 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
       }
     }, 300);
   };
+
+  const handleImageSrcChange = (newSrc: string) => {
+    setImageSrc(newSrc);
+
+    if (imageSrcDebounceTimer.current) {
+      clearTimeout(imageSrcDebounceTimer.current);
+    }
+
+    imageSrcDebounceTimer.current = setTimeout(() => {
+      if (selectedElement && iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage({
+          type: 'UPDATE_ELEMENT_ATTRIBUTE',
+          elementId: selectedElement.id,
+          attribute: 'src',
+          value: newSrc,
+        }, '*');
+      }
+    }, 300);
+  };
+
 
 
   if (!selectedElement) {
@@ -245,6 +282,20 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
           placeholder="e.g., 4px"
         />
       </div>
+
+      {selectedElement.type === 'img' && (
+        <div className={styles.settingsGroup}>
+          <label>Image Source Link:</label>
+          <input
+            type="text"
+            value={imageSrc}
+            onChange={(e) => handleImageSrcChange(e.target.value)}
+            placeholder="https://example.com/image.png"
+          />
+        </div>
+      )}
+
+
     </div>
   );
 }

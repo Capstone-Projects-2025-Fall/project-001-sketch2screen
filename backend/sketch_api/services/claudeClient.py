@@ -76,12 +76,14 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
 
             DESIGN FIDELITY:
             - Match the sketch's layout and color scheme but make it modern, clean, and visually appealing
-            - If elements are labeled with HTML tag names (e.g., "button", "input"), use those exact tags
+            - If elements are labeled with HTML tag names (e.g., "button", "input", "img" ), use those exact tags
+            - If user has pointed to an element and has specific instructions, follow them carefully. For example, if a user points to a square and says "Make it blue".
+            - If element has text instructions inside it, for example "Image goes here", do not include that text in the output. Make the element of img tag and put in a placeholder image instead.
             - Preserve all text content visible in the sketch
             - Implement smooth transitions and animations where appropriate
             - For any images in the design:
-                - Use placeholder divs with gradients or SVG icons
-                - Make placeholder visually appealing (not just gray boxes)
+                - Use placeholder divs. Do not use SVG icons. You can use external placeholder images if user suggests a specific type of image, else a simple placeholder.
+                - Make placeholder for all img class or tags the same.
             - Represent icons
             * Icons: Use emoji, Unicode symbols, or labeled boxes like <div class="w-6 h-6 bg-gray-300 rounded"></div>
 

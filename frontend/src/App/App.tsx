@@ -505,6 +505,16 @@ export default function App() {
             html: result.html,
           };
         });
+
+        setMockupStyles(prev =>{
+          const next = {...prev};
+          pagesToGenerate.forEach(page =>{
+            if (next[page.id]){
+              delete next[page.id];
+            }
+          });
+          return next;
+        })
         
         // Update lastGeneratedScenes for newly generated pages
         setLastGeneratedScenes(prev => {

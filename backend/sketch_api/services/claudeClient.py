@@ -99,7 +99,7 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
 
     resp = await client.messages.create(
         model=model,
-        max_tokens=5000,
+        max_tokens=15000,
         system=system_msg,
         messages=[
             {

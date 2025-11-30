@@ -39,6 +39,7 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
     }
     .editable-element {
       transition: outline 0.2s ease;
+      pointer-events: auto !important;
     }
     .editable-element:hover {
       outline: 2px dashed #2196F3;
@@ -46,6 +47,10 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
     }
     .selected {
       outline: 2px solid #2196F3 !important;
+      pointer-events: none;
+
+    .selected > .editable-element {
+      pointer-events: auto;
     }
   </style>
     `;
@@ -75,6 +80,10 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
         // Add click handlers to all editable elements
         document.querySelectorAll('.editable-element').forEach(element => {
           element.addEventListener('click', (e) => {
+
+            const clickedElement = e.target.closest('.editable-element');
+
+
             e.preventDefault();
             e.stopPropagation();
             

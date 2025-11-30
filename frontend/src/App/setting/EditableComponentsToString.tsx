@@ -146,6 +146,20 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
             }
           }
           
+          // Get element content request
+          if (event.data.type === 'GET_ELEMENT_CONTENT') {
+            const elementId = event.data.elementId;
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            
+            if (element) {
+              window.parent.postMessage({
+                type: 'ELEMENT_CONTENT',
+                elementId: elementId,
+                content: element.innerText // Sends the current text back to the sidebar
+              }, '*');
+            }
+          }
+          
           // Update element style
           if (event.data.type === 'UPDATE_ELEMENT_STYLE') {
             const elementId = event.data.elementId;
@@ -157,6 +171,17 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
               element.style[property] = value;
             }
           }
+          
+          if (event.data.type === 'UPDATE_ELEMENT_CONTENT') {
+            const elementId = event.data.elementId;
+            const content = event.data.content;
+            
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            if (element) {
+              element.innerText = content; // Actually updates the text on screen
+            }
+          }
+
           
           // Apply variation
           if (event.data.type === 'APPLY_VARIATION') {

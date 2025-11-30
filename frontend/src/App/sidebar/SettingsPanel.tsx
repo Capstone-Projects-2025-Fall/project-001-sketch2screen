@@ -34,6 +34,9 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
     borderRadius: '',
   });
 
+  const [textContent, setTextContent] = useState('');
+  const textDebounceTimer = useRef<NodeJS.Timeout | null>(null);
+
   const debounceTimers = useRef<Record<string, NodeJS.Timeout>>({});
 
   // Convert RGB to HEX
@@ -54,6 +57,13 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
         type: 'GET_ELEMENT_STYLES',
         elementId: selectedElement.id,
       }, '*');
+
+      if (['p', 'h1', 'h2', 'h3', 'span', 'button', 'a'].includes(selectedElement.type)) {
+        iframeRef.current.contentWindow.postMessage({
+          type: 'GET_ELEMENT_CONTENT',
+          elementId: selectedElement.id,
+        }, '*');
+      }
     }
   }, [selectedElement, iframeRef]);
 
@@ -72,6 +82,9 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
           margin: computedStyles.margin || '',
           borderRadius: computedStyles.borderRadius || '',
         });
+      }
+      if (event.data.type === 'ELEMENT_CONTENT') {
+        setTextContent(event.data.content || '');
       }
     };
 
@@ -93,6 +106,25 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
       }
     }, 300);
   };
+
+  const handleTextChange = (newText: string) => {
+    setTextContent(newText);
+
+    if (textDebounceTimer.current) {
+      clearTimeout(textDebounceTimer.current);
+    }
+
+    textDebounceTimer.current = setTimeout(() => {
+      if (selectedElement && iframeRef.current?.contentWindow) {
+        iframeRef.current.contentWindow.postMessage({
+          type: 'UPDATE_ELEMENT_CONTENT',
+          elementId: selectedElement.id,
+          content: newText,
+        }, '*');
+      }
+    }, 300);
+  };
+
 
   if (!selectedElement) {
     return (
@@ -172,6 +204,17 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
           placeholder="e.g., 16px"
         />
       </div>
+
+      {['p', 'h1', 'h2', 'h3', 'span', 'button', 'a'].includes(selectedElement.type) && (
+        <div className={styles.settingsGroup}>
+          <label>Text Content:</label>
+          <input
+            value={textContent}
+            onChange={(e) => handleTextChange(e.target.value)}
+            placeholder="Edit text content..."
+          />
+        </div>
+      )}
 
       <div className={styles.settingsGroup}>
         <label>Padding:</label>

@@ -90,10 +90,7 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
             - Apply Tailwind classes directly to elements for colors, spacing, typography, shadows, borders, etc.
             - Ensure proper visual hierarchy with appropriate font sizes, weights, and spacing
             - Add hover states where interactive elements are present (buttons, links)
-
-            ADDITIONAL REQUIREMENTS:
-            - Make the background cyan blue.
-
+            - Use flexbox and grid layouts as needed for complex arrangements
             Begin your response with <!DOCTYPE html> and nothing else."""
        )
 

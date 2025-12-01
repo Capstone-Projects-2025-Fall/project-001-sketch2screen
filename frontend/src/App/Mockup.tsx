@@ -512,6 +512,7 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
           activeMockup && (
             <div className={styles.previewContainer}>
               <iframe
+                key={`mockup - ${activeMockup.id}-${activeMockup.html.length}`}
                 srcDoc={OutputPage(safeHtml)}
                 className={styles.preview}
                 title={`Mockup preview: ${activeMockup.name}`}

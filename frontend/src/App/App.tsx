@@ -224,10 +224,12 @@ export default function App() {
    */
   const handleSceneChange = (scene: SceneData) => {
 
+
     console.log("🔵 App.handleSceneChange called", {
       activePageId,
       elementsCount: scene.elements?.length,
-      pagesCount: pages.length
+      pagesCount: pages.length,
+      elementsPreview: scene.elements?.slice(0, 2).map(el => ({ id: el.id, type: el.type }))
     });
 
     setPages(prev => {
@@ -359,12 +361,23 @@ export default function App() {
     try {
       setLoading(true);
 
-      // Collect all page blobs
+      //Snapshoting all page scenes at the moment Generate is clicked
+      const sceneSnapshots = new Map<string, string>();
+      pages.forEach(page => {
+        sceneSnapshots.set(page.id, serializeScene(page.scene));
+      })
       // Identify pages that need regeneration
       const pagesToGenerate: SketchPage[] = [];
       const unchangedPages: SketchPage[] = [];
       
       for (const page of pages) {
+
+        console.log('🟡 Checking page:', {
+          pageId: page.id,
+          pageName: page.name,
+          elementsCount: page.scene.elements?.length,
+          hasLastGenerated: !!lastGeneratedScenes[page.id]
+        });
         // Skip pages with no elements
         if (!page.scene.elements || page.scene.elements.length === 0) {
           console.log(`Skipping empty page "${page.name}"`);
@@ -372,18 +385,43 @@ export default function App() {
         }
         
         // Serialize current scene
-        const currentSceneSerialized = serializeScene(page.scene);
+        const currentSceneSerialized = sceneSnapshots.get(page.id) ||serializeScene(page.scene);
         const lastGeneratedScene = lastGeneratedScenes[page.id];
         
+        console.log('🔴 Serialization comparison:', {
+          pageId: page.id,
+          currentLength: currentSceneSerialized.length,
+          lastLength: lastGeneratedScene?.length,
+          areEqual: currentSceneSerialized === lastGeneratedScene,
+          currentPreview: currentSceneSerialized.substring(0, 200),
+          lastPreview: lastGeneratedScene?.substring(0, 200)
+        });
+
         // Check if page needs regeneration
         if (!lastGeneratedScene || currentSceneSerialized !== lastGeneratedScene) {
           // Page is new or has changed - needs regeneration
           pagesToGenerate.push(page);
           console.log(`Page "${page.name}" needs regeneration (${!lastGeneratedScene ? 'new' : 'changed'})`);
         } else {
+
+          console.log('❌ Page skipped:', {
+              pageName: page.name,
+              reason: 'Scenes match',
+              currentLength: currentSceneSerialized.length,
+              lastLength: lastGeneratedScene.length,
+              firstDiff: findFirstDifference(currentSceneSerialized, lastGeneratedScene)
+            });
           // Page unchanged - can reuse existing mockup
           unchangedPages.push(page);
           console.log(`Page "${page.name}" unchanged - reusing cached mockup`);
+        }
+
+                // Helper function - add this outside handleGenerate
+        function findFirstDifference(str1: string, str2: string): number {
+          for (let i = 0; i < Math.min(str1.length, str2.length); i++) {
+            if (str1[i] !== str2[i]) return i;
+          }
+          return -1;
         }
       }
       
@@ -467,12 +505,22 @@ export default function App() {
             html: result.html,
           };
         });
+
+        setMockupStyles(prev =>{
+          const next = {...prev};
+          pagesToGenerate.forEach(page =>{
+            if (next[page.id]){
+              delete next[page.id];
+            }
+          });
+          return next;
+        })
         
         // Update lastGeneratedScenes for newly generated pages
         setLastGeneratedScenes(prev => {
           const next = { ...prev };
           for (const page of pagesToGenerate) {
-            next[page.id] = serializeScene(page.scene);
+            next[page.id] = sceneSnapshots.get(page.id) ||serializeScene(page.scene);
           }
           return next;
         });

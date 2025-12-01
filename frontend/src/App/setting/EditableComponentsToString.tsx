@@ -39,6 +39,7 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
     }
     .editable-element {
       transition: outline 0.2s ease;
+      pointer-events: auto !important;
     }
     .editable-element:hover {
       outline: 2px dashed #2196F3;
@@ -46,6 +47,10 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
     }
     .selected {
       outline: 2px solid #2196F3 !important;
+      pointer-events: none;
+
+    .selected > .editable-element {
+      pointer-events: auto;
     }
   </style>
     `;
@@ -75,6 +80,10 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
         // Add click handlers to all editable elements
         document.querySelectorAll('.editable-element').forEach(element => {
           element.addEventListener('click', (e) => {
+
+            const clickedElement = e.target.closest('.editable-element');
+
+
             e.preventDefault();
             e.stopPropagation();
             
@@ -137,6 +146,48 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
             }
           }
           
+          // Get element content request
+          if (event.data.type === 'GET_ELEMENT_CONTENT') {
+            const elementId = event.data.elementId;
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            
+            if (element) {
+              window.parent.postMessage({
+                type: 'ELEMENT_CONTENT',
+                elementId: elementId,
+                content: element.innerText // Sends the current text back to the sidebar
+              }, '*');
+            }
+          }
+
+          //Get Element attribute for img src
+          if (event.data.type === 'GET_ELEMENT_ATTRIBUTE') {
+            const elementId = event.data.elementId;
+            const attribute = event.data.attribute;
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            
+            if (element) {
+              window.parent.postMessage({
+                type: 'ELEMENT_ATTRIBUTE',
+                elementId: elementId,
+                attribute: attribute,
+                value: element.getAttribute(attribute)
+              }, '*');
+            }
+          }
+
+          //Update element attribute
+          if (event.data.type === 'UPDATE_ELEMENT_ATTRIBUTE') {
+            const elementId = event.data.elementId;
+            const attribute = event.data.attribute; // e.g., 'src'
+            const value = event.data.value;
+            
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            if (element) {
+              element.setAttribute(attribute, value);
+            }
+          }
+          
           // Update element style
           if (event.data.type === 'UPDATE_ELEMENT_STYLE') {
             const elementId = event.data.elementId;
@@ -148,6 +199,17 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
               element.style[property] = value;
             }
           }
+          
+          if (event.data.type === 'UPDATE_ELEMENT_CONTENT') {
+            const elementId = event.data.elementId;
+            const content = event.data.content;
+            
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            if (element) {
+              element.innerText = content; // Actually updates the text on screen
+            }
+          }
+
           
           // Apply variation
           if (event.data.type === 'APPLY_VARIATION') {

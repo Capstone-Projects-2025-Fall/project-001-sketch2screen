@@ -61,7 +61,7 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
         elementId: selectedElement.id,
       }, '*');
 
-      if (['p', 'h1', 'h2', 'h3', 'span', 'button', 'a'].includes(selectedElement.type)) {
+      if (['p', 'h1', 'h2', 'h3', 'span', 'button', 'a', 'textarea', 'div'].includes(selectedElement.type)) {
         iframeRef.current.contentWindow.postMessage({
           type: 'GET_ELEMENT_CONTENT',
           elementId: selectedElement.id,

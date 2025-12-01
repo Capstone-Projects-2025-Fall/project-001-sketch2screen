@@ -78,7 +78,7 @@ async def image_to_html_css(image_bytes: bytes, media_type: str = "image/png", p
             - Match the sketch's layout and color scheme but make it modern, clean, and visually appealing
             - If elements are labeled with HTML tag names (e.g., "button", "input", "img" ), use those exact tags
             - If user has pointed to an element and has specific instructions, follow them carefully. For example, if a user points to a square and says "Make it blue".
-            - If element has text instructions inside it, for example "Image goes here", do not include that text in the output. Make the element of img tag and put in a placeholder image instead.
+            - If element has abstract text instructions such as "Image",  Make that element an <img> tag and put in a placeholder image instead.
             - Preserve all text content visible in the sketch
             - Implement smooth transitions and animations where appropriate
             - For any images in the design:

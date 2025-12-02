@@ -104,12 +104,6 @@ Sketch2Screen fills this gap by combining the collaborative design strengths of 
    echo "your-variation-api-key-here" > APIkey2.txt # For component variations
    ```
 
-   **Or** set as environment variables:
-   ```bash
-   export ANTHROPIC_API_KEY="your-main-api-key-here"
-   export ANTHROPIC_VARIATIONS_API_KEY="your-variation-api-key-here"
-   ```
-
    > **Note:** You can use the same API key for both files if you don't need separate keys for cost management.
 
 ### Running the Application

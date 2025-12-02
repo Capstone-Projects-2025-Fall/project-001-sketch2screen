@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcreate_project_docs=globalThis.webpackChunkcreate_project_docs||[]).push([[2325],{2325:(e,c,a)=>{a.d(c,{createPacketServices:()=>r.$});var r=a(73858);a(87960)}}]);

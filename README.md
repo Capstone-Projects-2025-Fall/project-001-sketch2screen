@@ -94,17 +94,17 @@ Sketch2Screen fills this gap by combining the collaborative design strengths of 
    cd ..
    ```
 
-4. **Configure Anthropic API Key**
+4. **Configure Anthropic API Keys**
 
-   Create a file named `APIkey.txt` in the project root and add your Anthropic API key:
+   The application requires **two** Anthropic API keys for different features:
+
+   Create two files in the project root:
    ```bash
-   echo "your-api-key-here" > APIkey.txt
+   echo "your-main-api-key-here" > APIkey.txt      # For sketch-to-HTML generation
+   echo "your-variation-api-key-here" > APIkey2.txt # For component variations
    ```
 
-   **Or** set as an environment variable:
-   ```bash
-   export ANTHROPIC_API_KEY="your-api-key-here"
-   ```
+   > **Note:** You can use the same API key for both files if you don't need separate keys for cost management.
 
 ### Running the Application
 

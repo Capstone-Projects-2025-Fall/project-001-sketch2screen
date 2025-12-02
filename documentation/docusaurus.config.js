@@ -137,11 +137,6 @@ const config = {
             docId: 'intro',
             position: 'left',
             label: 'Documentation',
-          },{
-            to: '/tutorial/Intro',
-            label: 'Docusaurus Tutorial',
-            position: 'left',
-            activeBaseRegex: `/tutorial/`,
           },
           {
             href: 'https://github.com/'+process.env.ORG_NAME+'/'+process.env.PROJECT_NAME,
@@ -216,37 +211,12 @@ const config = {
     }),
   plugins: [
     [
-      '@docusaurus/plugin-content-docs',
-      {
-        id: 'tutorial',
-        path: 'tutorial',
-        routeBasePath: 'tutorial',
-        sidebarPath: require.resolve('./sidebars.js'),
-        // ... other options
-      },
-    ],
-    [
       "docusaurus2-dotenv-2",
       {
         systemvars: true,
       },
     ],
     'plugin-image-zoom',
-    [
-      'docusaurus-plugin-typedoc',
-      {
-        entryPoints: ['../frontend/src/App/*.{ts,tsx}'],
-        entryPointStrategy: 'expand',
-        tsconfig: '../frontend/tsconfig.json',
-        useCodeBlocks: true,
-        excludePrivate: false,
-        excludeInternal: false,
-        out: 'docs/api-specification/FrontendAPI/',
-        
-      },
-    ],
-
-
   ],
 };
 console.log(config.scripts)

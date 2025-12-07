@@ -127,7 +127,7 @@ export default function App() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   /** Controls whether the sidebar is expanded or collapsed */
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   // ref for pointer event
   const canvasHostRef = useRef<HTMLDivElement | null>(null);

@@ -8,6 +8,7 @@ import Drawing from "./Drawing";
 import PageSidebar from "./reusable_sidebar";
 import { LoadingSpinner } from "./LoadingScreen";
 import CollaborationDialog from "./CollaborationDialog";
+import WelcomeDialog from "./WelcomeDialog";
 import { downloadModifiedHTML, getCleanModifiedHTML } from "./utils/exportUtils";
 import { EditableComponents } from "./setting/EditableComponentsToString";
 import { useCollaboration } from "./useCollaboration";
@@ -130,6 +131,23 @@ export default function App() {
 
   // ref for pointer event
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
+
+  /** Controls whether the welcome dialog is shown */
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Check if this is the user's first visit
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('sketch2screen-visited');
+    if (!hasVisited) {
+      setShowWelcome(true);
+    }
+  }, []);
+
+  // Handle closing the welcome dialog
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('sketch2screen-visited', 'true');
+  };
 
 
   /** Store Style and Variations changes per mockup page  */
@@ -661,6 +679,11 @@ export default function App() {
         collabId={collabId}
         onConfirm={handleConfirmUsername}  // Pass username confirmation handler
         needsUsername={needsUsername}      // Indicate if username is needed
+      />
+
+      <WelcomeDialog
+        isOpen={showWelcome}
+        onClose={handleCloseWelcome}
       />
     </div>
   );

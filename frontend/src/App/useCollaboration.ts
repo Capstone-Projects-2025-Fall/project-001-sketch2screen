@@ -501,7 +501,7 @@ export function useCollaboration({
   const notifyPageDuplicated = (pageId: string, pageName: string, scene: SceneData) => {
     if (collabEnabled && collabClientRef.current) {
       collabClientRef.current.sendPageUpdate(pageId, pageName);
-      collabClientRef.current.sendSceneUpdate(pageId, { ...scene, appState: null });
+      collabClientRef.current.sendSceneUpdate(pageId, { ...scene, appState: {} });
     }
   };
 

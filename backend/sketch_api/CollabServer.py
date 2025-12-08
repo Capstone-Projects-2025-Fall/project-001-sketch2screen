@@ -130,10 +130,6 @@ class CollabServer(metaclass=SingletonMeta):
             print(f"  - Sending collaborator: {collaborator.username} ({userID})")
             self.sendCollaboratorJoin(channelName, userID, collaborator.username, collaborator.pointer)
 
-        # Send existing collaborators to new connection
-        for userID, collaborator in self.collabSessions[collabID].collaborators.items():
-            self.sendCollaboratorJoin(channelName, userID, collaborator.username, collaborator.pointer)
-
     def onCollaboratorJoin(self, channelName, collabID, userID, username):
         print(f"Collaborator join: {username} ({userID}) in collab {collabID}")
 

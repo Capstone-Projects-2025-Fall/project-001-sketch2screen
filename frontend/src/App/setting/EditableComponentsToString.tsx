@@ -40,6 +40,7 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
     .editable-element {
       transition: outline 0.2s ease;
       pointer-events: auto !important;
+      position: relative;
     }
     .editable-element:hover {
       outline: 2px dashed #2196F3;
@@ -48,9 +49,29 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
     .selected {
       outline: 2px solid #2196F3 !important;
       pointer-events: none;
-
+    }
     .selected > .editable-element {
       pointer-events: auto;
+    }
+    /* Page link indicator */
+    .has-page-link {
+      outline: 2px solid #10b981 !important;
+    }
+    .has-page-link:hover {
+      outline: 2px solid #059669 !important;
+    }
+    .page-link-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #10b981;
+      color: white;
+      font-size: 10px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      z-index: 1000;
+      pointer-events: none;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
   </style>
     `;
@@ -113,14 +134,7 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
           originalElements.set(element.dataset.elementId, element.outerHTML);
         });
 
-        // Notify parent that iframe has loaded
-        if (window.parent && window.parent.postMessage) {
-          window.parent.postMessage({
-            type: 'IFRAME_LOADED'
-          }, '*');
-        }
-
-        // Listen for messages from parent
+        // Listen for messages from parent - MUST be set up BEFORE notifying parent
         window.addEventListener('message', function(event) {
           // Get element styles request
           if (event.data.type === 'GET_ELEMENT_STYLES') {
@@ -316,12 +330,12 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
           // Inject multiple styles at once (used on page load)
           if (event.data.type === 'INJECT_STYLES') {
             const stylesToInject = event.data.styles;
-            
+
             if (stylesToInject) {
               Object.keys(stylesToInject).forEach(function(elementId) {
                 const styleData = stylesToInject[elementId];
                 const element = document.querySelector('[data-element-id="' + elementId + '"]');
-                
+
                 if (element && styleData) {
                   // Apply each style property
                   Object.keys(styleData).forEach(function(property) {
@@ -332,7 +346,70 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
             }
           }
 
+          // Set page link for an element
+          if (event.data.type === 'SET_PAGE_LINK') {
+            const elementId = event.data.elementId;
+            const targetPageId = event.data.targetPageId;
+
+            const element = document.querySelector('[data-element-id="' + elementId + '"]');
+            if (element) {
+              // Remove existing badge if any
+              const existingBadge = element.querySelector('.page-link-badge');
+              if (existingBadge) {
+                existingBadge.remove();
+              }
+
+              if (targetPageId) {
+                // Add link indicator
+                element.classList.add('has-page-link');
+                element.setAttribute('data-page-link', targetPageId);
+
+                // Add badge
+                const badge = document.createElement('span');
+                badge.className = 'page-link-badge';
+                badge.textContent = '🔗';
+                element.style.position = 'relative';
+                element.appendChild(badge);
+              } else {
+                // Remove link indicator
+                element.classList.remove('has-page-link');
+                element.removeAttribute('data-page-link');
+              }
+            }
+          }
+
+          // Inject page links (used on page load)
+          if (event.data.type === 'INJECT_PAGE_LINKS') {
+            const links = event.data.links;
+
+            if (links) {
+              Object.keys(links).forEach(function(elementId) {
+                const targetPageId = links[elementId];
+                const element = document.querySelector('[data-element-id="' + elementId + '"]');
+
+                if (element && targetPageId) {
+                  element.classList.add('has-page-link');
+                  element.setAttribute('data-page-link', targetPageId);
+
+                  // Add badge
+                  const badge = document.createElement('span');
+                  badge.className = 'page-link-badge';
+                  badge.textContent = '🔗';
+                  element.style.position = 'relative';
+                  element.appendChild(badge);
+                }
+              });
+            }
+          }
+
         });
+
+        // Notify parent that iframe has loaded - AFTER message listener is set up
+        if (window.parent && window.parent.postMessage) {
+          window.parent.postMessage({
+            type: 'IFRAME_LOADED'
+          }, '*');
+        }
   </script>
       `;
 

@@ -25,9 +25,17 @@ export function generateCacheKey(elementHtml: string): CacheKey {
     .replace(/data-element-id="[^"]*"/g, '')
     .replace(/\s+/g, ' ')
     .trim();
-  
-  // Simple hash using btoa
-  return btoa(normalized).slice(0, 32);
+
+  // Use a simple hash function that handles Unicode characters
+  // btoa() fails on non-ASCII characters, so we use a custom hash
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    const char = normalized.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+  // Convert to a string and make it positive
+  return 'cache_' + Math.abs(hash).toString(36);
 }
 
 /**

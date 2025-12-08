@@ -3,6 +3,8 @@
  * @module main
  */
 
+(window as any).EXCALIDRAW_ASSET_PATH = "/static/excalidraw-assets/";
+
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
@@ -19,6 +21,7 @@ import App from "./App/App.tsx"
  */
 createRoot(document.getElementById('root')!).render(
 //i swear this is necessary i hate excalidraw
+//same i hate it too
 //  <StrictMode>
     <App/>
 //  </StrictMode>,

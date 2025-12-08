@@ -8,8 +8,9 @@ import Drawing from "./Drawing";
 import PageSidebar from "./reusable_sidebar";
 import { LoadingSpinner } from "./LoadingScreen";
 import CollaborationDialog from "./CollaborationDialog";
-import { downloadModifiedHTML, getCleanModifiedHTML } from "./utils/exportUtils";
-import { EditableComponents } from "./setting/EditableComponentsToString";
+import WelcomeDialog from "./WelcomeDialog";
+import { downloadModifiedHTML } from "./utils/exportUtils";
+import { exportAsSingleHTML, exportAsZip } from "./utils/multiPageExport";
 import { useCollaboration } from "./useCollaboration";
 import type { SketchPage } from "./sketchPage";
 import { exportToBlob } from "@excalidraw/excalidraw";
@@ -126,10 +127,27 @@ export default function App() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   /** Controls whether the sidebar is expanded or collapsed */
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [sidebarExpanded, setSidebarExpanded] = useState(false);
 
   // ref for pointer event
   const canvasHostRef = useRef<HTMLDivElement | null>(null);
+
+  /** Controls whether the welcome dialog is shown */
+  const [showWelcome, setShowWelcome] = useState(false);
+
+  // Check if this is the user's first visit
+  useEffect(() => {
+    const hasVisited = localStorage.getItem('sketch2screen-visited');
+    if (!hasVisited) {
+      setShowWelcome(true);
+    }
+  }, []);
+
+  // Handle closing the welcome dialog
+  const handleCloseWelcome = () => {
+    setShowWelcome(false);
+    localStorage.setItem('sketch2screen-visited', 'true');
+  };
 
 
   /** Store Style and Variations changes per mockup page  */
@@ -149,6 +167,13 @@ export default function App() {
           html: string | null;
         }>;
       };
+    };
+  }>({});
+
+  /** Store page links: maps elementId to target page ID */
+  const [pageLinks, setPageLinks] = useState<{
+    [mockupPageId: string]: {
+      [elementId: string]: string; // elementId -> targetPageId
     };
   }>({});
   
@@ -353,13 +378,20 @@ export default function App() {
     notifyPageDeleted(id);
   };
 
-  /** 
+  /**
    * Generates HTML from current sketch via backend API
    * Only regenerates pages that have changed since last generation
+   * @param forceRegenerate - If true, regenerates all pages regardless of cache
    */
-  const handleGenerate = async () => {
+  const handleGenerate = async (forceRegenerate: boolean = false) => {
     try {
       setLoading(true);
+
+      // Use empty cache if forcing regeneration
+      const effectiveLastGeneratedScenes = forceRegenerate ? {} : lastGeneratedScenes;
+      if (forceRegenerate) {
+        console.log('🔄 Force regenerate: ignoring scene cache');
+      }
 
       //Snapshoting all page scenes at the moment Generate is clicked
       const sceneSnapshots = new Map<string, string>();
@@ -376,18 +408,18 @@ export default function App() {
           pageId: page.id,
           pageName: page.name,
           elementsCount: page.scene.elements?.length,
-          hasLastGenerated: !!lastGeneratedScenes[page.id]
+          hasLastGenerated: !!effectiveLastGeneratedScenes[page.id]
         });
         // Skip pages with no elements
         if (!page.scene.elements || page.scene.elements.length === 0) {
           console.log(`Skipping empty page "${page.name}"`);
           continue;
         }
-        
+
         // Serialize current scene
         const currentSceneSerialized = sceneSnapshots.get(page.id) ||serializeScene(page.scene);
-        const lastGeneratedScene = lastGeneratedScenes[page.id];
-        
+        const lastGeneratedScene = effectiveLastGeneratedScenes[page.id];
+
         console.log('🔴 Serialization comparison:', {
           pageId: page.id,
           currentLength: currentSceneSerialized.length,
@@ -565,7 +597,7 @@ export default function App() {
     }
   };
 
-  /** 
+  /**
    * Exports the currently visible mockup as an HTML file with all style changes applied
    */
   const handleExport = () => {
@@ -576,7 +608,7 @@ export default function App() {
 
     // Get the mockup component ref
     const iframeRef = mockupRef.current?.getIframeRef();
-    
+
     if (!iframeRef?.current) {
       alert("Iframe not available. Please try again.");
       return;
@@ -590,13 +622,41 @@ export default function App() {
     downloadModifiedHTML(iframeRef, `${activeMockup.name || "mockup"}.html`);
   };
 
+  /**
+   * Exports all mockup pages as a single HTML file with navigation
+   */
+  const handleExportSingleHTML = async () => {
+    if (mockups.length === 0) {
+      alert("No mockups available to export. Please generate first.");
+      return;
+    }
+
+    const projectName = filename?.replace('.sketch', '') || 'website';
+    await exportAsSingleHTML(mockups, pageLinks, mockupStyles, `${projectName}.html`);
+  };
+
+  /**
+   * Exports all mockup pages as a ZIP file with individual HTML files
+   */
+  const handleExportZip = async () => {
+    if (mockups.length === 0) {
+      alert("No mockups available to export. Please generate first.");
+      return;
+    }
+
+    const projectName = filename?.replace('.sketch', '') || 'website';
+    await exportAsZip(mockups, pageLinks, mockupStyles, `${projectName}.zip`);
+  };
+
   return (
     <div className={styles.appRoot}>
       <Navbar
         curPage={currentPage}
         onPageChange={setCurrentPage}
         onGenerate={handleGenerate}
-        onExport = {handleExport}
+        onExport={handleExport}
+        onExportSingleHTML={handleExportSingleHTML}
+        onExportZip={handleExportZip}
         filename={filename}
         onFilenameChange={setFilename}
         onStartCollab={handleShowCollaboration}
@@ -634,7 +694,7 @@ export default function App() {
               ...activeSketch.scene,
               appState: {
                 ...activeSketch.scene.appState,
-                collaborators: collaborators,  // Pass collaborators to Excalidraw
+                collaborators: collaborators as any,  // Pass collaborators to Excalidraw
               },
             }}
             onSceneChange={handleSceneChange}
@@ -644,7 +704,7 @@ export default function App() {
 
       
         {/*Mockup view*/}
-        {currentPage === Page.Mockup && <Mockup ref={mockupRef} mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} mockupStyles = {mockupStyles} setMockupStyles = {setMockupStyles}/>}
+        {currentPage === Page.Mockup && <Mockup ref={mockupRef} mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} mockupStyles={mockupStyles} setMockupStyles={setMockupStyles} pageLinks={pageLinks} setPageLinks={setPageLinks} />}
 
         {/* Loading overlay */}
         {loading && (
@@ -661,6 +721,11 @@ export default function App() {
         collabId={collabId}
         onConfirm={handleConfirmUsername}  // Pass username confirmation handler
         needsUsername={needsUsername}      // Indicate if username is needed
+      />
+
+      <WelcomeDialog
+        isOpen={showWelcome}
+        onClose={handleCloseWelcome}
       />
     </div>
   );

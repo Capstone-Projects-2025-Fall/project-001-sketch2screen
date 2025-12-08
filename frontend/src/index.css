@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Margarine&family=Walter+Turncoat&display=swap');
+
 html {
   width: 100vw;
   height: 100vh;
@@ -12,4 +14,8 @@ body {
 #root {
   width: 100%;
   height: 100%;
+}
+
+.excalidraw .sidebar-trigger {
+  display: none !important;
 }

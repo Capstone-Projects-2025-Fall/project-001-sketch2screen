@@ -39,11 +39,11 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  font-family: "Chalkduster", sans-serif;
+  font-family: "Margarine", cursive, sans-serif;
 }
 
 .logo {
-  font-family: "Chalkduster", sans-serif;
+  font-family: "Walter Turncoat", cursive, sans-serif;
   color: white;
   font-size: clamp(1rem, 3vw, 2rem);
   white-space: nowrap;
@@ -79,7 +79,7 @@
   padding: 0.25em 0.75em;
   background-color: mediumpurple;
   color: white;
-  font-size: clamp(0.75rem, 1.5vw, 1rem);
+  font-size: clamp(1rem, 2vw, 1.5rem);
   white-space: nowrap;
   flex-shrink: 1;
 }
@@ -103,10 +103,10 @@
   border-radius: 2em;
   box-sizing: border-box;
   color: rgb(15, 10, 103);
-  font-size: clamp(0.75rem, 1.5vw, 1rem);
+  font-size: clamp(1rem, 2vw, 1.5rem);
   white-space: nowrap;
 
-  height: 2rem;
+  height: 3rem;
   min-width: 5rem;
   width: clamp(6rem, 12vw, 10rem);
   padding: 0.25em 0.75em;
@@ -119,13 +119,13 @@
 
 .generateButton {background-image: linear-gradient(to right, #ECE9E6 0%, #FFFFFF  51%, #ECE9E6  100%)}
 .generateButton {
-  font-size: clamp(0.75rem, 1.5vw, 1rem);
+  font-size: clamp(1rem, 2vw, 1.5rem);
   text-align: center;
   transition: 0.5s;
   background-size: 200% auto;
   color: rgb(15, 10, 103);
   border-radius: 2rem;
-  height: 2rem;
+  height: 3rem;
   min-width: 5rem;
   width: clamp(5rem, 12vw, 10rem);
   padding: 0.25em 0.75em;
@@ -135,10 +135,51 @@
 
 .generateButton:hover {
   background-position: right center; /* change the direction of the change here */
-  color: rgb(15, 10, 103);  
+  color: rgb(15, 10, 103);
   text-decoration: none;
 }
-                  
+
+/* --- Export Dropdown --- */
+.exportDropdownContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.exportDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.exportDropdownItem {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.exportDropdownItem:hover {
+  background: #f3f4f6;
+}
+
+.exportDropdownItem:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
 /* --- Sketch page tabs (multi-page) --- */
 .pageTabs {
   display: flex;
@@ -743,4 +784,39 @@
 
 .emptyState p {
   margin: 0;
+}
+
+/* === Page Link Styles === */
+.pageLinkLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.linkIndicator {
+  font-size: 14px;
+}
+
+.pageLinkSelect {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #111827;
+  background: white;
+  cursor: pointer;
+}
+
+.pageLinkSelect:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: -1px;
+  border-color: #6366f1;
+}
+
+.linkHint {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  color: #6b7280;
+  font-style: italic;
 }

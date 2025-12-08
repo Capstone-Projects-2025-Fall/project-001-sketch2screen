@@ -3,6 +3,7 @@
 
 # Local development files
 CLAUDE.md
+.claude
 *.pyc
 
 # Misc
@@ -14,6 +15,6 @@ CLAUDE.md
 
 backend/static/
 
-#API file
+# API file
 APIkey.txt
 APIkey2.txt

@@ -20,14 +20,17 @@ type MockupStyles = {
       current: {
         styles: { [property: string]: string };
         html: string | null;
+        attributes?: { [attribute: string]: string };
       };
       history: Array<{
         styles: { [property: string]: string };
         html: string | null;
+        attributes?: { [attribute: string]: string };
       }>;
       future: Array<{
         styles: { [property: string]: string };
         html: string | null;
+        attributes?: { [attribute: string]: string };
       }>;
     };
   };
@@ -124,7 +127,7 @@ function renderPageInIframe(
     // Listen for iframe loaded message
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'IFRAME_LOADED' && !resolved) {
-        // Apply saved styles
+        // Apply saved styles, HTML variations, and attributes
         const stylesForPage = mockupStyles[mockup.id];
         if (stylesForPage && iframe.contentWindow) {
           iframe.contentWindow.postMessage({
@@ -145,6 +148,20 @@ function renderPageInIframe(
                 elementId,
                 newHtml: data.current.html,
               }, '*');
+            }
+          });
+
+          // Apply attributes (e.g., image src)
+          Object.entries(stylesForPage).forEach(([elementId, data]) => {
+            if (data.current.attributes) {
+              Object.entries(data.current.attributes).forEach(([attribute, value]) => {
+                iframe.contentWindow!.postMessage({
+                  type: 'UPDATE_ELEMENT_ATTRIBUTE',
+                  elementId,
+                  attribute,
+                  value,
+                }, '*');
+              });
             }
           });
         }

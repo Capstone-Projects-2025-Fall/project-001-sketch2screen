@@ -673,46 +673,8 @@ The CollabServer currently has minimal error handling:
 
 ---
 
-## Testing
-
-### Example Unit Tests
-
-```python
-# test_claudeClient.py
-from sketch_api.services.claudeClient import image_to_html_css
-
-def test_image_to_html_css():
-    with open('test_sketch.png', 'rb') as f:
-        image_bytes = f.read()
-
-    html = image_to_html_css(image_bytes)
-
-    assert html is not None
-    assert len(html) > 0
-    assert '<' in html  # Contains HTML tags
-```
-
-```python
-# test_CollabServer.py
-from sketch_api.CollabServer import CollabServer
-
-def test_singleton_pattern():
-    server1 = CollabServer()
-    server2 = CollabServer()
-    assert server1 is server2
-
-def test_session_creation():
-    server = CollabServer()
-    server.onNewConnection("user1", "test-session")
-
-    assert "test-session" in server.collabSessions
-    assert "user1" in server.collabSessions["test-session"].members
-```
-
----
 
 ## Related Documentation
 
-- **[REST API Endpoints](rest-endpoints.md)** - Views that use Claude Client
-- **[WebSocket API](websocket-api.md)** - Protocol used by Consumer
+- **[API reference](swagger-api.mdx)** - Backend API request endpoints
 - **[Frontend Components](../frontend-api/components.md)** - How frontend uses these services

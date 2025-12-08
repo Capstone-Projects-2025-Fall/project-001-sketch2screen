@@ -22,13 +22,13 @@ Complete reference for all React components in Sketch2Screen.
 
 **Purpose:** Main application component that orchestrates all features including multi-page sketch management, mockup generation, and real-time collaboration.
 
-### Component Signature
+#### Component Signature
 
 ```typescript
 export default function App(): JSX.Element
 ```
 
-### State Management
+#### State Management
 
 **View State:**
 ```typescript
@@ -67,7 +67,7 @@ const [sidebarExpanded, setSidebarExpanded] = useState(true);
 const [editingPageId, setEditingPageId] = useState<string | null>(null);
 ```
 
-### Key Features
+#### Key Features
 
 #### 1. Multi-Page Sketch Management
 
@@ -807,11 +807,3 @@ getCollabId(); // "abc123"
 getCollabId(); // "1699123456789" (timestamp)
 ```
 
----
-
-## Related Documentation
-
-- **[CollabClient Class](collaboration-client.md)** - WebSocket client for real-time sync
-- **[Types & Interfaces](types-and-interfaces.md)** - TypeScript type definitions
-- **[WebSocket API](../backend-api/websocket-api.md)** - Backend collaboration protocol
-- **[REST API](../backend-api/rest-endpoints.md)** - Backend generation endpoints

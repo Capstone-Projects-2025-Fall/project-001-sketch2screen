@@ -10,7 +10,6 @@ The integration tests validate that Sketch2Screen's components interact correctl
 - Each test validates a corresponding use case from the requirements documentation
 - Mock objects simulate user interactions, backend responses, AI processing, and database operations
 - Assertions verify expected system behavior and data flow between components
-- All tests produce clear pass/fail results
 
 ---
 
@@ -43,8 +42,6 @@ All tools work as specified in the API used for sketching with minimum latency
 
 **Expected Outcome:**
 Strokes broadcast in real-time to all collaborators. Canvas auto-saves successfully. Connection loss queues data locally with "Connection lost" indicator. Reconnection syncs queued changes.
-
----
 
 ### 3. Generate Design/s from Sketch
 

@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="generator" content="Docusaurus v3.9.2">
-<title data-rh="true">Integration Tests | Project 001 Sketch2screen</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Integration Tests | Project 001 Sketch2screen"><meta data-rh="true" name="description" content="The integration tests validate that Sketch2Screen&#x27;s components interact correctly by simulating real-world scenarios with mock objects. Tests run automatically, are verified by assertions, and are repeatable."><meta data-rh="true" property="og:description" content="The integration tests validate that Sketch2Screen&#x27;s components interact correctly by simulating real-world scenarios with mock objects. Tests run automatically, are verified by assertions, and are repeatable."><link data-rh="true" rel="icon" href="/project-001-sketch2screen/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing" hreflang="en"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Test Procedures","item":"https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/category/test-procedures"},{"@type":"ListItem","position":2,"name":"Integration Tests","item":"https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing"}]}</script><link rel="stylesheet" href="/project-001-sketch2screen/assets/css/styles.358bab00.css">
-<script src="/project-001-sketch2screen/assets/js/runtime~main.59f6a8f5.js" defer="defer"></script>
-<script src="/project-001-sketch2screen/assets/js/main.9c6a94b4.js" defer="defer"></script>
+<title data-rh="true">Integration Tests | Project 001 Sketch2screen</title><meta data-rh="true" name="viewport" content="width=device-width,initial-scale=1"><meta data-rh="true" name="twitter:card" content="summary_large_image"><meta data-rh="true" property="og:url" content="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing"><meta data-rh="true" property="og:locale" content="en"><meta data-rh="true" name="docusaurus_locale" content="en"><meta data-rh="true" name="docsearch:language" content="en"><meta data-rh="true" name="docusaurus_version" content="current"><meta data-rh="true" name="docusaurus_tag" content="docs-default-current"><meta data-rh="true" name="docsearch:version" content="current"><meta data-rh="true" name="docsearch:docusaurus_tag" content="docs-default-current"><meta data-rh="true" property="og:title" content="Integration Tests | Project 001 Sketch2screen"><meta data-rh="true" name="description" content="The integration tests validate that Sketch2Screen&#x27;s components interact correctly by simulating real-world scenarios with mock objects. Tests run automatically, are verified by assertions, and are repeatable."><meta data-rh="true" property="og:description" content="The integration tests validate that Sketch2Screen&#x27;s components interact correctly by simulating real-world scenarios with mock objects. Tests run automatically, are verified by assertions, and are repeatable."><link data-rh="true" rel="icon" href="/project-001-sketch2screen/img/favicon.ico"><link data-rh="true" rel="canonical" href="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing" hreflang="en"><link data-rh="true" rel="alternate" href="https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing" hreflang="x-default"><script data-rh="true" type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Test Procedures","item":"https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/category/test-procedures"},{"@type":"ListItem","position":2,"name":"Integration Tests","item":"https://Capstone-Projects-2025-Fall.github.io/project-001-sketch2screen/docs/testing/integration-testing"}]}</script><link rel="stylesheet" href="/project-001-sketch2screen/assets/css/styles.e6b31b21.css">
+<script src="/project-001-sketch2screen/assets/js/runtime~main.92d5f71d.js" defer="defer"></script>
+<script src="/project-001-sketch2screen/assets/js/main.0df25b9d.js" defer="defer"></script>
 </head>
 <body class="navigation-with-keyboard">
 <svg style="display: none;"><defs>
@@ -18,38 +18,25 @@
 <li class="">Each test validates a corresponding use case from the requirements documentation</li>
 <li class="">Mock objects simulate user interactions, backend responses, AI processing, and database operations</li>
 <li class="">Assertions verify expected system behavior and data flow between components</li>
-<li class="">All tests produce clear pass/fail results</li>
 </ul>
 <hr>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="test-cases">Test Cases<a href="#test-cases" class="hash-link" aria-label="Direct link to Test Cases" title="Direct link to Test Cases" translate="no">​</a></h2>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="1-creating-a-new-workspace">1. Creating a New Workspace<a href="#1-creating-a-new-workspace" class="hash-link" aria-label="Direct link to 1. Creating a New Workspace" title="Direct link to 1. Creating a New Workspace" translate="no">​</a></h3>
-<p><strong>Purpose:</strong> Verify workspace creation and navigation to sketch canvas.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="1-creating-sketches">1. Creating Sketches<a href="#1-creating-sketches" class="hash-link" aria-label="Direct link to 1. Creating Sketches" title="Direct link to 1. Creating Sketches" translate="no">​</a></h3>
+<p><strong>Purpose</strong>: Test if ExcalidrawAPI used for sketching is functioning as expected</p>
 <p><strong>Steps:</strong></p>
 <ol>
-<li class="">Simulate &quot;Create New Workspace&quot; button click</li>
-<li class="">Mock Backend generates workspace ID and shareable link</li>
-<li class="">Verify Frontend redirects to sketch canvas with drawing tools</li>
-<li class="">Confirm shareable link displays for collaboration</li>
+<li class="">Select a tool from the sketch tool bar and draw or input on screen</li>
+<li class="">Verify if tool is working</li>
+<li class="">Redo with another tool</li>
 </ol>
 <p><strong>Expected Outcome:</strong>
-Workspace created with unique ID. User redirected to canvas with visible shareable link and available drawing tools. Failed creation shows error: &quot;Unable to create workspace.&quot;</p>
-<hr>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="2-joining-an-existing-workspace">2. Joining an Existing Workspace<a href="#2-joining-an-existing-workspace" class="hash-link" aria-label="Direct link to 2. Joining an Existing Workspace" title="Direct link to 2. Joining an Existing Workspace" translate="no">​</a></h3>
-<p><strong>Purpose:</strong> Verify collaborators can join workspaces via shared link/code.</p>
-<p><strong>Steps:</strong></p>
-<ol>
-<li class="">Simulate workspace link/code entry</li>
-<li class="">Mock Backend validates and returns workspace data</li>
-<li class="">Verify Frontend loads canvas with existing sketches</li>
-<li class="">Mock WebSocket notifies active users of new collaborator</li>
-</ol>
-<p><strong>Expected Outcome:</strong>
-Valid link loads workspace successfully with current canvas state. Invalid link shows &quot;Workspace not found&quot; error and redirects home. Deleted workspace shows &quot;This workspace is no longer available.&quot;</p>
-<hr>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="3-creating-sketches-with-real-time-collaboration">3. Creating Sketches with Real-time Collaboration<a href="#3-creating-sketches-with-real-time-collaboration" class="hash-link" aria-label="Direct link to 3. Creating Sketches with Real-time Collaboration" title="Direct link to 3. Creating Sketches with Real-time Collaboration" translate="no">​</a></h3>
+All tools work as specified in the API used for sketching with minimum latency</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="2-creating-sketches-with-real-time-collaboration">2. Creating Sketches with Real-time Collaboration<a href="#2-creating-sketches-with-real-time-collaboration" class="hash-link" aria-label="Direct link to 2. Creating Sketches with Real-time Collaboration" title="Direct link to 2. Creating Sketches with Real-time Collaboration" translate="no">​</a></h3>
 <p><strong>Purpose:</strong> Verify real-time drawing synchronization across collaborators.</p>
 <p><strong>Steps:</strong></p>
 <ol>
+<li class="">Press &quot;Collaborate&quot;</li>
+<li class="">Send collaborate link to other users</li>
 <li class="">Simulate drawing tool selection and canvas strokes</li>
 <li class="">Mock WebSocket broadcasts stroke data to collaborators</li>
 <li class="">Verify other users&#x27; canvases update instantly</li>
@@ -57,66 +44,45 @@ Valid link loads workspace successfully with current canvas state. Invalid link 
 </ol>
 <p><strong>Expected Outcome:</strong>
 Strokes broadcast in real-time to all collaborators. Canvas auto-saves successfully. Connection loss queues data locally with &quot;Connection lost&quot; indicator. Reconnection syncs queued changes.</p>
-<hr>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="4-generating-ai-components-from-sketches">4. Generating AI Components from Sketches<a href="#4-generating-ai-components-from-sketches" class="hash-link" aria-label="Direct link to 4. Generating AI Components from Sketches" title="Direct link to 4. Generating AI Components from Sketches" translate="no">​</a></h3>
-<p><strong>Purpose:</strong> Verify AI conversion of sketches into UI component variations.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="3-generate-designs-from-sketch">3. Generate Design/s from Sketch<a href="#3-generate-designs-from-sketch" class="hash-link" aria-label="Direct link to 3. Generate Design/s from Sketch" title="Direct link to 3. Generate Design/s from Sketch" translate="no">​</a></h3>
+<p><strong>Purpose:</strong> To test if call to API is generating design based on sketch/s passed</p>
 <p><strong>Steps:</strong></p>
 <ol>
-<li class="">Simulate &quot;Generate&quot; button click with completed sketch</li>
-<li class="">Verify loading indicator appears</li>
-<li class="">Mock AI Model returns multiple component variations</li>
-<li class="">Confirm Frontend displays all variations in selection interface</li>
+<li class="">Add a page or duplicate current sketch</li>
+<li class="">Sketch/edit on the new/duplicated page.</li>
+<li class="">Press &quot;Generate&quot;</li>
+<li class="">View generated designs using AI on &quot;Design&quot; tab.</li>
 </ol>
 <p><strong>Expected Outcome:</strong>
-AI generates multiple variations per sketch element. Selection interface displays all options. Failed generation shows &quot;Generation failed. Please try again.&quot; No detected components shows &quot;No UI components detected. Please add more detail to your sketch.&quot;</p>
-<hr>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="5-selecting-and-customizing-generated-components">5. Selecting and Customizing Generated Components<a href="#5-selecting-and-customizing-generated-components" class="hash-link" aria-label="Direct link to 5. Selecting and Customizing Generated Components" title="Direct link to 5. Selecting and Customizing Generated Components" translate="no">​</a></h3>
-<p><strong>Purpose:</strong> Verify component variation selection and confirmation.</p>
+Designs for the exact number of pages sketched would be generated</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="4-select-and-edit-component-in-design">4. Select and Edit Component in Design<a href="#4-select-and-edit-component-in-design" class="hash-link" aria-label="Direct link to 4. Select and Edit Component in Design" title="Direct link to 4. Select and Edit Component in Design" translate="no">​</a></h3>
+<p><strong>Purpose:</strong> Verify if element in the design can be selected and edited</p>
 <p><strong>Steps:</strong></p>
 <ol>
-<li class="">Display component variations from AI generation</li>
-<li class="">Simulate user selecting preferred variations</li>
-<li class="">Verify selections are highlighted</li>
-<li class="">Simulate &quot;Apply Selected Components&quot; confirmation</li>
+<li class="">Select a component in the design</li>
+<li class="">Edit the component from the settings panel</li>
 </ol>
 <p><strong>Expected Outcome:</strong>
-Selected components highlight correctly and prepare for design mode. &quot;Regenerate&quot; creates new variations. Attempting to proceed without selections shows &quot;Please select at least one component to continue.&quot;</p>
-<hr>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="6-arranging-components-in-design-mode">6. Arranging Components in Design Mode<a href="#6-arranging-components-in-design-mode" class="hash-link" aria-label="Direct link to 6. Arranging Components in Design Mode" title="Direct link to 6. Arranging Components in Design Mode" translate="no">​</a></h3>
-<p><strong>Purpose:</strong> Verify drag-and-drop component arrangement functionality.</p>
+A settings panel would appear on the left side, which would allow you to edit specific styles for the component</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="5-select-and-edit-component-using-ai">5. Select and Edit Component using AI<a href="#5-select-and-edit-component-using-ai" class="hash-link" aria-label="Direct link to 5. Select and Edit Component using AI" title="Direct link to 5. Select and Edit Component using AI" translate="no">​</a></h3>
+<p><strong>Purpose:</strong> Verify AI generation of selected component in design</p>
 <p><strong>Steps:</strong></p>
 <ol>
-<li class="">Transition to design mode with selected components</li>
-<li class="">Simulate drag-and-drop repositioning of components</li>
-<li class="">Verify alignment guides and snap-to-grid appear</li>
-<li class="">Simulate component resizing with drag handles</li>
-<li class="">Confirm design state saves after changes</li>
+<li class="">Select an element and go to &quot;Variations&quot; tab in the left sidebar</li>
+<li class="">Select a generated variation of the component and confirm if it is reflected in design</li>
+<li class="">Press &quot;✨&quot; and input prompt for specific styling and press enter</li>
+<li class="">Select generated variation from prompt and confirm if reflected in design</li>
 </ol>
 <p><strong>Expected Outcome:</strong>
-Components are draggable and resizable. Alignment guides assist positioning. Design state saves automatically. Right-click menu offers delete/duplicate/modify options. &quot;Add More Components&quot; returns to sketch canvas.</p>
-<hr>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="7-exporting-final-code">7. Exporting Final Code<a href="#7-exporting-final-code" class="hash-link" aria-label="Direct link to 7. Exporting Final Code" title="Direct link to 7. Exporting Final Code" translate="no">​</a></h3>
-<p><strong>Purpose:</strong> Verify code generation and export in multiple frameworks.</p>
+AI generates multiple variations per sketch element. Selection interface displays all options. Failed generation shows &quot;Generation failed&quot;.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="6-exporting-final-code">6. Exporting Final Code<a href="#6-exporting-final-code" class="hash-link" aria-label="Direct link to 6. Exporting Final Code" title="Direct link to 6. Exporting Final Code" translate="no">​</a></h3>
+<p><strong>Purpose:</strong> Verify code generation and export</p>
 <p><strong>Steps:</strong></p>
 <ol>
 <li class="">Simulate &quot;Export&quot; button click</li>
-<li class="">Verify framework selection dialog appears (HTML/CSS, React, Vue)</li>
-<li class="">Mock code generator produces files for selected framework</li>
-<li class="">Confirm download initiates with success message</li>
+<li class="">Initiates download of code on local computer</li>
 </ol>
 <p><strong>Expected Outcome:</strong>
-Framework options display correctly. Code generates for selected framework and downloads successfully. Export confirmation appears. Failed generation shows &quot;Export failed. Please try again.&quot; Empty design shows &quot;No components to export. Please add components first.&quot;</p>
-<hr>
-<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="8-saving-and-resuming-workspace">8. Saving and Resuming Workspace<a href="#8-saving-and-resuming-workspace" class="hash-link" aria-label="Direct link to 8. Saving and Resuming Workspace" title="Direct link to 8. Saving and Resuming Workspace" translate="no">​</a></h3>
-<p><strong>Purpose:</strong> Verify automatic workspace persistence and restoration.</p>
-<p><strong>Steps:</strong></p>
-<ol>
-<li class="">Simulate periodic auto-save during active work session</li>
-<li class="">Mock Database stores workspace state</li>
-<li class="">Simulate returning to workspace URL later</li>
-<li class="">Verify complete workspace restoration (sketches, components, layout)</li>
-</ol>
-<p><strong>Expected Outcome:</strong>
-Workspace auto-saves periodically. Returning to URL restores complete state. User continues from last save. Corrupted data shows &quot;Unable to load workspace data&quot; with fresh start option. Partial recovery loads available data with notification and options.</p></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_WFHX"><a href="https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/edit/main/documentation/docs/testing/integration-testing.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_JAkA"><details><summary>Revision History</summary><table><thead><tr><th scope="row">Author</th><th scope="row">Revision</th><th scope="row">Date</th></tr></thead><tbody>nothing</tbody></table></details><span class="theme-last-updated">Last updated<!-- --> by <b>Sahil-Jartare</b></span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/project-001-sketch2screen/docs/testing/unit-testing"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Unit Tests</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/project-001-sketch2screen/docs/testing/acceptence-testing"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Acceptance Testing</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#testing-strategy" class="table-of-contents__link toc-highlight">Testing Strategy</a></li><li><a href="#test-cases" class="table-of-contents__link toc-highlight">Test Cases</a><ul><li><a href="#1-creating-a-new-workspace" class="table-of-contents__link toc-highlight">1. Creating a New Workspace</a></li><li><a href="#2-joining-an-existing-workspace" class="table-of-contents__link toc-highlight">2. Joining an Existing Workspace</a></li><li><a href="#3-creating-sketches-with-real-time-collaboration" class="table-of-contents__link toc-highlight">3. Creating Sketches with Real-time Collaboration</a></li><li><a href="#4-generating-ai-components-from-sketches" class="table-of-contents__link toc-highlight">4. Generating AI Components from Sketches</a></li><li><a href="#5-selecting-and-customizing-generated-components" class="table-of-contents__link toc-highlight">5. Selecting and Customizing Generated Components</a></li><li><a href="#6-arranging-components-in-design-mode" class="table-of-contents__link toc-highlight">6. Arranging Components in Design Mode</a></li><li><a href="#7-exporting-final-code" class="table-of-contents__link toc-highlight">7. Exporting Final Code</a></li><li><a href="#8-saving-and-resuming-workspace" class="table-of-contents__link toc-highlight">8. Saving and Resuming Workspace</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Docs</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/project-001-sketch2screen/docs/intro">Documentation</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">More</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="margin-bottom--sm"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--light_NVdE"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--dark_xIcU"></div><div class="footer__copyright">Copyright © 2025 Project 001 Sketch2screen, Inc. Built with Docusaurus.</div></div></div></footer></div>
+Code downloads successfully.</p></div><footer class="theme-doc-footer docusaurus-mt-lg"><div class="row margin-top--sm theme-doc-footer-edit-meta-row"><div class="col noPrint_WFHX"><a href="https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen/edit/main/documentation/docs/testing/integration-testing.md" target="_blank" rel="noopener noreferrer" class="theme-edit-this-page"><svg fill="currentColor" height="20" width="20" viewBox="0 0 40 40" class="iconEdit_Z9Sw" aria-hidden="true"><g><path d="m34.5 11.7l-3 3.1-6.3-6.3 3.1-3q0.5-0.5 1.2-0.5t1.1 0.5l3.9 3.9q0.5 0.4 0.5 1.1t-0.5 1.2z m-29.5 17.1l18.4-18.5 6.3 6.3-18.4 18.4h-6.3v-6.2z"></path></g></svg>Edit this page</a></div><div class="col lastUpdated_JAkA"><details><summary>Revision History</summary><table><thead><tr><th scope="row">Author</th><th scope="row">Revision</th><th scope="row">Date</th></tr></thead><tbody>nothing</tbody></table></details><span class="theme-last-updated">Last updated<!-- --> by <b>Seunghun Lee</b></span></div></div></footer></article><nav class="docusaurus-mt-lg pagination-nav" aria-label="Docs pages"><a class="pagination-nav__link pagination-nav__link--prev" href="/project-001-sketch2screen/docs/testing/unit-testing"><div class="pagination-nav__sublabel">Previous</div><div class="pagination-nav__label">Unit Tests</div></a><a class="pagination-nav__link pagination-nav__link--next" href="/project-001-sketch2screen/docs/testing/acceptence-testing"><div class="pagination-nav__sublabel">Next</div><div class="pagination-nav__label">Acceptance Testing</div></a></nav></div></div><div class="col col--3"><div class="tableOfContents_bqdL thin-scrollbar theme-doc-toc-desktop"><ul class="table-of-contents table-of-contents__left-border"><li><a href="#testing-strategy" class="table-of-contents__link toc-highlight">Testing Strategy</a></li><li><a href="#test-cases" class="table-of-contents__link toc-highlight">Test Cases</a><ul><li><a href="#1-creating-sketches" class="table-of-contents__link toc-highlight">1. Creating Sketches</a></li><li><a href="#2-creating-sketches-with-real-time-collaboration" class="table-of-contents__link toc-highlight">2. Creating Sketches with Real-time Collaboration</a></li><li><a href="#3-generate-designs-from-sketch" class="table-of-contents__link toc-highlight">3. Generate Design/s from Sketch</a></li><li><a href="#4-select-and-edit-component-in-design" class="table-of-contents__link toc-highlight">4. Select and Edit Component in Design</a></li><li><a href="#5-select-and-edit-component-using-ai" class="table-of-contents__link toc-highlight">5. Select and Edit Component using AI</a></li><li><a href="#6-exporting-final-code" class="table-of-contents__link toc-highlight">6. Exporting Final Code</a></li></ul></li></ul></div></div></div></div></main></div></div></div><footer class="theme-layout-footer footer"><div class="container container-fluid"><div class="row footer__links"><div class="theme-layout-footer-column col footer__col"><div class="footer__title">Docs</div><ul class="footer__items clean-list"><li class="footer__item"><a class="footer__link-item" href="/project-001-sketch2screen/docs/intro">Documentation</a></li></ul></div><div class="theme-layout-footer-column col footer__col"><div class="footer__title">More</div><ul class="footer__items clean-list"><li class="footer__item"><a href="https://github.com/Capstone-Projects-2025-Fall/project-001-sketch2screen" target="_blank" rel="noopener noreferrer" class="footer__link-item">GitHub<svg width="13.5" height="13.5" aria-label="(opens in new tab)" class="iconExternalLink_nPIU"><use href="#theme-svg-external-link"></use></svg></a></li></ul></div></div><div class="footer__bottom text--center"><div class="margin-bottom--sm"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--light_NVdE"><img src="https://upload.wikimedia.org/wikipedia/commons/1/17/Temple_T_logo.svg" alt="My Site Logo" class="footer__logo themedComponent_mlkZ themedComponent--dark_xIcU"></div><div class="footer__copyright">Copyright © 2025 Project 001 Sketch2screen, Inc. Built with Docusaurus.</div></div></div></footer></div>
 </body>
 </html>

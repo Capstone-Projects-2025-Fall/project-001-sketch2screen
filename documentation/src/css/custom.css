@@ -4,6 +4,32 @@
  * work well for content-centric websites.
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Walter+Turncoat&display=swap');
+
+.hero__title {
+  font-size: 4rem;
+  font-family: 'Walter Turncoat', cursive !important;
+  animation: fadeIn 1.2s ease-out;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8),
+    0 0 40px rgba(255, 255, 255, 0.5);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Ensure it stays white in dark mode too */
+[data-theme='dark'] .hero__title {
+  color: white !important;
+}
+
 /* You can override the default Infima variables here. */
 :root {
   --ifm-color-primary: #9d2235;

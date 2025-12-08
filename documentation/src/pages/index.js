@@ -15,7 +15,7 @@ function HomepageHeader() {
         <h1 className="hero__title">{siteConfig.title}</h1>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <p className={styles.heroDescription}>
-          Visit our <a href="https://sketchtoscreen-dev.onrender.com" target="_blank" rel="noopener noreferrer" className={styles.heroLink}>live website</a> to give it a try!
+          Visit our <a href="https://sketchtoscreen.onrender.com" target="_blank" rel="noopener noreferrer" className={styles.heroLink}>live website</a> to give it a try!
         </p>
       </div>
     </header>

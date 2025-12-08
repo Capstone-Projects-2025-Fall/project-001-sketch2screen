@@ -694,7 +694,7 @@ export default function App() {
               ...activeSketch.scene,
               appState: {
                 ...activeSketch.scene.appState,
-                collaborators: collaborators,  // Pass collaborators to Excalidraw
+                collaborators: collaborators as any,  // Pass collaborators to Excalidraw
               },
             }}
             onSceneChange={handleSceneChange}

@@ -1,12 +1,12 @@
 import React, { useCallback, useImperativeHandle, useRef, useEffect} from "react";
 import { Excalidraw, exportToBlob } from "@excalidraw/excalidraw";
+import type { ExcalidrawElement } from "@excalidraw/excalidraw/element/types";
 import type {
-  NormalizedZoomValue,
-  ExcalidrawElement,
   AppState,
   BinaryFiles,
   Collaborator
 } from "@excalidraw/excalidraw/types";
+type NormalizedZoomValue = number;
 import "@excalidraw/excalidraw/index.css";
 import {generateDiff, clone} from "./util.ts";
 
@@ -107,7 +107,11 @@ function Drawing(
 
   function updateScene(scene: SceneUpdate) {
     skipNextOnChange.current = 1;
-    excaliRef.current?.updateScene({...scene, appState: undefined});
+    excaliRef.current?.updateScene({
+      ...scene,
+      collaborators: scene.collaborators as any,
+      appState: undefined
+    });
   }
 
 
@@ -134,7 +138,7 @@ function Drawing(
           api.updateScene({
             appState: {
               ...initialAppState,
-              zoom: { value: 1 as NormalizedZoomValue },
+              zoom: { value: 1 as any },
               scrollX: 0,
               scrollY: 0,
             },

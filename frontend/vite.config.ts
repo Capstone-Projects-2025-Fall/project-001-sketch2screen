@@ -22,6 +22,7 @@ export default defineConfig({
     rollupOptions: {
       input: path.resolve(__dirname, 'src/main.tsx'),
     },
+    minify: false,
   },
   server: { host: 'localhost', port: 5173, strictPort: true },
   base: '/static/',

@@ -202,13 +202,20 @@ export default function App() {
   /** Currently active sketch page */
   const activeSketch = pages[activeIndex] ?? pages[0];
   
+  const activeSketchRef = useRef(pages[0]);
+
+  useEffect(() => {
+    activeSketchRef.current = activeSketch;
+  }, [activeSketch]);
+
   /** Refs to page DOM elements for scrolling */
   const itemRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   //use excalidraw api instead of keying for remounts
   useEffect(() => {
-    setTimeout(() => drawingRefs.current?.[activePageId]?.updateScene(activeSketch.scene), 0)
-  }, [sceneVersion, activeSketch, activePageId])
+    drawingRefs.current?.[activePageIdRef.current]?.updateScene(activeSketchRef.current.scene)
+    console.log("updated current scene");
+  }, [sceneVersion])
 
   /** Scroll active page into view when it changes */
   useEffect(() => {
@@ -225,13 +232,11 @@ export default function App() {
   const handleSceneChange = (scene: SceneData) => {
 
 
-    console.log("🔵 App.handleSceneChange called", {
-      activePageId,
-      elementsCount: scene.elements?.length,
-      pagesCount: pages.length,
-      elementsPreview: scene.elements?.slice(0, 2).map(el => ({ id: el.id, type: el.type }))
-    });
+    console.log("🔵 App.handleSceneChange called");
 
+    handleCollabSceneChange(scene);
+
+    /*
     setPages(prev => {
       const i = prev.findIndex(p => p.id === activePageId);
       console.log("🔵 Found page at index:", i, "ID:", activePageId);
@@ -247,10 +252,10 @@ export default function App() {
         newElementsCount: scene.elements?.length
       });
 
-      handleCollabSceneChange(scene);
 
       return next;
     });
+    */
 
   };
 

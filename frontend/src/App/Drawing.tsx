@@ -2,7 +2,7 @@ import React, { forwardRef, useCallback, useImperativeHandle, useRef, useEffect}
 import { Excalidraw, exportToBlob, restoreElements } from "@excalidraw/excalidraw";
 import type { NormalizedZoomValue } from "@excalidraw/excalidraw/types";
 import "@excalidraw/excalidraw/index.css";
-import {generateDiff, clone} from "./util.ts";
+import {generateSceneDiff, clone} from "./util.ts";
 
 
 /** Represents a complete Excalidraw scene with all its components */
@@ -115,10 +115,14 @@ function Drawing(
     });
   }, []);
 
-  function updateScene(scene: SceneUpdate) {
-    skipNextOnChange.current = 1;
-    //scene = {elements: restoreElements(scene.elements, excaliRef.current?.getSceneElements()), appState: scene.appState, files: scene.files}
-    excaliRef.current?.updateScene({...scene, appState: undefined});
+  function updateScene(scene: SceneUpdate, noSkip?: boolean) {
+    if(!noSkip) skipNextOnChange.current = 1;
+    console.log("SKIP NEXT")
+    excaliRef.current?.updateScene(scene);
+    if(scene.files) {
+      excaliRef.current?.addFiles(Object.values(scene.files));
+    }
+    excaliRef.current?.refresh();
   }
 
 
@@ -162,9 +166,10 @@ function Drawing(
           setTimeout(() => {
             if(!excaliRef.current) return;
 
-            let elements = excaliRef.current.getSceneElementsIncludingDeleted()
-            let appState = excaliRef.current.getAppState()
-            let files = excaliRef.current.getFiles()
+
+            //let elements = excaliRef.current.getSceneElementsIncludingDeleted()
+            //let appState = excaliRef.current.getAppState()
+            //let files = excaliRef.current.getFiles()
 
             pendingChangeHandlerRef.current = false;
             console.log("🟡 onChange fired", {
@@ -180,24 +185,24 @@ function Drawing(
               return;
             }
             
-            if (excaliRef.current && appState.zoom.value < 1) 
+            if (excaliRef.current && appState.zoom.value < 0.5) 
             {
              console.log("🟠 Skipping due to zoom < 1");
 
               excaliRef.current.updateScene({
                 appState: {
                   ...appState,
-                  zoom: { value: 1 as NormalizedZoomValue },
+                  zoom: { value: 0.5 as NormalizedZoomValue },
                 },
               });
             return; // Don't process this change
             }
 
+
             //Guard against duplicate calls
             
-            if (
-              generateDiff({elements, appState, files}, lastChangeRef.current) === undefined
-            ) {
+            let diff = generateSceneDiff(lastChangeRef.current, {elements, appState, files});
+            if (diff === undefined) {
               // Skip duplicate calls
               console.log("🟤 Skipping duplicate onChange");
 
@@ -206,12 +211,8 @@ function Drawing(
 
             lastChangeRef.current = clone({elements, appState, files});
             
-            onSceneChange?.({
-              elements: elements ?? ([] as readonly any[]),
-              appState: appState ?? {},
-              files: files ?? {},
-            })
-          }, 50);
+            onSceneChange?.(diff);
+          }, 100);
         }}
 
 

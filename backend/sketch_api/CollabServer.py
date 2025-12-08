@@ -3,6 +3,10 @@ from asgiref.sync import async_to_sync
 
 
 def applyDiff(base, diff):
+    if type(base) == None:
+        return diff
+    if type(diff) == None:
+        return None
     if type(diff) != dict and type(diff) != list:
         return diff
 

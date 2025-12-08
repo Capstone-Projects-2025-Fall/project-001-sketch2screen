@@ -3,7 +3,7 @@ import CollabClient from "./CollabClient";
 import type { CollaboratorInfo } from "./CollabClient";
 import type { DrawingHandle, SceneData, SceneUpdate } from "./Drawing";
 import type { SketchPage } from "./sketchPage";
-import {generateDiff, applyDiff, clone} from "./util";
+import {applySceneDiff, clone} from "./util";
 import {restoreElements} from "@excalidraw/excalidraw";
 
 export interface UseCollaborationParams {
@@ -103,6 +103,8 @@ export function useCollaboration({
   const lastPointerSendTime = useRef<number>(0);
   const POINTER_THROTTLE_MS = 50; // Send at most every 50ms
 
+  const sceneToSendRef = useRef<{elements: readonly any[], appState: any, files: any}>({elements: [], appState: {}, files: {}});
+
   //Hold reference to last sent scene
   const lastSentScene = useRef(pages.find((p) => p.id === activePageId)?.scene)
   useEffect(() => {
@@ -118,9 +120,12 @@ export function useCollaboration({
       }
       const next = [...prev];
 
-      let sceneData = applyDiff(next[index].scene, sceneDiff)
+      if(sceneDiff.files && Object.values(sceneDiff.files).length) {
+        console.log("files received");
+      }
 
-      lastSentScene.current = clone(sceneData);
+      let sceneData = applySceneDiff(next[index].scene, sceneDiff, false);
+      //restoreElements(sceneData.elements, next[index].scene.elements, {repairBindings: true});
 
       next[index] = {
         ...next[index],
@@ -139,23 +144,27 @@ export function useCollaboration({
     }
   }, [activePageId, collabEnabled]);
 
-  function stackOrApplyDiff(sketchID: string, sceneDiff: SceneUpdate) {
+  function stackOrApplyDiff(sketchID: string, sceneDiff: SceneUpdate, refresh: boolean) {
       let currentActivePageId = activePageIdRef.current;
-      let currentPendingDiff = pendingSceneDiffRef.current;
 
       if (sketchID === currentActivePageId) {
+        let currentPendingDiff = pendingSceneDiffRef.current;
+        console.log(sketchID, currentPendingDiff?.pageId);
         if(currentPendingDiff !== null) {
-          currentPendingDiff.sceneDiff = applyDiff(currentPendingDiff.sceneDiff, sceneDiff);
+          pendingSceneDiffRef.current!.sceneDiff = applySceneDiff(currentPendingDiff.sceneDiff, sceneDiff, true);
+          console.log("stacking: ", currentPendingDiff.sceneDiff, sceneDiff);
         } else {
           pendingSceneDiffRef.current = {pageId: sketchID, sceneDiff}
+          setTimeout(() => {
+            updatePageFromDiff(sketchID, pendingSceneDiffRef.current!.sceneDiff);
+            pendingSceneDiffRef.current = null;
+            if (!isDrawingRef.current && refresh) {
+              console.log("Forcing remount for active page");
+              setSceneVersion((v: number) => v + 1);
+            }
+          }, 10);
         }
 
-
-        if (!isDrawingRef.current) {
-          console.log("Forcing remount for active page");
-          updatePageFromDiff(sketchID, pendingSceneDiffRef.current!.sceneDiff)
-          setSceneVersion((v: number) => v + 1);
-        }
       } else {
         updatePageFromDiff(sketchID, sceneDiff)
         console.log("Update for different page - will show when switched");
@@ -192,15 +201,14 @@ export function useCollaboration({
     
     const end = () => {
       const wasDrawing = isDrawingRef.current;
-      setTimeout(() => isDrawingRef.current = false, 10)
+      isDrawingRef.current = false;
       
       // Apply pending scene data after stroke completes
       if (wasDrawing && collabEnabled && collabClientRef.current) {
-        if (pendingSceneDiffRef.current) {
-          updatePageFromDiff(pendingSceneDiffRef.current.pageId, pendingSceneDiffRef.current.sceneDiff)
-          console.log("Stroke complete - applying scene update:");
-          pendingSceneDiffRef.current = null;
-        }
+        collabClientRef.current.sendSceneUpdate(activePageIdRef.current, sceneToSendRef.current);
+        console.log("sending ", sceneToSendRef.current)
+        sceneToSendRef.current = {elements: [], appState: {}, files: {}}
+        //setSceneVersion(v=>v+1);
       } else if (wasDrawing) {
         console.log("Stroke complete - collaboration not enabled or client not ready");
       }
@@ -279,17 +287,15 @@ export function useCollaboration({
     client.setSceneUpdateHandler((sketchID: string, sceneDiff: SceneUpdate) => {
       console.log("Received scene update for page:", sketchID);
 
-      stackOrApplyDiff(sketchID, sceneDiff);
+      stackOrApplyDiff(sketchID, sceneDiff, true);
     });
 
     // Handle collaborator join
     client.setCollaboratorJoinHandler((collaborator: CollaboratorInfo) => {
-      console.log("COLLABORATOR: Received collaborator_join:", collaborator);
       
       setCollaborators(prev => {
         // Don't add ourselves
         if (collaborator.id === client.userID) {
-          console.log("COLLABORATOR: Skipping self-add");
           return prev;
         }
 
@@ -300,13 +306,6 @@ export function useCollaboration({
           color: getCollaboratorColor(collaborator.id),
         });
         
-        console.log("COLLABORATOR: Updated collaborators Map size:", next.size);
-        console.log("COLLABORATOR: Collaborators Map content:", Array.from(next.entries()).map(([id, data]) => ({
-          id,
-          username: data.username,
-          hasPointer: !!data.pointer,
-          color: data.color
-        })));
         
         return next;
       });
@@ -325,14 +324,6 @@ export function useCollaboration({
 
     // Handle collaborator pointer updates with page filtering
     client.setCollaboratorPointerHandler((userID: string, pointer: { x: number; y: number } | null, pageID: string | null) => {
-      console.log("CURSOR FILTER: Received pointer update", {
-        userID,
-        hasPointer: !!pointer,
-        pageID,
-        currentPage: activePageIdRef.current,
-        match: pageID === activePageIdRef.current
-      });
-
       setCollaborators(prev => {
         const collaborator = prev.get(userID);
         if (!collaborator) {
@@ -342,7 +333,6 @@ export function useCollaboration({
 
         // FILTER: Only show cursor if user is on the same page
         if (pageID !== activePageIdRef.current) {
-          console.log("CURSOR FILTER: User on different page, hiding cursor");
           // User is on a different page - hide their cursor
           const next = new Map(prev);
           next.set(userID, {
@@ -353,7 +343,6 @@ export function useCollaboration({
         }
 
         // User is on the same page - show/update their cursor
-        console.log("CURSOR FILTER: User on same page, showing cursor");
         const next = new Map(prev);
         next.set(userID, {
           ...collaborator,
@@ -411,30 +400,15 @@ export function useCollaboration({
     }
     
     // Get current scene and update with collaborators
-    console.log("COLLABORATOR: Updating scene with collaborators:", {
-      count: collaborators.size,
-      collaborators: Array.from(collaborators.entries()).map(([id, collab]) => ({
-        id,
-        username: collab.username,
-        pointer: collab.pointer
-      }))
-    });
      
     if(!isDrawingRef.current) {
-      activeDrawingRef?.updateScene({collaborators});
+      //activeDrawingRef?.updateScene({collaborators}, true);
     }
-     //stackOrApplyDiff(activePageId, {appState: {collaborators}});
+    stackOrApplyDiff(activePageId, {appState: {collaborators}}, true);
   }, [collaborators, activePageId, drawingRef]);
 
   // Trigger scene update whenever collaborators change
   useEffect(() => {
-    console.log("COLLABORATOR: Collaborators effect triggered. Size:", collaborators.size, "Collab enabled:", collabEnabled);
-    console.log("COLLABORATOR: Collaborators content:", Array.from(collaborators.entries()).map(([id, data]) => ({
-      id,
-      username: data.username,
-      hasPointer: !!data.pointer,
-      hasColor: !!data.color
-    })));
     
     if (collaborators.size > 0) {
       console.log("COLLABORATOR: Collaborators changed, updating scene");
@@ -470,18 +444,23 @@ export function useCollaboration({
    * Handle scene changes with collaboration support
    * Should be called from the main handleSceneChange function
    */
-  const handleCollabSceneChange = (scene: SceneData) => {
+  const handleCollabSceneChange = (sceneDiff: SceneData) => {
     //if (scene.appState?.editingTextElement) { return; }
     if (collabEnabled && collabClientRef.current) 
     {
-      const sceneToSend = generateDiff(lastSentScene.current, scene);
-      if(sceneToSend === undefined) return;
-      if(sceneToSend.elements === undefined && sceneToSend.files === undefined) return;
-      delete sceneToSend.appState 
+      stackOrApplyDiff(activePageIdRef.current, sceneDiff, false);
 
-      collabClientRef.current.sendSceneUpdate(activePageId, sceneToSend);
-      lastSentScene.current = clone(scene);
-      console.log("sending ", sceneToSend)
+      if(sceneDiff.elements === undefined && sceneDiff.files === undefined) return;
+      delete sceneDiff.appState 
+      
+      sceneToSendRef.current = applySceneDiff(sceneToSendRef.current, sceneDiff, true);
+
+      if(!isDrawingRef.current) {
+        collabClientRef.current.sendSceneUpdate(activePageIdRef.current, sceneToSendRef.current);
+        sceneToSendRef.current = {elements: [], appState: {}, files: {}};
+        console.log("sending ", sceneDiff)
+      }
+      
     }
   };
 

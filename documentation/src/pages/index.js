@@ -22,7 +22,6 @@ function HomepageHeader() {
   );
 }
 
-
 function Contributors() {
     const [imageError, setImageError] = useState(false);
 
@@ -67,3 +66,9 @@ export default function Home() {
     </Layout>
   );
 }
+
+<div style={{textAlign: 'center'}}>
+    <p className={styles.heroDescription}>
+      Visit our <a href="YOUR_URL_HERE" target="_blank" rel="noopener noreferrer" className={styles.heroLink}>live website</a> to give it a try!
+    </p>
+  </div>

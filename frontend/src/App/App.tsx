@@ -76,14 +76,24 @@ export default function App() {
   const [initialCollabId] = useState(() => getCollabId());
   /** Current active view (Drawing or Mockup) */
   const [currentPage, setCurrentPage] = useState(Page.Drawing);
+
+  const isSecondaryCollaborator: boolean = useMemo(() => {
+    const params = new URLSearchParams(window.location.search);
+    const collabParam = params.get('collab');
+    return collabParam !== null;
+  }, [])
   
   /** Collection of all sketch pages */
   // Make the **first page id deterministic** based on the collab id so both tabs share it.
-  const [pages, setPages] = useState<SketchPage[]>(() => [{
-    id: `${initialCollabId}-p1`,
-    name: "Page 1",
-    scene: makeEmptyScene(),
-  }]);
+  const [pages, setPages] = useState<SketchPage[]>(() => {
+    if(isSecondaryCollaborator) return [];
+
+    return [{
+      id: `${initialCollabId}-p1`,
+      name: "Page 1",
+      scene: makeEmptyScene(),
+    }];
+  });
   
   /** ID of the currently active sketch page */
   const [activePageId, setActivePageId] = useState<string>(() => `${initialCollabId}-p1`);

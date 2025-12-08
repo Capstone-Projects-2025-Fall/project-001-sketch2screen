@@ -26,12 +26,14 @@ The Claude Client service handles all interactions with the Anthropic Claude API
 
 **Signature:**
 ```python
-def image_to_html_css(
+async def image_to_html_css(
     image_bytes: bytes,
     media_type: str = "image/png",
     prompt: Optional[str] = None
 ) -> str
 ```
+
+**Note:** This is an **async function** and must be awaited.
 
 **Parameters:**
 - `image_bytes` (bytes) - Raw binary data of the image file
@@ -48,13 +50,14 @@ def image_to_html_css(
 **Example:**
 ```python
 from sketch_api.services.claudeClient import image_to_html_css
+import asyncio
 
 # Read image file
 with open('sketch.png', 'rb') as f:
     image_bytes = f.read()
 
-# Generate HTML/CSS
-html = image_to_html_css(
+# Generate HTML/CSS (must await)
+html = await image_to_html_css(
     image_bytes=image_bytes,
     media_type="image/png",
     prompt="Make this design responsive"
@@ -73,26 +76,45 @@ print(html)
 
 **System Prompt:**
 ```
-You are a frontend assistant that converts UI sketches into high-fidelity,
-clean, production-ready HTML and CSS. Prefer semantic HTML, minimal wrappers,
-inline styles for each of the components of the image. Do not use body tag.
-Use modern CSS if possible. Use Bootstrap or Tailwind CSS only. Do not
-include markdown fences in the code.
+You are an expert frontend developer specializing in converting UI sketches into
+modern, high-fidelity, pixel-perfect, production-ready HTML with Tailwind CSS. Your code is clean, semantic,
+accessible, and follows modern web development best practices.
 ```
 
 **Default User Instruction:**
 ```
-Generate HTML and CSS that recreates the layout in the image. Only provide
-the code, no other text including markdown fences. If an element is labeled
-as an HTML tag it should be that HTML tag. If there is text in the image,
-it should be included in the HTML. Any icons or images in the sketch should
-be represented by placeholders. All sketches generated should be width 100
-percent and height 100 percent.
+Convert the provided UI sketch into complete, functional HTML with Tailwind CSS styling.
+
+CRITICAL OUTPUT REQUIREMENTS:
+- Ignore the outer bounding box of sketch as it is for user to assume as a viewport.
+- Return ONLY raw HTML code - no markdown fences, no explanations, no preamble
+- This renders in an iframe, so include complete document structure with <!DOCTYPE html>
+- Set body to full viewport dimensions: class="h-screen w-screen" (100vh height, 100vw width)
+- Do not add padding to outside of the borders, only use spacing within the layout itself
+- Ensure the color scheme matches the sketch.
+
+CODE QUALITY STANDARDS:
+- Design generated should be of extremely high fidelity.
+- Use semantic HTML5 elements (<header>, <nav>, <main>, <section>, <article>, <footer>)
+- Include all necessary JavaScript for interactivity (e.g., dropdowns, modals, tabs)
+- Minimize unnecessary wrapper divs - keep markup lean
+- Ensure all elements have explicit dimensions or content to render properly
+- Make layouts responsive using Tailwind's responsive prefixes (sm:, md:, lg:)
+- The design should look production-ready, not like a prototype
+
+DESIGN FIDELITY:
+- Match the sketch's layout and color scheme but make it modern, clean, and visually appealing
+- If elements are labeled with HTML tag names (e.g., "button", "input", "img"), use those exact tags
+- Preserve all text content visible in the sketch
+- For images in the design: Use placeholder divs or external placeholder images
+- Represent icons using emoji, Unicode symbols, or labeled boxes
+
+Begin your response with <!DOCTYPE html> and nothing else.
 ```
 
 **Configuration:**
-- **Model:** `claude-sonnet-4-20250514` (configurable via `CLAUDE_MODEL` setting)
-- **Max Tokens:** 2000
+- **Model:** `claude-haiku-4-5-20251001` (configurable via `CLAUDE_MODEL` setting)
+- **Max Tokens:** 15000
 - **API Key:** Loaded from file or environment variable
 
 ---
@@ -103,11 +125,11 @@ percent and height 100 percent.
 
 **Signature:**
 ```python
-def _client() -> Anthropic
+def _client() -> AsyncAnthropic
 ```
 
 **Returns:**
-- `Anthropic` - Authenticated API client instance
+- `AsyncAnthropic` - Authenticated async API client instance
 
 **Raises:**
 - `RuntimeError` - If API key is not configured
@@ -209,7 +231,82 @@ The Collaboration Server manages real-time collaboration sessions using the Sing
 └─────────────────────────────────────────────────┘
 ```
 
+### Functions
+
+#### `applyDiff(base, diff)`
+
+**Purpose:** Apply a differential update to a base scene object, merging changes recursively.
+
+**Signature:**
+```python
+def applyDiff(base, diff)
+```
+
+**Parameters:**
+- `base` (dict | list | any) - The base scene data to apply changes to
+- `diff` (dict | list | any) - The differential changes to apply
+
+**Returns:**
+- `dict | list | any` - Merged result with diff applied to base
+
+**How It Works:**
+1. Converts lists to dicts with string indices for uniform processing
+2. Recursively merges diff into base
+3. Preserves base values not mentioned in diff
+4. Adds new keys from diff not in base
+5. Converts back to list if original was list
+
+**Example:**
+```python
+base = {"elements": [{"id": "1", "x": 10}], "appState": {"zoom": 1}}
+diff = {"elements": {"0": {"x": 20}}}  # Update x coordinate of first element
+
+result = applyDiff(base, diff)
+# Result: {"elements": [{"id": "1", "x": 20}], "appState": {"zoom": 1}}
+```
+
+**Use Case:**
+- Efficiently synchronize scene changes without sending entire scene
+- Reduces network payload for collaboration updates
+- Prevents mid-stroke conflicts by only sending deltas
+
+---
+
 ### Classes
+
+#### `Collaborator`
+
+**Purpose:** Represents a user participating in a collaboration session.
+
+**Constructor:**
+```python
+def __init__(self, userID, username, channelName):
+    self.userID = userID
+    self.username = username
+    self.channelName = channelName
+    self.pointer = None
+    self.currentPage = None
+```
+
+**Attributes:**
+- `userID` (str) - Client-generated unique identifier
+- `username` (str) - Display name for this user
+- `channelName` (str) - Django Channels WebSocket identifier (internal)
+- `pointer` (dict | None) - Current cursor position `{x, y}` or `None`
+- `currentPage` (str | None) - ID of the page user is currently viewing
+
+**Example:**
+```python
+collaborator = Collaborator(
+    userID="user-1234567890-abc123",
+    username="Alice",
+    channelName="specific.channel.xyz789"
+)
+collaborator.pointer = {"x": 150, "y": 200}
+collaborator.currentPage = "page-1"
+```
+
+---
 
 #### `SingletonMeta`
 
@@ -449,6 +546,10 @@ server.sendPageUpdate(
 
 Handles WebSocket connections and routes messages to CollabServer.
 
+**WebSocket Endpoint:** `ws://localhost:8000/ws/collab/{collabID}/`
+
+**Note:** This is an experimental feature and may have bugs.
+
 ### Class: `SketchConsumer`
 
 **Inherits:** `channels.generic.websocket.WebsocketConsumer`
@@ -457,123 +558,53 @@ Handles WebSocket connections and routes messages to CollabServer.
 - `server` (CollabServer) - Singleton instance (class variable)
 - `collabID` (str) - Collaboration ID for this connection (instance variable)
 
-#### Methods
+### WebSocket Protocol
 
-##### `connect()`
+**Connection Lifecycle:**
+1. Client connects → Server calls `onNewConnection(channelName, collabID)`
+2. Server sends existing state → Client receives all current pages via `page_update` and `scene_update`, plus existing collaborators via `collaborator_join`
+3. Client sends `collaborator_join` → Server broadcasts new user to others
+4. Client sends updates → Server broadcasts scene diffs to other members (excluding sender)
+5. Client disconnects → Server calls `onConnectionEnd(channelName, collabID)`, sends `collaborator_leave` to others, and cleans up if last member
 
-**Purpose:** Called when WebSocket connection is established.
+**Message Types (Client → Server):**
+- `scene_update` - Scene drawing changes (with diff for efficiency)
+- `page_update` - Page create/rename/delete (null name = delete)
+- `collaborator_join` - User joined with userID and username
+- `collaborator_pointer` - Cursor position update (throttled to 50ms, includes pageID)
 
-**Behavior:**
-1. Extracts `collabID` from URL route
-2. Calls `server.onNewConnection()`
-3. Accepts the WebSocket connection
+**Message Types (Server → Client):**
+- `scene_update` - Another user's drawing changes
+- `page_update` - Another user's page operations
+- `collaborator_join` - New user joined the session
+- `collaborator_leave` - User disconnected
+- `collaborator_pointer` - Another user's cursor moved (filtered by pageID)
 
-**Example URL:** `ws://localhost:8000/ws/collab/12345/`
-- `collabID` = `"12345"`
+### Key Methods
 
----
+#### `connect()`
+Extracts `collabID` from URL route, calls `server.onNewConnection()`, accepts WebSocket connection.
 
-##### `disconnect(close_code)`
+#### `disconnect(close_code)`
+Calls `server.onConnectionEnd()` to clean up session.
 
-**Purpose:** Called when WebSocket connection is closed.
+#### `receive(text_data)`
+Parses JSON message, routes based on `action` field to:
+- `scene_update` → `onSceneUpdate()`
+- `page_update` → `onPageUpdate()`
+- `collaborator_join` → `onCollaboratorJoin()`
+- `collaborator_pointer` → `onCollaboratorPointer()`
 
-**Parameters:**
-- `close_code` (int) - WebSocket close code
+#### `scene_update(event)`, `page_update(event)`, `collaborator_join(event)`, `collaborator_leave(event)`, `collaborator_pointer(event)`
+Django Channels handlers that serialize events and send to WebSocket client.
 
-**Behavior:**
-- Calls `server.onConnectionEnd()` to clean up session
-
----
-
-##### `receive(text_data)`
-
-**Purpose:** Called when a message is received from the client.
-
-**Parameters:**
-- `text_data` (str) - JSON string from client
-
-**Behavior:**
-1. Parses JSON message
-2. Checks `action` field
-3. Routes to appropriate server method:
-   - `"scene_update"` → `onSceneUpdate()`
-   - `"page_update"` → `onPageUpdate()`
-
-**Example:**
+**Example Message Flow:**
 ```python
-def receive(self, text_data):
-    message = json.loads(text_data)
-    action = message["action"]
+# Client sends
+{"action": "scene_update", "sketchID": "page-1", "sketchData": {...}}
 
-    if action == "scene_update":
-        self.server.onSceneUpdate(
-            self.channel_name,
-            self.collabID,
-            message["sketchID"],
-            message["sketchData"]
-        )
-```
-
----
-
-##### `scene_update(event)`
-
-**Purpose:** Called by Django Channels to send scene update to this client.
-
-**Parameters:**
-- `event` (dict) - Event data from channel layer
-
-**Behavior:**
-- Serializes event as JSON
-- Sends to WebSocket client
-
-**Example Event:**
-```python
-{
-    "type": "scene.update",
-    "sketchID": "page-1",
-    "sketchData": {...}
-}
-```
-
-**Sent to client as:**
-```json
-{
-    "action": "scene_update",
-    "sketchID": "page-1",
-    "sketchData": {...}
-}
-```
-
----
-
-##### `page_update(event)`
-
-**Purpose:** Called by Django Channels to send page update to this client.
-
-**Parameters:**
-- `event` (dict) - Event data from channel layer
-
-**Behavior:**
-- Serializes event as JSON
-- Sends to WebSocket client
-
-**Example Event:**
-```python
-{
-    "type": "page.update",
-    "sketchID": "page-2",
-    "pageName": "About"
-}
-```
-
-**Sent to client as:**
-```json
-{
-    "action": "page_update",
-    "sketchID": "page-2",
-    "pageName": "About"
-}
+# Server broadcasts to others
+{"action": "scene_update", "sketchID": "page-1", "sketchData": {...}}
 ```
 
 ---
@@ -638,81 +669,3 @@ export PROD=True
 - **One consumer instance per connection**
 - **Message broadcasting** - O(n) where n = number of session members
 - **No message buffering** - Messages sent immediately
-
----
-
-## Error Handling
-
-### Claude Client Errors
-
-```python
-try:
-    html = image_to_html_css(image_bytes)
-except RuntimeError as e:
-    # API key missing or empty response
-    logger.error(f"Claude client error: {e}")
-except FileNotFoundError:
-    # API key file not found
-    logger.error("Claude API key file not found")
-except Exception as e:
-    # Network errors, API errors, etc.
-    logger.error(f"Unexpected error: {e}")
-```
-
-### Collaboration Server Errors
-
-The CollabServer currently has minimal error handling:
-- Invalid sketch IDs are silently discarded
-- Missing sessions are created automatically
-- No validation of scene data structure
-
-**Production Recommendations:**
-- Add schema validation for scene data
-- Implement error responses to clients
-- Add logging for debugging
-
----
-
-## Testing
-
-### Example Unit Tests
-
-```python
-# test_claudeClient.py
-from sketch_api.services.claudeClient import image_to_html_css
-
-def test_image_to_html_css():
-    with open('test_sketch.png', 'rb') as f:
-        image_bytes = f.read()
-
-    html = image_to_html_css(image_bytes)
-
-    assert html is not None
-    assert len(html) > 0
-    assert '<' in html  # Contains HTML tags
-```
-
-```python
-# test_CollabServer.py
-from sketch_api.CollabServer import CollabServer
-
-def test_singleton_pattern():
-    server1 = CollabServer()
-    server2 = CollabServer()
-    assert server1 is server2
-
-def test_session_creation():
-    server = CollabServer()
-    server.onNewConnection("user1", "test-session")
-
-    assert "test-session" in server.collabSessions
-    assert "user1" in server.collabSessions["test-session"].members
-```
-
----
-
-## Related Documentation
-
-- **[REST API Endpoints](rest-endpoints.md)** - Views that use Claude Client
-- **[WebSocket API](websocket-api.md)** - Protocol used by Consumer
-- **[Frontend Components](../frontend-api/components.md)** - How frontend uses these services

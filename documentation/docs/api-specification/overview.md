@@ -4,9 +4,8 @@ Sketch2Screen provides a REST API for AI-powered sketch-to-code generation and a
 
 ## Quick Links
 
-- **[REST API Endpoints](backend-api/rest-endpoints.md)** - HTTP endpoints for sketch generation and component variations
-- **[WebSocket API](backend-api/websocket-api.md)** - Real-time collaboration protocol
-- **[Internal Services](backend-api/services.md)** - Backend service architecture
+- **[API Reference](backend-api/swagger-api.mdx)** - Complete REST API and WebSocket endpoint specifications
+- **[Internal Services](backend-api/services.md)** - Backend service architecture and implementation details
 - **[Frontend Components](frontend-api/components.md)** - React component reference
 
 ## Architecture Overview
@@ -51,18 +50,17 @@ graph TB
 ### REST API
 Three HTTP endpoints for AI-powered generation:
 - **`POST /api/generate/`** - Convert a single sketch image to HTML/Tailwind CSS
-- **`POST /api/generate-multi/`** - Batch convert multiple sketches (up to 20 pages)
+- **`POST /api/generate-multi/`** - Batch convert multiple sketches (up to 20 pages, parallel async)
 - **`POST /api/generate-variations/`** - Generate design variations for selected UI components
 
-See **[REST API Endpoints](backend-api/rest-endpoints.md)** for detailed request/response formats.
-
-### WebSocket API
+### WebSocket API (Experimental)
 Real-time collaboration over WebSocket:
-- **Connection** - Join collaboration sessions at `/api/ws/collab/{collabID}/`
-- **Scene Sync** - Broadcast drawing changes to all collaborators
+- **Endpoint** - `ws://localhost:8000/ws/collab/{collabID}/`
+- **Scene Sync** - Broadcast drawing changes using diffs to prevent mid-stroke conflicts
 - **Page Management** - Synchronize page create/rename/delete operations
+- **Collaborator Tracking** - Join/leave notifications and cursor position updates
 
-See **[WebSocket API](backend-api/websocket-api.md)** for the complete protocol specification.
+See **[API Reference](backend-api/swagger-api.mdx)** for detailed request/response formats and protocol specifications.
 
 ### Internal Services
 Backend services that power the API:
@@ -95,7 +93,11 @@ This separation allows for better cost management and rate limit distribution.
 - **File Validation**: Images only, 10MB limit
 - **WebSocket**: Unauthenticated connections
 
-**Production considerations documented in [REST API Endpoints](backend-api/rest-endpoints.md).**
+**Production considerations:**
+- Use `wss://` for WebSocket encryption
+- Implement authentication and authorization
+- Use Redis channel layer for horizontal scaling
+- Add rate limiting for API endpoints
 
 ## Error Handling
 
@@ -105,12 +107,4 @@ All REST endpoints return JSON errors with `detail` field. Common HTTP status co
 - `413` - File too large (>10MB)
 - `500` - AI generation failure or server error
 
-WebSocket errors are logged server-side. See [WebSocket API](backend-api/websocket-api.md) for details.
-
-## Next Steps
-
-Choose a section to explore:
-- **[REST API Endpoints](backend-api/rest-endpoints.md)** - Complete endpoint reference with examples
-- **[WebSocket API](backend-api/websocket-api.md)** - Real-time collaboration protocol
-- **[Internal Services](backend-api/services.md)** - Backend architecture and services
-- **[Frontend Components](frontend-api/components.md)** - React component API
+WebSocket errors are logged server-side. Connection failures trigger automatic cleanup and session termination if last member.

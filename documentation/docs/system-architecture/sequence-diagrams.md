@@ -4,365 +4,302 @@ sidebar_position: 2
 
 # Sequence Diagrams
 
-## Use Case 1: Creating a New Workspace
-*As a user, I want to create a new workspace to start sketching my website design*
+## Use Case 1: Starting a Session and Drawing UI Sketches
+*As a user, I want to start sketching UI components for my website*
 
-1. User navigates to the Sketch2Screen application homepage
-2. User clicks "Create New Workspace" button
-3. System generates a unique workspace ID and shareable link
-4. System redirects user to the sketch canvas interface with drawing tools
-5. System displays the shareable workspace link/code for collaboration
+1. User navigates to the Sketch2Screen application URL
+2. Frontend generates unique session ID and creates initial page
+3. User sees Excalidraw canvas interface with drawing tools
+4. User draws UI components (buttons, forms, navigation, etc.) on canvas
+5. Frontend tracks all drawing changes in local state
 
 ```mermaid
 ---
-title: Sequence Diagram 1 – Creating a New Workspace
+title: Sequence Diagram 1 – Starting a Session and Drawing UI Sketches
 ---
 
 sequenceDiagram
     actor User
     participant Frontend
-    participant Backend
-    participant Database
 
-    User->>Frontend: Navigate to homepage
-    Frontend-->>User: Display landing page
-    User->>Frontend: Click "Create New Workspace"
-    Frontend->>Backend: POST /workspace/create
-    activate Backend
-    Backend->>Database: Generate unique workspace ID
-    Database-->>Backend: Return workspace ID & shareable link
-    Backend-->>Frontend: Send workspace data
-    deactivate Backend
-    Frontend->>Frontend: Redirect to sketch canvas
-    Frontend-->>User: Display sketch interface with shareable link
+    User->>Frontend: Navigate to application URL
+    Frontend->>Frontend: Generate session ID from timestamp
+    Frontend->>Frontend: Create initial page with Excalidraw canvas
+    Frontend-->>User: Display drawing interface
 
-    alt Workspace creation fails
-        Backend-->>Frontend: Error: Unable to create workspace
-        Frontend-->>User: Display error message
-    end
+    User->>Frontend: Draw UI components on canvas
+    Frontend->>Frontend: Update scene state with drawing data
+    Frontend-->>User: Show real-time drawing feedback
+
+    Note over User,Frontend: All drawing stored locally<br/>in React state
 ```
 
-## Use Case 2: Joining an Existing Workspace
-*As a collaborator, I want to join a workspace using a shared link so I can work with my team*
+## Use Case 2: Generating HTML from Sketches with AI
+*As a user, I want to convert my sketches into production-ready HTML using Claude AI*
 
-1. User receives workspace link or code from workspace creator
-2. User clicks on shared link or enters workspace code on homepage
-3. System validates the workspace link/code
-4. System loads the existing workspace with current canvas state
-5. User sees the current sketch canvas and any existing work from other collaborators
-6. System notifies other active users of the new collaborator joining
+1. User clicks "Generate" button in navbar
+2. Frontend shows loading indicator
+3. Frontend checks which pages have changed since last generation (smart caching)
+4. For each changed page, frontend exports canvas to PNG via Excalidraw API
+5. Frontend sends multipart/form-data to `/api/generate-multi/` with all page images
+6. Backend processes each image in parallel using asyncio
+7. Backend converts PNG to base64 and sends to Claude API
+8. Claude analyzes sketch and returns raw HTML with Tailwind CSS
+9. Frontend receives HTML for each page and displays in sanitized iframe
+10. Frontend caches scene state to avoid regenerating unchanged pages next time
 
 ```mermaid
 ---
-title: Sequence Diagram 2 – Joining an Existing Workspace
----
-
-sequenceDiagram
-    actor Collaborator
-    actor Other_Users as Other Users
-    participant Frontend
-    participant Backend
-    participant Database
-    participant WebSocket
-
-    Collaborator->>Frontend: Click shared link or enter code
-    Frontend->>Backend: GET /workspace/{id}/validate
-    Backend->>Database: Check workspace exists
-
-    alt Workspace exists
-        Database-->>Backend: Return workspace data
-        Backend-->>Frontend: Send current workspace state
-        Frontend->>WebSocket: Connect to workspace channel
-        WebSocket->>Other_Users: Notify new collaborator joined
-        Frontend-->>Collaborator: Display canvas with existing work
-    else Invalid workspace
-        Database-->>Backend: Workspace not found
-        Backend-->>Frontend: Error: Invalid workspace
-        Frontend-->>Collaborator: Display error and redirect to homepage
-    else Workspace deleted
-        Database-->>Backend: Workspace deleted
-        Backend-->>Frontend: Error: Workspace no longer available
-        Frontend-->>Collaborator: Display error and redirect to homepage
-    end
-```
-
-## Use Case 3: Creating Sketches with Real-time Collaboration
-*As a user, I want to draw UI components on the canvas and see my teammates' drawings in real-time*
-
-1. User selects drawing tool from toolbar (pen, shapes, text, etc.)
-2. User draws UI component sketches on canvas
-3. System captures drawing strokes and broadcasts updates to all active collaborators
-4. Other users see drawing updates appear on their canvas immediately
-5. User completes sketch
-6. System automatically saves current canvas state
-
-```mermaid
----
-title: Sequence Diagram 3 – Creating Sketches with Real-time Collaboration
----
-
-sequenceDiagram
-    actor User
-    actor Collaborators
-    participant Frontend
-    participant WebSocket
-    participant Backend
-    participant Database
-
-    User->>Frontend: Select drawing tool
-    Frontend-->>User: Activate drawing mode
-    User->>Frontend: Draw on canvas
-    Frontend->>Frontend: Capture drawing strokes
-
-    loop For each stroke
-        Frontend->>WebSocket: Broadcast drawing data
-        WebSocket->>Backend: Relay drawing updates
-        Backend->>WebSocket: Forward to other users
-        WebSocket->>Frontend: Send real-time drawing updates
-        Frontend->>Frontend: Update canvas with new drawing
-        Frontend->>Collaborators: Show updated sketch
-    end
-
-    User->>Frontend: Complete sketch
-    Frontend->>Backend: POST /workspace/save
-    Backend->>Database: Save canvas state
-    Database-->>Backend: Confirm save
-    Backend-->>Frontend: Save confirmed
-
-    Note over Frontend,WebSocket: Alt: Connection lost
-    Frontend->>Frontend: Queue drawing data locally
-    Frontend-->>User: Show "Connection lost" indicator
-    WebSocket-->>Frontend: Connection restored
-    Frontend->>WebSocket: Sync queued changes
-```
-
-## Use Case 4: Generating AI Components from Sketches
-*As a user, I want to convert my sketches into professional UI components using AI*
-
-1. User completes sketching UI components on canvas
-2. User clicks "Generate" button
-3. System displays loading indicator
-4. System processes canvas sketches and sends to AI model
-5. AI model analyzes sketches and generates multiple UI component variations
-6. System displays generated component options in selection interface
-7. User reviews the multiple variations for each sketch element
-
-```mermaid
----
-title: Sequence Diagram 4 – Generating AI Components from Sketches
+title: Sequence Diagram 2 – Generating HTML from Sketches with AI
 ---
 
 sequenceDiagram
     actor User
     participant Frontend
-    participant Backend
-    participant AI_Model as AI Model
+    participant Backend as Backend (Django)
+    participant Claude as Claude API (Anthropic)
 
     User->>Frontend: Click "Generate" button
     Frontend-->>User: Show loading indicator
-    Frontend->>Backend: POST /generate with canvas data
-    Backend->>AI_Model: Process sketches for UI components
-    Note over AI_Model: Analyze sketches and<br/>generate multiple variations
+    Frontend->>Frontend: Compare scenes with lastGeneratedScenes cache
 
-    alt Generation successful
-        AI_Model-->>Backend: Return generated component options
-        Backend-->>Frontend: Send component variations
-        Frontend-->>User: Display selection interface with options
-    else AI generation fails
-        AI_Model-->>Backend: Generation error
-        Backend-->>Frontend: Error: Generation failed
-        Frontend-->>User: Display "Generation failed. Please try again."
-    else No components detected
-        AI_Model-->>Backend: No recognizable UI components
-        Backend-->>Frontend: No components found
-        Frontend-->>User: Display "No UI components detected"
+    loop For each changed page
+        Frontend->>Frontend: Export canvas to PNG blob (exportToBlob)
+    end
+
+    Frontend->>Backend: POST /api/generate-multi/ (multipart/form-data)
+    Note over Frontend,Backend: FormData contains:<br/>file_0, file_1, ...<br/>name_0, name_1, ...<br/>id_0, id_1, ...<br/>count
+
+    loop For each uploaded image (parallel async)
+        Backend->>Backend: Read image bytes
+        Backend->>Backend: Convert to base64
+        Backend->>Claude: Send image + system prompt
+        Note over Claude: Model: claude-haiku-4-5-20251001<br/>Analyzes sketch, generates HTML<br/>with Tailwind CSS
+        Claude-->>Backend: Return raw HTML (no markdown)
+    end
+
+    Backend-->>Frontend: JSON { results: [{id, html}, ...] }
+
+    Frontend->>Frontend: Combine new + cached mockups
+    Frontend->>Frontend: Update lastGeneratedScenes cache
+    Frontend->>Frontend: Switch to Mockup view
+    Frontend-->>User: Display generated HTML in iframe (DOMPurify sanitized)
+
+    alt Generation fails
+        Backend-->>Frontend: Error response
+        Frontend-->>User: Display "Generation failed"
     end
 ```
 
-## Use Case 5: Selecting and Customizing Generated Components
-*As a user, I want to choose my favorite design variations from the AI-generated options*
+## Use Case 3: Managing Multiple Sketch Pages
+*As a user, I want to create multiple pages for a multi-page website design*
 
-1. System displays multiple variations for each identified sketch element
-2. User reviews all component options
-3. User clicks to select preferred version of each component
-4. System highlights selected components
-5. User clicks "Apply Selected Components" to confirm selections
-6. System prepares to transfer selected components to design page
+1. User clicks "Add Page" button in sidebar
+2. Frontend creates new page and switches to it
+3. User can rename pages by double-clicking page name
+4. User can duplicate pages to reuse design
+5. User can delete pages (minimum 1 page required)
+6. User can switch between pages to work on different screens
 
 ```mermaid
 ---
-title: Sequence Diagram 5 – Selecting and Customizing Generated Components
+title: Sequence Diagram 3 – Managing Multiple Sketch Pages
 ---
 
 sequenceDiagram
     actor User
     participant Frontend
-    participant Backend
-    participant AI_Model as AI Model
 
-    Frontend-->>User: Display generated component variations
-    User->>Frontend: Review component options
-    User->>Frontend: Select preferred variations
-    Frontend->>Frontend: Highlight selected components
+    User->>Frontend: Click "Add Page"
+    Frontend->>Frontend: Create new page with unique ID
+    Frontend->>Frontend: Set as active page
+    Frontend-->>User: Display new blank canvas
 
-    alt User applies selections
-        User->>Frontend: Click "Apply Selected Components"
-        Frontend->>Backend: POST /components/select
-        Backend-->>Frontend: Confirm selections
-        Frontend-->>User: Prepare transition to design mode
-    else User wants to regenerate
-        User->>Frontend: Click "Regenerate"
-        Frontend->>Backend: POST /generate with canvas data
-        Backend->>AI_Model: Process sketches again
-        AI_Model-->>Backend: Return new variations
-        Backend-->>Frontend: Send new options
-        Frontend-->>User: Display updated component options
-    else No components selected
-        User->>Frontend: Click "Apply" with no selections
-        Frontend-->>User: Display "Please select at least one component"
-    end
+    User->>Frontend: Double-click page name
+    Frontend-->>User: Show rename input
+    User->>Frontend: Enter new name
+    Frontend->>Frontend: Update page name in state
+
+    User->>Frontend: Click "Duplicate Page"
+    Frontend->>Frontend: Clone page with scene data
+    Frontend->>Frontend: Add to pages array
+    Frontend-->>User: Show duplicated page
+
+    User->>Frontend: Switch to different page
+    Frontend->>Frontend: Update active page ID
+    Frontend->>Frontend: Load page's scene into Excalidraw
+    Frontend-->>User: Display selected page's canvas
 ```
 
-## Use Case 6: Arranging Components in Design Mode
-*As a user, I want to arrange the selected components into a complete page layout*
+## Use Case 4: Editing Mockup Styles and Adding Page Links
+*As a user, I want to customize the generated HTML and link pages together*
 
-1. System switches to design mode interface
-2. System displays selected components as draggable elements on design canvas
-3. User drags and drops components to arrange layout
-4. System provides alignment guides and snap-to-grid functionality
-5. User resizes components as needed using drag handles
-6. User adjusts spacing and positioning until satisfied with layout
-7. System saves current design state
+1. User views generated mockup in iframe
+2. User clicks element inspector to select HTML element
+3. User modifies CSS styles (colors, sizes, spacing, etc.)
+4. Frontend tracks style changes in `mockupStyles` state with undo/redo history
+5. User can link elements to other pages via link dialog
+6. Frontend stores page links in `pageLinks` state mapping elementId to target pageId
+7. Changes are applied immediately in iframe and persisted for export
 
 ```mermaid
 ---
-title: Sequence Diagram 6 – Arranging Components in Design Mode
+title: Sequence Diagram 4 – Editing Mockup Styles and Adding Page Links
 ---
 
 sequenceDiagram
     actor User
     participant Frontend
-    participant Backend
-    participant Database
+    participant Iframe as Mockup Iframe
 
-    Frontend->>Frontend: Switch to design mode interface
-    Frontend-->>User: Display components as draggable elements
+    User->>Frontend: View generated mockup
+    Frontend-->>User: Display HTML in iframe
 
-    loop Design adjustments
-        User->>Frontend: Drag and drop components
-        Frontend->>Frontend: Provide alignment guides
-        User->>Frontend: Resize components
-        Frontend->>Frontend: Update component dimensions
-        User->>Frontend: Adjust spacing and positioning
+    User->>Frontend: Click element inspector
+    Frontend->>Iframe: Enable element selection
+    User->>Iframe: Click HTML element
+    Iframe-->>Frontend: Return selected element
+
+    User->>Frontend: Modify CSS styles in style editor
+    Frontend->>Frontend: Update mockupStyles state
+    Note over Frontend: Stores per-page, per-element:<br/>{ current, history, future }
+    Frontend->>Iframe: Apply style changes to element
+    Iframe-->>User: Show updated styles
+
+    alt User wants to link to another page
+        User->>Frontend: Click "Add Page Link"
+        Frontend-->>User: Show page link dialog
+        User->>Frontend: Select target page
+        Frontend->>Frontend: Update pageLinks state
+        Note over Frontend: Maps elementId -> targetPageId
+        Frontend->>Iframe: Add click handler to element
     end
 
-    Frontend->>Backend: POST /design/save
-    Backend->>Database: Save design state
-    Database-->>Backend: Confirm save
-    Backend-->>Frontend: Design saved
+    User->>Frontend: Undo/Redo style changes
+    Frontend->>Frontend: Navigate history/future arrays
+    Frontend->>Iframe: Apply historical styles
 
-    Note over User,Frontend: Alt: User wants to modify component
-    User->>Frontend: Right-click component
-    Frontend-->>User: Show options menu
-    User->>Frontend: Select modification option
-    Frontend->>Frontend: Apply component changes
-
-    Note over User,Frontend: Alt: User wants to add more components
-    User->>Frontend: Click "Add More Components"
-    Frontend->>Frontend: Return to sketch canvas mode
+    Note over Frontend: No backend calls -<br/>all state managed in React
 ```
 
-## Use Case 7: Exporting Final Code
-*As a user, I want to export my design as usable code for different frameworks*
+## Use Case 5: Exporting HTML Files
+*As a user, I want to export my generated mockups as HTML files*
 
-1. User completes design arrangement
-2. User clicks "Export" button from design interface
-3. System displays export options dialog with framework choices
-4. User selects desired framework and export format
-5. System generates code based on current design layout
-6. System packages code files and presents download options
-7. User downloads generated code files
-8. System confirms successful export
+1. User clicks export option from navbar dropdown
+2. User chooses export format: single page, multi-page single HTML, or multi-page ZIP
+3. Frontend reads iframe content and applies all style modifications
+4. Frontend processes page links to enable navigation between pages
+5. System generates download with all customizations applied
+6. User receives HTML file(s) ready to deploy
 
 ```mermaid
 ---
-title: Sequence Diagram 7 – Exporting Final Code
+title: Sequence Diagram 5 – Exporting HTML Files
 ---
 
 sequenceDiagram
     actor User
     participant Frontend
-    participant Backend
-    participant Code_Generator as Code Generator
+    participant Iframe as Mockup Iframe
+    participant Browser
 
-    User->>Frontend: Click "Export" button
-    Frontend-->>User: Display export options dialog
-    Frontend-->>User: Show framework choices
-    User->>Frontend: Select framework and format
-    Frontend->>Backend: POST /export with design and preferences
-    Backend->>Code_Generator: Generate code based on design
+    User->>Frontend: Click export dropdown in navbar
+    Frontend-->>User: Show export options
 
-    alt Code generation successful
-        Code_Generator-->>Backend: Return generated code files
-        Backend->>Backend: Package code files
-        Backend-->>Frontend: Send download package
-        Frontend-->>User: Present download options
-        User->>Frontend: Download generated code files
-        Frontend-->>User: Confirm successful export
-    else Code generation fails
-        Code_Generator-->>Backend: Generation error
-        Backend-->>Frontend: Export failed
-        Frontend-->>User: Display "Export failed. Please try again."
-    else No components to export
-        Frontend->>Frontend: Check for components
-        Frontend-->>User: Display "No components to export"
+    alt Export Single Page
+        User->>Frontend: Click "Export Current Page"
+        Frontend->>Iframe: Read iframe document
+        Frontend->>Frontend: Apply mockupStyles changes
+        Frontend->>Frontend: Generate clean HTML with inline styles
+        Frontend->>Browser: Trigger download "{pageName}.html"
+        Browser-->>User: Download HTML file
     end
+
+    alt Export Multi-Page (Single HTML)
+        User->>Frontend: Click "Export as Single HTML"
+        Frontend->>Frontend: Gather all mockup pages
+
+        loop For each mockup page
+            Frontend->>Frontend: Apply style modifications
+            Frontend->>Frontend: Process page links
+        end
+
+        Frontend->>Frontend: Combine into single HTML with navigation
+        Note over Frontend: Adds internal links<br/>and page switching logic
+        Frontend->>Browser: Trigger download "{projectName}.html"
+        Browser-->>User: Download single HTML file
+    end
+
+    alt Export Multi-Page (ZIP)
+        User->>Frontend: Click "Export as ZIP"
+        Frontend->>Frontend: Gather all mockup pages
+
+        loop For each mockup page
+            Frontend->>Frontend: Apply style modifications
+            Frontend->>Frontend: Convert page links to relative paths
+            Frontend->>Frontend: Create individual HTML file
+        end
+
+        Frontend->>Frontend: Package files into ZIP
+        Note over Frontend: Uses JSZip library
+        Frontend->>Browser: Trigger download "{projectName}.zip"
+        Browser-->>User: Download ZIP archive
+    end
+
+    Note over Frontend,Browser: No backend calls -<br/>all processing client-side
 ```
 
-## Use Case 8: Saving and Resuming Workspace
-*As a user, I want to save my work and return to it later*
+## Use Case 6: Real-time Collaboration
+*As a collaborator, I want to join an existing session and edit together*
 
-1. System automatically saves workspace state periodically during work
-2. User bookmarks or saves the workspace URL for later access
-3. User returns to the saved workspace URL at a later time
-4. System loads saved workspace state including sketches, selected components, and design layout
-5. User can continue working from where they left off
+1. User A clicks "Start Collaboration" and shares link with `?collab={collabID}` parameter
+2. User B clicks the link and enters username when prompted
+3. Frontend connects to WebSocket at `/ws/collab/{collabID}/`
+4. Backend syncs existing pages and collaborators to User B
+5. Both users can now draw and see each other's changes in real-time
+6. Collaborator cursors are shown (filtered by active page)
 
 ```mermaid
 ---
-title: Sequence Diagram 8 – Saving and Resuming Workspace
+title: Sequence Diagram 6 – Real-time Collaboration
 ---
 
 sequenceDiagram
-    actor User
+    actor UserA as User A (Host)
+    actor UserB as User B (Joining)
     participant Frontend
-    participant Backend
-    participant Database
+    participant WebSocket
+    participant CollabServer as CollabServer (Backend)
 
-    Note over Frontend,Backend: Automatic saving during work
-    loop Periodic saves
-        Frontend->>Backend: POST /workspace/save (auto-save)
-        Backend->>Database: Store workspace data
-        Database-->>Backend: Confirm data saved
+    UserA->>Frontend: Click "Start Collaboration"
+    Frontend-->>UserA: Display username dialog
+    UserA->>Frontend: Enter username
+    Frontend->>WebSocket: Connect to /ws/collab/{collabID}/
+    Frontend-->>UserA: Show shareable link
+
+    UserA->>UserB: Share link with ?collab={collabID}
+    UserB->>Frontend: Click link and navigate
+    Frontend-->>UserB: Show username dialog
+    UserB->>Frontend: Enter username and confirm
+    Frontend->>WebSocket: Connect to /ws/collab/{collabID}/
+
+    CollabServer->>CollabServer: Find existing session
+    CollabServer->>CollabServer: Add User B to members
+
+    loop Sync existing state to User B
+        CollabServer->>WebSocket: Send page_update
+        CollabServer->>WebSocket: Send scene_update
+        CollabServer->>WebSocket: Send collaborator_join
     end
 
-    User->>Frontend: Bookmark workspace URL
-    Note over User: User returns later
-    User->>Frontend: Access saved workspace URL
-    Frontend->>Backend: GET /workspace/{id}
-    Backend->>Database: Retrieve workspace state
+    WebSocket-->>Frontend: Receive full state
+    Frontend-->>UserB: Display shared canvas
 
-    alt Workspace data intact
-        Database-->>Backend: Return saved data
-        Backend-->>Frontend: Send complete workspace state
-        Frontend-->>User: Restore canvas, components, and layout
-    else Workspace data corrupted
-        Database-->>Backend: Data corruption error
-        Backend-->>Frontend: Unable to load workspace
-        Frontend-->>User: Display error with option to start fresh
-    else Partial data recovery
-        Database-->>Backend: Partial workspace data
-        Backend-->>Frontend: Send available data with warning
-        Frontend-->>User: Load recovered data and notify of loss
-    end
+    Note over UserA,UserB: Both users can now draw<br/>Changes broadcast via WebSocket<br/>Scene diffs prevent conflicts
+
+    UserA->>Frontend: Draw on canvas
+    Frontend->>WebSocket: Send scene_update (diff)
+    WebSocket->>CollabServer: Apply diff to session
+    CollabServer->>WebSocket: Broadcast to User B
+    Frontend-->>UserB: Update canvas with User A's drawing
 ```

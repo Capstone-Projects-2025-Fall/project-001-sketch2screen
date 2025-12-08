@@ -8,6 +8,7 @@
   text-align: center;
   position: relative;
   overflow: hidden;
+  background-color: #48cae4;
 }
 
 @media screen and (max-width: 996px) {
@@ -38,5 +39,48 @@
   margin: 0.5rem 0 0 0;
   font-size: 0.9rem;
   color: var(--ifm-color-emphasis-700);
+}
+
+.heroDescription {
+  font-size: 1.5rem;
+  font-family: 'Walter Turncoat', cursive;
+  color: white;
+  margin-top: 1.5rem;
+  font-weight: 400;
+  line-height: 1.6;
+  overflow: hidden;
+  border-right: 3px solid white;
+  white-space: nowrap;
+  animation: typing 3s steps(30) 0.5s forwards,
+             blink 0.75s step-end 0.5s 2 forwards;
+  width: 0;
+  margin-left: auto;
+  margin-right: auto;
+  display: inline-block;
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@keyframes blink {
+  50% { border-color: transparent; }
+  100% { border-color: transparent; }
+}
+
+.heroLink {
+  color: #ffd700;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transition: all 0.3s ease;
+}
+
+.heroLink:hover {
+  color: #fff;
+  text-decoration-color: #fff;
+  transform: translateY(-1px);
 }
 

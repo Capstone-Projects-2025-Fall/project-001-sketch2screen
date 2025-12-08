@@ -3,9 +3,10 @@ sidebar_position: 3
 ---
 # Acceptance Testing
 
-Demonstration of all of the functional and non-functional requirements. This can be a combination of automated tests derived from the use-cases (user stories) and manual tests with recorded observation of the results.
+Demonstration of all of the functional and non-functional requirements. This is a combination of automated tests derived from the use-cases (user stories) and manual tests with recorded observation of the results.
 
-**Note:** This project is in early development. All results below represent expected outcomes and have not yet been tested.
+[Link to Acceptance Test Spreadsheet](https://docs.google.com/spreadsheets/d/1hZ0SgnbU142vL8mRbzPGSd3U9GB_WxrAtNlkabBRMp4/edit?usp=sharing)
+
 
 ---
 

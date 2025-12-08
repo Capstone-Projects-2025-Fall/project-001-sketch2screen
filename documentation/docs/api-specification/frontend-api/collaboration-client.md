@@ -23,7 +23,7 @@ export default class CollabClient {
 
 ## Constructor
 
-### `constructor(collabID)`
+#### `constructor(collabID)`
 
 Creates a new collaboration client and establishes WebSocket connection.
 
@@ -66,7 +66,7 @@ connection.onclose = () => {
 
 ## Properties
 
-### `collabID`
+#### `collabID`
 
 **Type:** `number`
 
@@ -80,7 +80,7 @@ console.log(client.collabID); // 12345
 
 ---
 
-### `connection`
+#### `connection`
 
 **Type:** `WebSocket`
 
@@ -101,7 +101,7 @@ if (client.connection.readyState === WebSocket.OPEN) {
 
 ---
 
-### `sceneUpdateHandler`
+#### `sceneUpdateHandler`
 
 **Type:** `((sketchID: string, sceneData: SceneData) => void) | null`
 
@@ -115,7 +115,7 @@ if (client.connection.readyState === WebSocket.OPEN) {
 
 ---
 
-### `pageUpdateHandler`
+#### `pageUpdateHandler`
 
 **Type:** `((sketchID: string, name: string | null) => void) | null`
 
@@ -131,7 +131,7 @@ if (client.connection.readyState === WebSocket.OPEN) {
 
 ## Methods
 
-### `setSceneUpdateHandler(handler)`
+#### `setSceneUpdateHandler(handler)`
 
 Registers a callback to handle incoming scene updates from other collaborators.
 
@@ -179,7 +179,7 @@ useEffect(() => {
 
 ---
 
-### `sendSceneUpdate(sketchID, sceneData)`
+#### `sendSceneUpdate(sketchID, sceneData)`
 
 Sends a scene update to all other collaborators in the session.
 
@@ -249,7 +249,7 @@ try {
 
 ---
 
-### `setPageUpdateHandler(handler)`
+#### `setPageUpdateHandler(handler)`
 
 Registers a callback to handle incoming page updates (create, rename, delete) from other collaborators.
 
@@ -297,7 +297,7 @@ client.setPageUpdateHandler((sketchID, pageName) => {
 
 ---
 
-### `sendPageUpdate(sketchID, pageName)`
+#### `sendPageUpdate(sketchID, pageName)`
 
 Sends a page operation (create, rename, or delete) to all other collaborators.
 
@@ -353,7 +353,7 @@ const deletePage = (id: string) => {
 
 ---
 
-### `disconnect()`
+#### `disconnect()`
 
 Closes the WebSocket connection.
 
@@ -413,7 +413,7 @@ if (!sketchID || !sketchID.startsWith(expectedPrefix)) {
 
 ## Complete Integration Example
 
-### React Hook for Collaboration
+#### React Hook for Collaboration
 
 ```typescript
 function useCollaboration(collabID: string) {
@@ -464,7 +464,7 @@ function useCollaboration(collabID: string) {
 }
 ```
 
-### Using the Hook
+#### Using the Hook
 
 ```typescript
 function App() {
@@ -580,7 +580,7 @@ collabClient.sendSceneUpdate(pageId, cleanScene(sceneData));
 
 ## Troubleshooting
 
-### Connection Fails
+#### Connection Fails
 
 **Problem:** WebSocket connection doesn't establish
 
@@ -590,7 +590,7 @@ collabClient.sendSceneUpdate(pageId, cleanScene(sceneData));
 - Check browser console for CORS errors
 - Ensure firewall allows WebSocket connections
 
-### Messages Not Received
+#### Messages Not Received
 
 **Problem:** Not receiving updates from collaborators
 
@@ -600,7 +600,7 @@ collabClient.sendSceneUpdate(pageId, cleanScene(sceneData));
 - Ensure handlers are set before messages arrive
 - Check browser console for filtering logs
 
-### Updates Echo Back
+#### Updates Echo Back
 
 **Problem:** Seeing own changes duplicated
 
@@ -609,7 +609,7 @@ collabClient.sendSceneUpdate(pageId, cleanScene(sceneData));
 - Verify server doesn't send to sender
 - Check for duplicate state updates
 
-### Data Not Serializing
+#### Data Not Serializing
 
 **Problem:** `JSON.stringify()` fails or data corrupted
 
@@ -617,11 +617,3 @@ collabClient.sendSceneUpdate(pageId, cleanScene(sceneData));
 - Remove non-serializable objects (Maps, Sets, Functions)
 - Deep clone scene data before sending
 - Use `cleanSceneData` approach (see `sendSceneUpdate`)
-
----
-
-## Related Documentation
-
-- **[WebSocket API](../backend-api/websocket-api.md)** - Backend protocol specification
-- **[App Component](components.md#app-component)** - How App uses CollabClient
-- **[Types & Interfaces](types-and-interfaces.md)** - SceneData and related types

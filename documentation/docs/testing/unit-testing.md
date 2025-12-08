@@ -5,7 +5,7 @@ sidebar_position: 1
 
 ## Frontend
 
-All frontend testing will be done with vitest.
+All frontend testing will be done with **vitest**.
 Vitest was chosen as it is designed to work with our chosen dev framework, vite.
 
 Due to the nature of react, only non-react functions, such as helper functions, will be subject to unit tests.
@@ -27,7 +27,14 @@ Components will be tested through integration tests instead.
 
 ## Backend
 
-All backend testing will be done with pytest. Mock django objects will be used for anything not being directly tested.
+All backend testing will be done with **Pytest**. Mock django objects will be used for anything not being directly tested.
+
+### Testing Procedure
+From **ROOT** folder  
+```DIGITAL Command Language
+cd backend/sketch_api
+pytest
+``` 
 
 ### Mockup Generation API:
 

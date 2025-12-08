@@ -40,22 +40,29 @@ export const exportModifiedHTML = (iframeRef: React.MutableRefObject<HTMLIFrameE
       }
     });
 
+    // Remove link badge spans (editor visual indicators)
+    const linkBadges = clonedDoc.querySelectorAll('.page-link-badge');
+    linkBadges.forEach((badge) => badge.remove());
+
     // Get all elements with applied styles
-    const editableElements = clonedDoc.querySelectorAll('.editable-element');
-    
+    const editableElements = clonedDoc.querySelectorAll('.editable-element, .has-page-link, [data-element-id]');
+
     editableElements.forEach((element) => {
-      // Convert inline styles to a style attribute that will persist
-      const styles = (element as HTMLElement).style;
-      
       // Remove the selection outline class if present
       (element as HTMLElement).classList.remove('selected');
-      
+
       // Remove editor-specific classes
       (element as HTMLElement).classList.remove('editable-element');
-      
-      // Preserve all inline styles applied by the user
-      if (styles.cssText) {
-        (element as HTMLElement).setAttribute('data-applied-styles', styles.cssText);
+      (element as HTMLElement).classList.remove('has-page-link');
+
+      // Remove editor data attributes
+      (element as HTMLElement).removeAttribute('data-element-id');
+      (element as HTMLElement).removeAttribute('data-page-link');
+      (element as HTMLElement).removeAttribute('data-applied-styles');
+
+      // Clean up empty class attributes
+      if ((element as HTMLElement).className === '') {
+        (element as HTMLElement).removeAttribute('class');
       }
     });
 

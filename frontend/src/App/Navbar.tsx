@@ -14,8 +14,8 @@ type Props = {
   onFilenameChange?: (name: string) => void;
   /** Callback to initiate collaboration */
   onStartCollab?: () => void;
-  /** Callback to generate mockup */
-  onGenerate?: () => void;
+  /** Callback to generate mockup (pass true to force regeneration) */
+  onGenerate?: (forceRegenerate?: boolean) => void;
   /** Callback to export single page */
   onExport?: () => void;
   /** Callback to export all pages as single HTML */
@@ -145,7 +145,11 @@ export default function Navbar({
           )}
         </div>
       ) : (
-        <button className={styles.generateButton} onClick={onGenerate}>
+        <button
+          className={styles.generateButton}
+          onClick={(e) => onGenerate?.(e.shiftKey)}
+          title="Click to generate. Shift+Click to force regenerate all pages."
+        >
           Generate
         </button>
       )}

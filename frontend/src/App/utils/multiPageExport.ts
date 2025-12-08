@@ -11,6 +11,25 @@ type PageLinks = {
   };
 };
 
+type MockupStyles = {
+  [mockupPageId: string]: {
+    [elementId: string]: {
+      current: {
+        styles: { [property: string]: string };
+        html: string | null;
+      };
+      history: Array<{
+        styles: { [property: string]: string };
+        html: string | null;
+      }>;
+      future: Array<{
+        styles: { [property: string]: string };
+        html: string | null;
+      }>;
+    };
+  };
+};
+
 /**
  * Converts a page name to a valid filename/anchor
  */
@@ -44,32 +63,40 @@ function addUniqueIds(html: string): string {
  * Note: This should be called AFTER applyPageLinks since it removes data-element-id
  */
 function cleanHtml(html: string): string {
-  return html
-    // Clean up class attributes - remove editor classes but keep others
-    .replace(/\sclass="([^"]*)"/g, (match, classes) => {
-      const cleaned = classes
-        .replace(/\beditable-element\b/g, '')
-        .replace(/\bselected\b/g, '')
-        .replace(/\bhas-page-link\b/g, '')
-        .replace(/\s+/g, ' ')
-        .trim();
-      if (!cleaned) return '';
-      return ` class="${cleaned}"`;
-    })
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  // Remove link badge spans
+  doc.querySelectorAll('.page-link-badge').forEach(el => el.remove());
+
+  // Clean all elements
+  doc.querySelectorAll('*').forEach(element => {
+    // Remove editor-specific classes
+    (element as HTMLElement).classList.remove('editable-element', 'selected', 'has-page-link');
+
     // Remove editor data attributes
-    .replace(/\s*data-element-id="[^"]*"/g, '')
-    .replace(/\s*data-page-link="[^"]*"/g, '')
-    // Remove link badges
-    .replace(/<span[^>]*class="[^"]*page-link-badge[^"]*"[^>]*>.*?<\/span>/gi, '')
-    // Remove editor scripts (but keep our onclick handlers)
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
-    // Remove editor styles
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, (match) => {
-      if (match.includes('.editable-element') || match.includes('.page-link-badge')) {
-        return '';
-      }
-      return match;
-    });
+    element.removeAttribute('data-element-id');
+    element.removeAttribute('data-page-link');
+    element.removeAttribute('data-applied-styles');
+
+    // Clean up empty class attributes
+    if ((element as HTMLElement).className === '') {
+      element.removeAttribute('class');
+    }
+  });
+
+  // Remove editor scripts
+  doc.querySelectorAll('script').forEach(el => el.remove());
+
+  // Remove editor styles
+  doc.querySelectorAll('style').forEach(style => {
+    const content = style.textContent || '';
+    if (content.includes('.editable-element') || content.includes('.page-link-badge')) {
+      style.remove();
+    }
+  });
+
+  return doc.body.innerHTML;
 }
 
 /**
@@ -132,11 +159,58 @@ function extractBodyContent(html: string): string {
 }
 
 /**
+ * Applies saved styles and HTML replacements to elements
+ * This ensures exported HTML includes all user modifications
+ */
+function applyMockupStyles(
+  html: string,
+  pageId: string,
+  mockupStyles: MockupStyles
+): string {
+  const stylesForPage = mockupStyles[pageId];
+  if (!stylesForPage || Object.keys(stylesForPage).length === 0) return html;
+
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+
+  Object.entries(stylesForPage).forEach(([elementId, elementData]) => {
+    const element = doc.querySelector(`[data-element-id="${elementId}"]`);
+    if (!element) return;
+
+    const { current } = elementData;
+
+    // If there's a replacement HTML, use it
+    if (current.html !== null) {
+      const temp = document.createElement('div');
+      temp.innerHTML = current.html;
+      const newElement = temp.firstElementChild;
+      if (newElement) {
+        // Preserve the element ID
+        newElement.setAttribute('data-element-id', elementId);
+        // Apply any additional styles on top
+        Object.entries(current.styles).forEach(([prop, value]) => {
+          (newElement as HTMLElement).style.setProperty(prop, value);
+        });
+        element.replaceWith(newElement);
+      }
+    } else {
+      // Just apply styles
+      Object.entries(current.styles).forEach(([prop, value]) => {
+        (element as HTMLElement).style.setProperty(prop, value);
+      });
+    }
+  });
+
+  return doc.body.innerHTML;
+}
+
+/**
  * Exports all mockup pages as a single HTML file with anchor navigation
  */
 export function exportAsSingleHTML(
   mockups: MockupPage[],
   pageLinks: PageLinks,
+  mockupStyles: MockupStyles,
   filename: string = 'website.html'
 ): void {
   if (mockups.length === 0) {
@@ -161,6 +235,9 @@ export function exportAsSingleHTML(
     // Add element IDs (must match EditableComponentsToString logic)
     content = addUniqueIds(content);
 
+    // Apply saved styles and variations - must be after addUniqueIds
+    content = applyMockupStyles(content, mockup.id, mockupStyles);
+
     // Apply page links (using anchors) - must be after addUniqueIds
     content = applyPageLinks(content, mockup.id, pageLinks, mockups, true);
 
@@ -174,12 +251,6 @@ export function exportAsSingleHTML(
     </section>`;
   }).join('\n');
 
-  // Build navigation
-  const navItems = mockups.map((mockup, index) => {
-    const slug = slugify(mockup.name);
-    return `<button class="nav-btn${index === 0 ? ' active' : ''}" onclick="showPage('${slug}')">${mockup.name}</button>`;
-  }).join('\n        ');
-
   // Build the complete HTML document
   const fullHtml = `<!DOCTYPE html>
 <html lang="en">
@@ -189,48 +260,21 @@ export function exportAsSingleHTML(
   <title>${filename.replace('.html', '')}</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; }
-
-    /* Navigation */
-    .page-nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: #1f2937;
-      padding: 12px 24px;
-      display: flex;
-      gap: 8px;
-      z-index: 9999;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    }
-    .nav-btn {
-      background: #374151;
-      color: white;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: background 0.2s;
-    }
-    .nav-btn:hover { background: #4b5563; }
-    .nav-btn.active { background: #6366f1; }
 
     /* Page sections */
     .page-section {
       min-height: 100vh;
-      padding-top: 60px; /* Account for fixed nav */
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
     }
   </style>
 </head>
 <body>
-  <!-- Navigation Bar -->
-  <nav class="page-nav">
-    ${navItems}
-  </nav>
-
   ${pageSections}
 
   <script>
@@ -246,15 +290,6 @@ export function exportAsSingleHTML(
         target.style.display = 'block';
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-
-      // Update nav buttons - remove active from all, add to matching one
-      document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('active');
-        const onclickStr = btn.getAttribute('onclick') || '';
-        if (onclickStr.includes("'" + slug + "'")) {
-          btn.classList.add('active');
-        }
-      });
     }
   </script>
 </body>
@@ -275,6 +310,7 @@ export function exportAsSingleHTML(
 export async function exportAsZip(
   mockups: MockupPage[],
   pageLinks: PageLinks,
+  mockupStyles: MockupStyles,
   filename: string = 'website.zip'
 ): Promise<void> {
   if (mockups.length === 0) {
@@ -302,6 +338,9 @@ export async function exportAsZip(
     // Add element IDs (must match EditableComponentsToString logic)
     let processedContent = addUniqueIds(bodyContent);
 
+    // Apply saved styles and variations - must be after addUniqueIds
+    processedContent = applyMockupStyles(processedContent, mockup.id, mockupStyles);
+
     // Apply page links (using file references) - must be after addUniqueIds
     processedContent = applyPageLinks(processedContent, mockup.id, pageLinks, mockups, false);
 
@@ -313,14 +352,6 @@ export async function exportAsZip(
 
     // If it's not a full HTML document, wrap it
     if (!content.toLowerCase().includes('<!doctype') && !content.toLowerCase().includes('<html')) {
-      // Build navigation for this page
-      const navItems = mockups.map((m, i) => {
-        const mSlug = slugify(m.name);
-        const href = i === 0 ? 'index.html' : `${mSlug}.html`;
-        const isActive = m.id === mockup.id;
-        return `<a href="${href}" class="nav-link${isActive ? ' active' : ''}">${m.name}</a>`;
-      }).join('\n          ');
-
       content = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -329,56 +360,17 @@ export async function exportAsZip(
   <title>${mockup.name}</title>
   <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; }
     body { font-family: system-ui, -apple-system, sans-serif; }
-
-    /* Navigation */
-    .page-nav {
-      background: #1f2937;
-      padding: 12px 24px;
-      display: flex;
-      gap: 8px;
-    }
-    .nav-link {
-      background: #374151;
-      color: white;
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
-      transition: background 0.2s;
-    }
-    .nav-link:hover { background: #4b5563; }
-    .nav-link.active { background: #6366f1; }
   </style>
 </head>
 <body>
-  <!-- Navigation Bar -->
-  <nav class="page-nav">
-    ${navItems}
-  </nav>
-
-  <!-- Page Content -->
-  <main>
-    ${content}
-  </main>
+  ${content}
 </body>
 </html>`;
-    } else {
-      // Inject navigation into existing HTML structure
-      const navHtml = `
-  <nav class="page-nav" style="background: #1f2937; padding: 12px 24px; display: flex; gap: 8px;">
-    ${mockups.map((m, i) => {
-      const mSlug = slugify(m.name);
-      const href = i === 0 ? 'index.html' : `${mSlug}.html`;
-      const isActive = m.id === mockup.id;
-      return `<a href="${href}" style="background: ${isActive ? '#6366f1' : '#374151'}; color: white; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-size: 14px;">${m.name}</a>`;
-    }).join('\n    ')}
-  </nav>`;
-
-      // Insert nav after <body> tag
-      content = content.replace(/<body([^>]*)>/i, `<body$1>\n${navHtml}`);
     }
+    // If it already has DOCTYPE/html structure, use it as-is
 
     zip.file(pageFilename, content);
   });

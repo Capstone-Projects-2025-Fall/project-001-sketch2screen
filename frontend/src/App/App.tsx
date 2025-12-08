@@ -378,13 +378,20 @@ export default function App() {
     notifyPageDeleted(id);
   };
 
-  /** 
+  /**
    * Generates HTML from current sketch via backend API
    * Only regenerates pages that have changed since last generation
+   * @param forceRegenerate - If true, regenerates all pages regardless of cache
    */
-  const handleGenerate = async () => {
+  const handleGenerate = async (forceRegenerate: boolean = false) => {
     try {
       setLoading(true);
+
+      // Use empty cache if forcing regeneration
+      const effectiveLastGeneratedScenes = forceRegenerate ? {} : lastGeneratedScenes;
+      if (forceRegenerate) {
+        console.log('🔄 Force regenerate: ignoring scene cache');
+      }
 
       //Snapshoting all page scenes at the moment Generate is clicked
       const sceneSnapshots = new Map<string, string>();
@@ -401,18 +408,18 @@ export default function App() {
           pageId: page.id,
           pageName: page.name,
           elementsCount: page.scene.elements?.length,
-          hasLastGenerated: !!lastGeneratedScenes[page.id]
+          hasLastGenerated: !!effectiveLastGeneratedScenes[page.id]
         });
         // Skip pages with no elements
         if (!page.scene.elements || page.scene.elements.length === 0) {
           console.log(`Skipping empty page "${page.name}"`);
           continue;
         }
-        
+
         // Serialize current scene
         const currentSceneSerialized = sceneSnapshots.get(page.id) ||serializeScene(page.scene);
-        const lastGeneratedScene = lastGeneratedScenes[page.id];
-        
+        const lastGeneratedScene = effectiveLastGeneratedScenes[page.id];
+
         console.log('🔴 Serialization comparison:', {
           pageId: page.id,
           currentLength: currentSceneSerialized.length,
@@ -625,7 +632,7 @@ export default function App() {
     }
 
     const projectName = filename?.replace('.sketch', '') || 'website';
-    exportAsSingleHTML(mockups, pageLinks, `${projectName}.html`);
+    exportAsSingleHTML(mockups, pageLinks, mockupStyles, `${projectName}.html`);
   };
 
   /**
@@ -638,7 +645,7 @@ export default function App() {
     }
 
     const projectName = filename?.replace('.sketch', '') || 'website';
-    await exportAsZip(mockups, pageLinks, `${projectName}.zip`);
+    await exportAsZip(mockups, pageLinks, mockupStyles, `${projectName}.zip`);
   };
 
   return (

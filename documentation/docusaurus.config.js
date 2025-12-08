@@ -101,7 +101,7 @@ const config = {
         specs: [
           {
             id: 'using-single-yaml',
-            spec: 'static/openapi.yml.yaml',
+            spec: 'static/api-doc.json',
             route: '/api/',
           },
         ],
@@ -231,22 +231,6 @@ const config = {
         systemvars: true,
       },
     ],
-    'plugin-image-zoom',
-    [
-      'docusaurus-plugin-typedoc',
-      {
-        entryPoints: ['../frontend/src/App/*.{ts,tsx}'],
-        entryPointStrategy: 'expand',
-        tsconfig: '../frontend/tsconfig.json',
-        useCodeBlocks: true,
-        excludePrivate: false,
-        excludeInternal: false,
-        out: 'docs/api-specification/FrontendAPI/',
-        
-      },
-    ],
-
-
 
   ],
 };

@@ -9,8 +9,8 @@ import PageSidebar from "./reusable_sidebar";
 import { LoadingSpinner } from "./LoadingScreen";
 import CollaborationDialog from "./CollaborationDialog";
 import WelcomeDialog from "./WelcomeDialog";
-import { downloadModifiedHTML, getCleanModifiedHTML } from "./utils/exportUtils";
-import { EditableComponents } from "./setting/EditableComponentsToString";
+import { downloadModifiedHTML } from "./utils/exportUtils";
+import { exportAsSingleHTML, exportAsZip } from "./utils/multiPageExport";
 import { useCollaboration } from "./useCollaboration";
 import type { SketchPage } from "./sketchPage";
 import { exportToBlob } from "@excalidraw/excalidraw";
@@ -167,6 +167,13 @@ export default function App() {
           html: string | null;
         }>;
       };
+    };
+  }>({});
+
+  /** Store page links: maps elementId to target page ID */
+  const [pageLinks, setPageLinks] = useState<{
+    [mockupPageId: string]: {
+      [elementId: string]: string; // elementId -> targetPageId
     };
   }>({});
   
@@ -583,7 +590,7 @@ export default function App() {
     }
   };
 
-  /** 
+  /**
    * Exports the currently visible mockup as an HTML file with all style changes applied
    */
   const handleExport = () => {
@@ -594,7 +601,7 @@ export default function App() {
 
     // Get the mockup component ref
     const iframeRef = mockupRef.current?.getIframeRef();
-    
+
     if (!iframeRef?.current) {
       alert("Iframe not available. Please try again.");
       return;
@@ -608,13 +615,41 @@ export default function App() {
     downloadModifiedHTML(iframeRef, `${activeMockup.name || "mockup"}.html`);
   };
 
+  /**
+   * Exports all mockup pages as a single HTML file with navigation
+   */
+  const handleExportSingleHTML = () => {
+    if (mockups.length === 0) {
+      alert("No mockups available to export. Please generate first.");
+      return;
+    }
+
+    const projectName = filename?.replace('.sketch', '') || 'website';
+    exportAsSingleHTML(mockups, pageLinks, `${projectName}.html`);
+  };
+
+  /**
+   * Exports all mockup pages as a ZIP file with individual HTML files
+   */
+  const handleExportZip = async () => {
+    if (mockups.length === 0) {
+      alert("No mockups available to export. Please generate first.");
+      return;
+    }
+
+    const projectName = filename?.replace('.sketch', '') || 'website';
+    await exportAsZip(mockups, pageLinks, `${projectName}.zip`);
+  };
+
   return (
     <div className={styles.appRoot}>
       <Navbar
         curPage={currentPage}
         onPageChange={setCurrentPage}
         onGenerate={handleGenerate}
-        onExport = {handleExport}
+        onExport={handleExport}
+        onExportSingleHTML={handleExportSingleHTML}
+        onExportZip={handleExportZip}
         filename={filename}
         onFilenameChange={setFilename}
         onStartCollab={handleShowCollaboration}
@@ -662,7 +697,7 @@ export default function App() {
 
       
         {/*Mockup view*/}
-        {currentPage === Page.Mockup && <Mockup ref={mockupRef} mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} mockupStyles = {mockupStyles} setMockupStyles = {setMockupStyles}/>}
+        {currentPage === Page.Mockup && <Mockup ref={mockupRef} mockups={mockups} activePageId={activePageId} onSelectPage={setActivePageId} mockupStyles={mockupStyles} setMockupStyles={setMockupStyles} pageLinks={pageLinks} setPageLinks={setPageLinks} />}
 
         {/* Loading overlay */}
         {loading && (

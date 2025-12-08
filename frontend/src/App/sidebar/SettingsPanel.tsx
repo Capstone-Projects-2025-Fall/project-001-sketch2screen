@@ -1,6 +1,11 @@
 import { useEffect, useState, useRef } from 'react';
 import styles from '../App.module.css';
 
+type PageInfo = {
+  id: string;
+  name: string;
+};
+
 type SettingsPanelProps = {
   selectedElement: {
     id: string;
@@ -9,6 +14,12 @@ type SettingsPanelProps = {
   } | null;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   onStyleChange?: (elementId: string, property: string, value: string) => void;
+  /** Available pages for linking */
+  availablePages?: PageInfo[];
+  /** Current page link for the selected element */
+  currentPageLink?: string | null;
+  /** Handler for page link changes */
+  onPageLinkChange?: (elementId: string, targetPageId: string | null) => void;
 };
 
 type StyleValues = {
@@ -22,7 +33,7 @@ type StyleValues = {
   borderRadius: string;
 };
 
-export default function SettingsPanel({ selectedElement, iframeRef, onStyleChange }: SettingsPanelProps) {
+export default function SettingsPanel({ selectedElement, iframeRef, onStyleChange, availablePages = [], currentPageLink, onPageLinkChange }: SettingsPanelProps) {
   const [styleValues, setStyleValues] = useState<StyleValues>({
     width: '',
     height: '',
@@ -295,6 +306,36 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
         </div>
       )}
 
+      {/* Page Link Section */}
+      {availablePages.length > 0 && (
+        <div className={styles.settingsGroup}>
+          <label className={styles.pageLinkLabel}>
+            Link to Page:
+            {currentPageLink && <span className={styles.linkIndicator}>🔗</span>}
+          </label>
+          <select
+            className={styles.pageLinkSelect}
+            value={currentPageLink || ''}
+            onChange={(e) => {
+              if (selectedElement && onPageLinkChange) {
+                onPageLinkChange(selectedElement.id, e.target.value || null);
+              }
+            }}
+          >
+            <option value="">None (no link)</option>
+            {availablePages.map((page) => (
+              <option key={page.id} value={page.id}>
+                {page.name}
+              </option>
+            ))}
+          </select>
+          {currentPageLink && (
+            <p className={styles.linkHint}>
+              This element will navigate to "{availablePages.find(p => p.id === currentPageLink)?.name}" on click
+            </p>
+          )}
+        </div>
+      )}
 
     </div>
   );

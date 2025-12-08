@@ -1,7 +1,7 @@
 {
   "name": "frontend",
   "private": true,
-  "version": "0.3.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
   "dependencies": {
     "@excalidraw/excalidraw": "^0.18.0",
     "dompurify": "^3.2.7",
+    "jszip": "^3.10.1",
     "konva": "^10.0.2",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

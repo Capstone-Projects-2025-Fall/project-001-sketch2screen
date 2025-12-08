@@ -135,10 +135,51 @@
 
 .generateButton:hover {
   background-position: right center; /* change the direction of the change here */
-  color: rgb(15, 10, 103);  
+  color: rgb(15, 10, 103);
   text-decoration: none;
 }
-                  
+
+/* --- Export Dropdown --- */
+.exportDropdownContainer {
+  position: relative;
+  display: inline-block;
+}
+
+.exportDropdownMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.exportDropdownItem {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  background: none;
+  border: none;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.exportDropdownItem:hover {
+  background: #f3f4f6;
+}
+
+.exportDropdownItem:not(:last-child) {
+  border-bottom: 1px solid #e5e7eb;
+}
+
 /* --- Sketch page tabs (multi-page) --- */
 .pageTabs {
   display: flex;
@@ -743,4 +784,39 @@
 
 .emptyState p {
   margin: 0;
+}
+
+/* === Page Link Styles === */
+.pageLinkLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.linkIndicator {
+  font-size: 14px;
+}
+
+.pageLinkSelect {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 13px;
+  color: #111827;
+  background: white;
+  cursor: pointer;
+}
+
+.pageLinkSelect:focus {
+  outline: 2px solid #6366f1;
+  outline-offset: -1px;
+  border-color: #6366f1;
+}
+
+.linkHint {
+  margin: 4px 0 0 0;
+  font-size: 11px;
+  color: #6b7280;
+  font-style: italic;
 }

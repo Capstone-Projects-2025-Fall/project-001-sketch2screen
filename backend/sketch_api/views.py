@@ -73,7 +73,7 @@ class GenerateMultiView(APIView):
     async def one_page(self, i, request):
         file_key = f"file_{i}"
         name_key = f"name_{i}"
-        id_key = f"id={i}"
+        id_key = f"id_{i}"
 
         up_file = request.FILES.get(file_key)
         page_name = request.POST.get(name_key, f"Page {i+1}")

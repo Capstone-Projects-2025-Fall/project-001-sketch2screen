@@ -60,7 +60,17 @@ type Props = {
       };
     };
   }>>;
-  
+  /** Page links: maps elementId to target page ID per mockup page */
+  pageLinks: {
+    [mockupPageId: string]: {
+      [elementId: string]: string;
+    };
+  };
+  setPageLinks: React.Dispatch<React.SetStateAction<{
+    [mockupPageId: string]: {
+      [elementId: string]: string;
+    };
+  }>>;
 };
 
 export interface MockupHandle {
@@ -73,7 +83,7 @@ export interface MockupHandle {
  * @param props.mockups - Array of generated mockups to display
  */
 
-const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, onSelectPage, mockupStyles, setMockupStyles }: Props, ref) => {
+const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, onSelectPage, mockupStyles, setMockupStyles, pageLinks, setPageLinks }: Props, ref) => {
   /** Sidebar expanded or not */
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   //State for active tab
@@ -122,7 +132,6 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
     );
   }
 
-  /**  Listen for element selection messages from iframe*/
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'ELEMENT_SELECTED') {
@@ -149,7 +158,7 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
     return () => window.removeEventListener('message', handleMessage);
   }, [activeTab]);
 
-  // Reset to Pages tab when switching mockup pages
+  // Reset to Pages tab
     useEffect(() => {
       setActiveTab('pages');
     }, [activePageId]);
@@ -157,7 +166,6 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
   /** Keyboard Listener for Ctrl+Z and Ctrl+Y */
   useEffect(() => {
   const handleKeyDown = (e: KeyboardEvent) => {
-    // Only handle if element is selected and we're on Settings or Variations tab
     if (!selectedElement || activeTab === 'pages') return;
     
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
@@ -173,23 +181,32 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
   return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedElement, activeTab, activePageId, mockupStyles]);
 
-  // Listen for iframe loaded and inject saved styles
+  // Listen for iframe loaded and inject saved styles and page links
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'IFRAME_LOADED' && activePageId) {
-        // Send all saved styles for this page to iframe
-        const pageStyles = mockupStyles[activePageId];
-        if (pageStyles) {
-          Object.entries(pageStyles).forEach(([elementId, data]) => {
+        // Send all saved styles for this page
+        const pageStylesForPage = mockupStyles[activePageId];
+        if (pageStylesForPage) {
+          Object.entries(pageStylesForPage).forEach(([elementId, data]) => {
             applyStateToIframe(elementId, data.current);
           });
         }
+
+        // Send all page links
+        const pageLinksForPage = pageLinks[activePageId];
+        if (pageLinksForPage && iframeRef.current?.contentWindow) {
+          iframeRef.current.contentWindow.postMessage({
+            type: 'INJECT_PAGE_LINKS',
+            links: pageLinksForPage,
+          }, '*');
+        }
       }
     };
-    
+
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [activePageId, mockupStyles]);
+  }, [activePageId, mockupStyles, pageLinks]);
 
     
   // Handle applying a variation
@@ -210,7 +227,6 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
 
   };
 
-   // Close variation sidebar
   const handleCloseSidebar = () => {
     setSelectedElement(null);
   };
@@ -367,12 +383,8 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
     setMockupStyles(prev => {
       const pageStyles = prev[activePageId];
       const element = pageStyles[selectedElement.id];
-      
-      // Pop from future
       const newFuture = [...element.future];
       const nextState = newFuture.shift()!;
-      
-      // Push current to history
       const newHistory = [...element.history, element.current];
       
       return {
@@ -396,16 +408,14 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
   // Apply a state to iframe (for undo/redo)
   const applyStateToIframe = (elementId: string, state: { styles: { [property: string]: string }; html: string | null }) => {
     if (!iframeRef.current?.contentWindow) return;
-    
+
     if (state.html !== null) {
-      // Apply variation HTML
       iframeRef.current.contentWindow.postMessage({
         type: 'APPLY_VARIATION',
         elementId,
         newHtml: state.html,
       }, '*');
     } else {
-      // Restore original and apply styles
       iframeRef.current.contentWindow.postMessage({
         type: 'RESTORE_ORIGINAL',
         elementId,
@@ -414,6 +424,39 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
     }
   };
 
+  // Handle page link change for an element
+  const handlePageLinkChange = (elementId: string, targetPageId: string | null) => {
+    if (!activePageId) return;
+
+    setPageLinks(prev => {
+      const pageLinksForCurrentPage = prev[activePageId] ? { ...prev[activePageId] } : {};
+
+      if (targetPageId === null || targetPageId === '') {
+        delete pageLinksForCurrentPage[elementId];
+      } else {
+        pageLinksForCurrentPage[elementId] = targetPageId;
+      }
+
+      return {
+        ...prev,
+        [activePageId]: pageLinksForCurrentPage,
+      };
+    });
+
+    // Notify iframe to show/hide link indicator
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'SET_PAGE_LINK',
+        elementId,
+        targetPageId,
+      }, '*');
+    }
+  };
+
+  const getCurrentPageLink = (): string | null => {
+    if (!activePageId || !selectedElement) return null;
+    return pageLinks[activePageId]?.[selectedElement.id] || null;
+  };
 
   return (
     <div className={styles.mockupContainer}>
@@ -475,10 +518,13 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
 
             {/* Settings Tab */}
             {activeTab === 'settings' && (
-              <SettingsPanel 
-                selectedElement={selectedElement} 
+              <SettingsPanel
+                selectedElement={selectedElement}
                 iframeRef={iframeRef}
                 onStyleChange={handleStyleChangeWithHistory}
+                availablePages={mockups}
+                currentPageLink={getCurrentPageLink()}
+                onPageLinkChange={handlePageLinkChange}
               />
             )}
 

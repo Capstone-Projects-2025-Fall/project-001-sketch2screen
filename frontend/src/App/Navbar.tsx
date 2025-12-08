@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import {Page} from "./App.tsx"
 import styles from "./App.module.css"
 
@@ -15,8 +16,12 @@ type Props = {
   onStartCollab?: () => void;
   /** Callback to generate mockup */
   onGenerate?: () => void;
-  /** Callback to export code */
+  /** Callback to export single page */
   onExport?: () => void;
+  /** Callback to export all pages as single HTML */
+  onExportSingleHTML?: () => void;
+  /** Callback to export all pages as ZIP */
+  onExportZip?: () => void;
 };
 
 /**
@@ -41,14 +46,19 @@ type Props = {
  * ```
  */
 export default function Navbar({
-  curPage, 
-  onPageChange, 
-  filename = "untitled.sketch", 
-  onFilenameChange, 
-  onStartCollab, 
+  curPage,
+  onPageChange,
+  filename = "untitled.sketch",
+  onFilenameChange,
+  onStartCollab,
   onGenerate,
-  onExport
+  onExport,
+  onExportSingleHTML,
+  onExportZip
 }: Props) {
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
   /** Handles changes to the filename input */
   const handleNameInput: React.ChangeEventHandler<HTMLInputElement> = (e) => {
     onFilenameChange?.(e.target.value);
@@ -58,6 +68,18 @@ export default function Navbar({
   const handleKeyDown: React.KeyboardEventHandler<HTMLInputElement> = (e) => {
     if (e.key === "Enter") (e.target as HTMLInputElement).blur();
   };
+
+  // Close export menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target as Node)) {
+        setShowExportMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return<div className={styles.navbar}>
     <div className={styles.logo}>
@@ -74,7 +96,7 @@ export default function Navbar({
         />
     </div>
     <div className={styles.pageSwitcher}>
-      <button 
+      <button
         className={styles.pageSwitchButton + " " + (curPage===Page.Drawing && styles.pageSwitchSelected)}
         onClick={()=>onPageChange(Page.Drawing)}
       >
@@ -91,9 +113,42 @@ export default function Navbar({
       <button className={styles.collabButton} onClick={onStartCollab}>
         Collaborate
       </button>
-      <button className={styles.generateButton} onClick={curPage === Page.Mockup ? onExport : onGenerate}>
-        {curPage === Page.Mockup ? "Export code" : "Generate"}
-      </button>
+      {curPage === Page.Mockup ? (
+        <div className={styles.exportDropdownContainer} ref={exportMenuRef}>
+          <button
+            className={styles.generateButton}
+            onClick={() => setShowExportMenu(!showExportMenu)}
+          >
+            Export ▾
+          </button>
+          {showExportMenu && (
+            <div className={styles.exportDropdownMenu}>
+              <button
+                className={styles.exportDropdownItem}
+                onClick={() => { onExport?.(); setShowExportMenu(false); }}
+              >
+                Current Page
+              </button>
+              <button
+                className={styles.exportDropdownItem}
+                onClick={() => { onExportSingleHTML?.(); setShowExportMenu(false); }}
+              >
+                All Pages (Single HTML)
+              </button>
+              <button
+                className={styles.exportDropdownItem}
+                onClick={() => { onExportZip?.(); setShowExportMenu(false); }}
+              >
+                All Pages (ZIP)
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <button className={styles.generateButton} onClick={onGenerate}>
+          Generate
+        </button>
+      )}
     </div>
   </div>
 }

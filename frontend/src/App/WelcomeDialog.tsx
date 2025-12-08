@@ -128,10 +128,8 @@ export default function WelcomeDialog({ isOpen, onClose }: WelcomeDialogProps) {
               color: '#374151',
               lineHeight: '1.8',
             }}>
-              <li>• Real-time collaboration - work together with your team</li>
-              <li>• AI-powered code generation - transform sketches to HTML/CSS</li>
-              <li>• Multi-page sketch support with individual exports</li>
-              <li>• Export individual pages as HTML files</li>
+              <li>• Page linking - select elements to link to other pages</li>
+              <li>• Enhanced export - export multiple pages together or separately</li>
             </ul>
           </div>
         </div>

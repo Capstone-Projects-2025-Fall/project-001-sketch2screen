@@ -1,0 +1,267 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Sketch to Screen API",
+    "description": "API documentation for the backend services handling sketch-to-HTML generation, component variations, and real-time collaboration.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8000/api",
+      "description": "REST API Base URL"
+    },
+    {
+      "url": "ws://localhost:8000",
+      "description": "WebSocket Base URL"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "API Connection Test",
+        "description": "Simple test endpoint to verify frontend-backend connection.",
+        "operationId": "apiTest",
+        "responses": {
+          "200": {
+            "description": "Successful connection",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "success"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Backend is connected!"
+                    },
+                    "method": {
+                      "type": "string",
+                      "example": "GET"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/generate/": {
+      "post": {
+        "summary": "Generate Single Page Mockup",
+        "description": "Uploads a single sketch image and converts it into HTML/CSS code.",
+        "operationId": "generateMockup",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The sketch image file (PNG/JPG). Max size 10MB."
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "description": "Optional text prompt to guide the generation."
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Generation successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "html": {
+                      "type": "string",
+                      "description": "The generated HTML code string."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request (Missing file or invalid type)"
+          },
+          "413": {
+            "description": "File too large (>10MB)"
+          },
+          "500": {
+            "description": "Internal Server Error (AI Generation failed)"
+          }
+        }
+      }
+    },
+    "/generate-multi/": {
+      "post": {
+        "summary": "Generate Multiple Mockups",
+        "description": "Uploads multiple sketch images to generate multiple HTML pages in parallel. Note: Files must be indexed (file_0, file_1, etc.).",
+        "operationId": "generateMultiMockup",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "count": {
+                    "type": "integer",
+                    "description": "Total number of files being uploaded (1-20).",
+                    "minimum": 1,
+                    "maximum": 20
+                  },
+                  "file_0": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "First file upload. Pattern: file_{i}"
+                  },
+                  "name_0": {
+                    "type": "string",
+                    "description": "Name for the first page. Pattern: name_{i}"
+                  },
+                  "id=0": {
+                    "type": "string",
+                    "description": "ID for the first page. Pattern: id={i}"
+                  }
+                },
+                "required": ["count"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Batch generation successful",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": { "type": "string" },
+                          "html": { "type": "string" },
+                          "error": { "type": "string" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid count or missing fields"
+          }
+        }
+      }
+    },
+    "/generate-variations/": {
+      "post": {
+        "summary": "Generate Component Variations",
+        "description": "Generates design variations for a specific HTML element/component.",
+        "operationId": "generateVariations",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "element_html": {
+                    "type": "string",
+                    "description": "The HTML code of the component to modify."
+                  },
+                  "element_type": {
+                    "type": "string",
+                    "default": "component",
+                    "description": "Type of element (e.g., 'button', 'card')."
+                  },
+                  "prompt": {
+                    "type": "string",
+                    "description": "Custom instructions for the variation (e.g., 'Make it darker')."
+                  },
+                  "count": {
+                    "type": "integer",
+                    "default": 3,
+                    "minimum": 1,
+                    "maximum": 10,
+                    "description": "Number of variations to generate."
+                  }
+                },
+                "required": ["element_html"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Variations generated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "variations": {
+                      "type": "array",
+                      "items": {
+                        "type": "string",
+                        "description": "HTML string of a variation."
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON or missing required fields"
+          },
+          "500": {
+            "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/ws/collab/{collabID}/": {
+      "get": {
+        "summary": "Real-time Collaboration WebSocket",
+        "description": "Initiates a WebSocket connection for real-time collaboration on a specific sketch session. Connect using 'ws://' or 'wss://'.",
+        "operationId": "connectCollaboration",
+        "parameters": [
+          {
+            "name": "collabID",
+            "in": "path",
+            "required": true,
+            "description": "Unique numeric ID of the collaboration session",
+            "schema": {
+              "type": "string",
+              "pattern": "^\\d+$"
+            }
+          }
+        ],
+        "responses": {
+          "101": {
+            "description": "Switching Protocols - WebSocket connection established."
+          }
+        }
+      }
+    }
+  }
+}

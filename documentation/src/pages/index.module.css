@@ -40,3 +40,26 @@
   color: var(--ifm-color-emphasis-700);
 }
 
+.heroDescription {
+  font-size: 1.25rem;
+  color: white;
+  margin-top: 1.5rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+.heroLink {
+  color: #ffd700;
+  font-weight: 600;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transition: all 0.3s ease;
+}
+
+.heroLink:hover {
+  color: #fff;
+  text-decoration-color: #fff;
+  transform: translateY(-1px);
+}
+

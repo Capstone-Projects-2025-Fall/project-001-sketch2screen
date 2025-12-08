@@ -134,14 +134,7 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
           originalElements.set(element.dataset.elementId, element.outerHTML);
         });
 
-        // Notify parent that iframe has loaded
-        if (window.parent && window.parent.postMessage) {
-          window.parent.postMessage({
-            type: 'IFRAME_LOADED'
-          }, '*');
-        }
-
-        // Listen for messages from parent
+        // Listen for messages from parent - MUST be set up BEFORE notifying parent
         window.addEventListener('message', function(event) {
           // Get element styles request
           if (event.data.type === 'GET_ELEMENT_STYLES') {
@@ -410,6 +403,13 @@ export const EditableComponents: React.FC<EditableComponentsProps> = ({
           }
 
         });
+
+        // Notify parent that iframe has loaded - AFTER message listener is set up
+        if (window.parent && window.parent.postMessage) {
+          window.parent.postMessage({
+            type: 'IFRAME_LOADED'
+          }, '*');
+        }
   </script>
       `;
 

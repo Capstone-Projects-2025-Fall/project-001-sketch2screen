@@ -19,6 +19,7 @@ import App from "./App/App.tsx"
  */
 createRoot(document.getElementById('root')!).render(
 //i swear this is necessary i hate excalidraw
+//same i hate it too
 //  <StrictMode>
     <App/>
 //  </StrictMode>,

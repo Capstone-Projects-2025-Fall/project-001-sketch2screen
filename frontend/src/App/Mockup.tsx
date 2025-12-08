@@ -2,7 +2,7 @@
 //This is just for safety purposes. You can remove it if you want. It just detects unsafe HTML code.
 import DOMPurify from "dompurify";
 import styles from "./App.module.css";
-import {useState, useRef, forwardRef, useImperativeHandle} from "react";
+import {useState, useRef, forwardRef, useImperativeHandle, useCallback} from "react";
 import type { Mock } from "node:test";
 import { OutputPage } from "./setting/OutputPage";
 import { useEffect } from 'react';
@@ -105,7 +105,6 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
   /** Currently active mockup */
   const activeMockup = mockups.find((m) => m.id === activePageId);
 
-
   /** Clean HTML */
   // Clean markdown fences from mockup HTML
   const cleanedHtml = activeMockup 
@@ -123,15 +122,29 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
     ADD_ATTR: ['target']
   }) : "";
   
-  /**Message if no mockups */
-  if (mockups.length === 0) {
-    return (
-      <div className={styles.mockup}>
-        <em>No mockup yet. Draw your sketch and press "Generate".</em>
-      </div>
-    );
-  }
+  // Initialize element in history if it does not exist
+  // MUST be defined before useEffects that use it
+  const initializeElementHistory = useCallback((elementId: string) => {
+    if (!activePageId) return;
 
+    setMockupStyles(prev => {
+      if (prev[activePageId]?.[elementId]) return prev; // Already exists
+
+      return {
+        ...prev,
+        [activePageId]: {
+          ...prev[activePageId],
+          [elementId]: {
+            current: { styles: {}, html: null },
+            history: [],
+            future: [],
+          },
+        },
+      };
+    });
+  }, [activePageId, setMockupStyles]);
+
+  // Handle element selection messages from iframe
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'ELEMENT_SELECTED') {
@@ -140,60 +153,54 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
           html: event.data.elementHtml,
           type: event.data.elementType,
         });
-        
-        //Initialize element in history if needed
+
         initializeElementHistory(event.data.elementId);
 
-        // Auto-switch to Settings tab only if currently on Pages tab
         if (activeTab === 'pages') {
           setActiveTab('settings');
         }
-      } else if (event.data.type === 'APPLY_VARIATION') {
-        // Variation was applied - could add success notification here
-        console.log('Variation applied:', event.data.elementId);
       }
     };
-    
+
     window.addEventListener('message', handleMessage);
     return () => window.removeEventListener('message', handleMessage);
-  }, [activeTab]);
+  }, [activeTab, activePageId, initializeElementHistory]);
 
-  // Reset to Pages tab
-    useEffect(() => {
-      setActiveTab('pages');
-    }, [activePageId]);
+  // Reset to Pages tab when page changes
+  useEffect(() => {
+    setActiveTab('pages');
+  }, [activePageId]);
 
   /** Keyboard Listener for Ctrl+Z and Ctrl+Y */
   useEffect(() => {
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (!selectedElement || activeTab === 'pages') return;
-    
-    if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-      e.preventDefault();
-      handleUndo();
-    } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
-      e.preventDefault();
-      handleRedo();
-    }
-  };
-  
-  window.addEventListener('keydown', handleKeyDown);
-  return () => window.removeEventListener('keydown', handleKeyDown);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!selectedElement || activeTab === 'pages') return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } else if ((e.ctrlKey || e.metaKey) && e.key === 'y') {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [selectedElement, activeTab, activePageId, mockupStyles]);
 
   // Listen for iframe loaded and inject saved styles and page links
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
       if (event.data.type === 'IFRAME_LOADED' && activePageId) {
-        // Send all saved styles for this page
         const pageStylesForPage = mockupStyles[activePageId];
+
         if (pageStylesForPage) {
           Object.entries(pageStylesForPage).forEach(([elementId, data]) => {
             applyStateToIframe(elementId, data.current);
           });
         }
 
-        // Send all page links
         const pageLinksForPage = pageLinks[activePageId];
         if (pageLinksForPage && iframeRef.current?.contentWindow) {
           iframeRef.current.contentWindow.postMessage({
@@ -208,49 +215,23 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
     return () => window.removeEventListener('message', handleMessage);
   }, [activePageId, mockupStyles, pageLinks]);
 
-    
+  /**Message if no mockups */
+  if (mockups.length === 0) {
+    return (
+      <div className={styles.mockup}>
+        <em>No mockup yet. Draw your sketch and press "Generate".</em>
+      </div>
+    );
+  }
+
   // Handle applying a variation
   const handleApplyVariation = (newHtml: string) => {
-    console.log('🔵 Mockup: Applying variation', {
-        elementId: selectedElement?.id,
-        newHtml: newHtml.substring(0, 30),
-        iframeExists: !!iframeRef.current,
-        iframeContentWindow: !!iframeRef.current?.contentWindow
-      });
-
-    if (!iframeRef.current || !selectedElement){
-          console.error('❌ Cannot apply: iframe or selectedElement missing');
-          return;
-    }
-
+    if (!iframeRef.current || !selectedElement) return;
     handleApplyVariationWithHistory(newHtml);
-
   };
 
   const handleCloseSidebar = () => {
     setSelectedElement(null);
-  };
-
-  // Initialize element in history if it does not exist
-
-    const initializeElementHistory = (elementId: string) => {
-    if (!activePageId) return;
-    
-    setMockupStyles(prev => {
-      if (prev[activePageId]?.[elementId]) return prev; // Already exists
-      
-      return {
-        ...prev,
-        [activePageId]: {
-          ...prev[activePageId],
-          [elementId]: {
-            current: { styles: {}, html: null },
-            history: [],
-            future: [],
-          },
-        },
-      };
-    });
   };
 
   // Push current state to history and update with new state
@@ -317,17 +298,9 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
   // Handle variation application with history
   const handleApplyVariationWithHistory = (newHtml: string) => {
     if (!selectedElement || !activePageId) return;
-    
-    // Get current state
-    const currentData = mockupStyles[activePageId]?.[selectedElement.id]?.current || {
-      styles: {},
-      html: null,
-    };
-    
-    // Push to history (variation clears styles - Option A)
+
     pushToHistory(selectedElement.id, {}, newHtml);
-    
-    // Send to iframe
+
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage({
         type: 'APPLY_VARIATION',

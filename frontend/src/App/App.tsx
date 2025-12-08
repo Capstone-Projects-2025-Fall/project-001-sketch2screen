@@ -625,14 +625,14 @@ export default function App() {
   /**
    * Exports all mockup pages as a single HTML file with navigation
    */
-  const handleExportSingleHTML = () => {
+  const handleExportSingleHTML = async () => {
     if (mockups.length === 0) {
       alert("No mockups available to export. Please generate first.");
       return;
     }
 
     const projectName = filename?.replace('.sketch', '') || 'website';
-    exportAsSingleHTML(mockups, pageLinks, mockupStyles, `${projectName}.html`);
+    await exportAsSingleHTML(mockups, pageLinks, mockupStyles, `${projectName}.html`);
   };
 
   /**

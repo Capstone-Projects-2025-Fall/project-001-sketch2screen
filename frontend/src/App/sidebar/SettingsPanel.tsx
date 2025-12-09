@@ -14,6 +14,8 @@ type SettingsPanelProps = {
   } | null;
   iframeRef: React.RefObject<HTMLIFrameElement | null>;
   onStyleChange?: (elementId: string, property: string, value: string) => void;
+  /** Handler for attribute changes (e.g., image src) */
+  onAttributeChange?: (elementId: string, attribute: string, value: string) => void;
   /** Available pages for linking */
   availablePages?: PageInfo[];
   /** Current page link for the selected element */
@@ -33,7 +35,7 @@ type StyleValues = {
   borderRadius: string;
 };
 
-export default function SettingsPanel({ selectedElement, iframeRef, onStyleChange, availablePages = [], currentPageLink, onPageLinkChange }: SettingsPanelProps) {
+export default function SettingsPanel({ selectedElement, iframeRef, onStyleChange, onAttributeChange, availablePages = [], currentPageLink, onPageLinkChange }: SettingsPanelProps) {
   const [styleValues, setStyleValues] = useState<StyleValues>({
     width: '',
     height: '',
@@ -161,13 +163,19 @@ export default function SettingsPanel({ selectedElement, iframeRef, onStyleChang
     }
 
     imageSrcDebounceTimer.current = setTimeout(() => {
-      if (selectedElement && iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage({
-          type: 'UPDATE_ELEMENT_ATTRIBUTE',
-          elementId: selectedElement.id,
-          attribute: 'src',
-          value: newSrc,
-        }, '*');
+      if (selectedElement) {
+        // Use onAttributeChange to store the change and send to iframe
+        if (onAttributeChange) {
+          onAttributeChange(selectedElement.id, 'src', newSrc);
+        } else if (iframeRef.current?.contentWindow) {
+          // Fallback: send directly to iframe if no handler provided
+          iframeRef.current.contentWindow.postMessage({
+            type: 'UPDATE_ELEMENT_ATTRIBUTE',
+            elementId: selectedElement.id,
+            attribute: 'src',
+            value: newSrc,
+          }, '*');
+        }
       }
     }, 300);
   };

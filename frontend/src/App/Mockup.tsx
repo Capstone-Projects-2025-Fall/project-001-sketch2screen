@@ -30,14 +30,17 @@ type Props = {
         current: {
           styles: { [property: string]: string };
           html: string | null;
+          attributes?: { [attribute: string]: string };
         };
         history: Array<{
           styles: { [property: string]: string };
           html: string | null;
+          attributes?: { [attribute: string]: string };
         }>;
         future: Array<{
           styles: { [property: string]: string };
           html: string | null;
+          attributes?: { [attribute: string]: string };
         }>;
       };
     };
@@ -48,14 +51,17 @@ type Props = {
         current: {
           styles: { [property: string]: string };
           html: string | null;
+          attributes?: { [attribute: string]: string };
         };
         history: Array<{
           styles: { [property: string]: string };
           html: string | null;
+          attributes?: { [attribute: string]: string };
         }>;
         future: Array<{
           styles: { [property: string]: string };
           html: string | null;
+          attributes?: { [attribute: string]: string };
         }>;
       };
     };
@@ -271,25 +277,68 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
   // Handle style change from Settings panel
   const handleStyleChangeWithHistory = (elementId: string, property: string, value: string) => {
     if (!activePageId) return;
-    
+
     // Get current state
     const currentData = mockupStyles[activePageId]?.[elementId]?.current || {
       styles: {},
       html: null,
+      attributes: {},
     };
-    
+
     // Create new styles object
     const newStyles = { ...currentData.styles, [property]: value };
-    
+
     // Push to history and update
     pushToHistory(elementId, newStyles, currentData.html);
-    
+
     // Send to iframe
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage({
         type: 'UPDATE_ELEMENT_STYLE',
         elementId,
         property,
+        value,
+      }, '*');
+    }
+  };
+
+  // Handle attribute change from Settings panel (e.g., image src)
+  const handleAttributeChange = (elementId: string, attribute: string, value: string) => {
+    if (!activePageId) return;
+
+    // Store attribute in mockupStyles
+    setMockupStyles(prev => {
+      const pageStyles = prev[activePageId] || {};
+      const elementData = pageStyles[elementId] || {
+        current: { styles: {}, html: null, attributes: {} },
+        history: [],
+        future: [],
+      };
+
+      return {
+        ...prev,
+        [activePageId]: {
+          ...pageStyles,
+          [elementId]: {
+            ...elementData,
+            current: {
+              ...elementData.current,
+              attributes: {
+                ...elementData.current.attributes,
+                [attribute]: value,
+              },
+            },
+          },
+        },
+      };
+    });
+
+    // Send to iframe
+    if (iframeRef.current?.contentWindow) {
+      iframeRef.current.contentWindow.postMessage({
+        type: 'UPDATE_ELEMENT_ATTRIBUTE',
+        elementId,
+        attribute,
         value,
       }, '*');
     }
@@ -378,8 +427,8 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
     applyStateToIframe(selectedElement.id, nextState);
   };
 
-  // Apply a state to iframe (for undo/redo)
-  const applyStateToIframe = (elementId: string, state: { styles: { [property: string]: string }; html: string | null }) => {
+  // Apply a state to iframe (for undo/redo and page switch restore)
+  const applyStateToIframe = (elementId: string, state: { styles: { [property: string]: string }; html: string | null; attributes?: { [attribute: string]: string } }) => {
     if (!iframeRef.current?.contentWindow) return;
 
     if (state.html !== null) {
@@ -394,6 +443,18 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
         elementId,
         styles: state.styles,
       }, '*');
+    }
+
+    // Apply attributes (e.g., image src)
+    if (state.attributes) {
+      Object.entries(state.attributes).forEach(([attribute, value]) => {
+        iframeRef.current!.contentWindow!.postMessage({
+          type: 'UPDATE_ELEMENT_ATTRIBUTE',
+          elementId,
+          attribute,
+          value,
+        }, '*');
+      });
     }
   };
 
@@ -495,6 +556,7 @@ const Mockup = forwardRef<MockupHandle, Props>(({ mockups = [], activePageId, on
                 selectedElement={selectedElement}
                 iframeRef={iframeRef}
                 onStyleChange={handleStyleChangeWithHistory}
+                onAttributeChange={handleAttributeChange}
                 availablePages={mockups}
                 currentPageLink={getCurrentPageLink()}
                 onPageLinkChange={handlePageLinkChange}

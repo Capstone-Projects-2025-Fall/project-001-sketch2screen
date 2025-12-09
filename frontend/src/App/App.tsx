@@ -150,21 +150,24 @@ export default function App() {
   };
 
 
-  /** Store Style and Variations changes per mockup page  */
+  /** Store Style, Variations, and Attribute changes per mockup page  */
   const [mockupStyles, setMockupStyles] = useState<{
     [mockupPageId: string]: {
       [elementId: string]: {
         current: {
           styles: { [property: string]: string };
           html: string | null;
+          attributes?: { [attribute: string]: string };
         };
         history: Array<{
           styles: { [property: string]: string };
           html: string | null;
+          attributes?: { [attribute: string]: string };
         }>;
         future: Array<{
           styles: { [property: string]: string };
           html: string | null;
+          attributes?: { [attribute: string]: string };
         }>;
       };
     };
